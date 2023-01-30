@@ -1,0 +1,19 @@
+Package: pacta.supervisor.analysis
+Title: Functions to Help Interpret PACTA for Banks Results for Many Institutions
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = "Jacob",
+             family = "Kastl",
+             role = c("aut", "cre"),
+             email = "jacob.kastl@gmail.com"),
+      person(given = "Rocky Mountain Institute",
+             role = c("cph", "fnd"),
+             email = "PACTA4banks@rmi.org"))
+Description: This is an experimental package that contains functions to help
+    interpret PACTA for Banks results, with a focus on making it easy to
+    navigate and understand results across a large number of banks and loan
+    books.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
