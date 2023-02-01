@@ -23,7 +23,8 @@ library(vroom)
 # output_directory_p4b_aggregated <- file.path("/path/to/input/directory/aggregated")
 
 # load input data----
-scenario_input <- read.csv(input_path_scenario)
+scenario_input_tms <- read.csv(input_path_scenario_tms)
+scenario_input_sda <- read.csv(input_path_scenario_sda)
 
 # abcd <- abcd_test_data
 abcd <- readr::read_csv(file.path(input_directory_abcd, "abcd_test_data.csv"))
@@ -62,7 +63,6 @@ unique_loanbooks_matched <- unique(matched_total$bank_id)
 ## generate SDA outputs----
 results_sda_total <- NULL
 
-# TODO: SDA currently not working well (replace demo data sets)
 for (i in unique_loanbooks_matched) {
   matched_i <- matched_total %>%
     dplyr::filter(.data$bank_id == i) %>%
@@ -72,9 +72,8 @@ for (i in unique_loanbooks_matched) {
   results_sda_i <- matched_i %>%
     target_sda(
       abcd = abcd,
-      # TODO: use real scenario
-      co2_intensity_scenario = co2_intensity_scenario_demo,
-      region_isos = region_isos_demo
+      co2_intensity_scenario = scenario_input_sda,
+      region_isos = r2dii.data::region_isos
     ) %>%
     dplyr::mutate(bank_id = .env$i)
 
@@ -98,7 +97,7 @@ for (i in unique_loanbooks_matched) {
   results_tms_i <- matched_i %>%
     target_market_share(
       abcd = abcd,
-      scenario = scenario_input,
+      scenario = scenario_input_tms,
       region_isos = r2dii.data::region_isos
     ) %>%
     dplyr::mutate(bank_id = .env$i)
@@ -126,6 +125,7 @@ unique_banks_sda <- unique(data_sda$bank_id)
 
 ## run automatic result generation ----------
 # TODO: parameterize inputs
+# TODO: get all available sectors and produce outputs for them all)
 for (tms_i in unique_banks_tms) {
   tryCatch(
     {
@@ -152,10 +152,10 @@ for (tms_i in unique_banks_tms) {
   )
 }
 
+# TODO: get all available sectors and produce outputs for them all)
 for (sda_i in unique_banks_sda) {
   tryCatch(
     {
-      # TODO: set appropriate SDA values
       generate_individual_outputs(
         data = data_sda,
         matched_loanbook = matched_loanbook,
@@ -165,7 +165,7 @@ for (sda_i in unique_banks_sda) {
         scenario_source = "weo_2021",
         target_scenario = "target_nze_2050",
         region = "global",
-        sector = "cement"
+        sector = "steel"
       )
     },
     error = function(e) {
@@ -195,7 +195,7 @@ green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
 
 # define if technologies should be treated as build out or phase down in the
 # aggregation
-technology_direction <- scenario_input %>%
+technology_direction <- scenario_input_tms %>%
   dplyr::filter(.data$year %in% c(2021, 2026)) %>%
   dplyr::distinct(.data$scenario_source, .data$scenario, .data$sector, .data$technology, .data$region) %>%
   dplyr::inner_join(r2dii.data::green_or_brown, by = c("sector", "technology")) %>%
@@ -205,7 +205,7 @@ technology_direction <- scenario_input %>%
   dplyr::select(-"green_or_brown")
 
 
-## prepare company level P4B results for aggregation----
+## prepare TMS company level P4B results for aggregation----
 tms_result_for_aggregation <- NULL
 
 for (i in unique_banks_tms) {
@@ -216,7 +216,7 @@ for (i in unique_banks_tms) {
           dplyr::filter(.data$bank_id == i) %>%
           dplyr::select(-"bank_id"),
         abcd = abcd,
-        scenario = scenario_input,
+        scenario = scenario_input_tms,
         region_isos = r2dii.data::region_isos,
         by_company = TRUE,
         weight_production = FALSE,
@@ -237,12 +237,12 @@ for (i in unique_banks_tms) {
   )
 }
 
-## aggregate P4B results to company level alignment score----
+## aggregate TMS P4B results to company level alignment score----
 # calculate aggregation for the loan book
 tms_aggregated <- tms_result_for_aggregation %>%
-  calculate_company_aggregate_score(
+  calculate_company_aggregate_score_tms(
     technology_direction = technology_direction,
-    scenario_trajectory = scenario_input,
+    scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
     # scenario_source = "geco_2021",
     # scenario = "1.5c",
@@ -254,15 +254,61 @@ tms_aggregated <- tms_result_for_aggregation %>%
 tms_aggregated %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company.csv"))
 
+## prepare SDA company level P4B results for aggregation----
+sda_result_for_aggregation <- NULL
+
+for (i in unique_banks_sda) {
+  tryCatch(
+    {
+      sda_result_for_aggregation_i <- target_sda(
+        data = matched_loanbook %>%
+          dplyr::filter(.data$bank_id == i) %>%
+          dplyr::select(-"bank_id"),
+        abcd = abcd,
+        co2_intensity_scenario = scenario_input_sda,
+        by_company = TRUE,
+        region_isos = r2dii.data::region_isos
+      )
+
+      sda_result_for_aggregation_i <- sda_result_for_aggregation_i %>%
+        dplyr::mutate(bank_id = .env$i)
+
+      sda_result_for_aggregation <- sda_result_for_aggregation %>%
+        dplyr::bind_rows(sda_result_for_aggregation_i)
+
+    },
+    error = function(e) {
+      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for aggregation. Skipping! \n")
+      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+    }
+  )
+}
+
+## aggregate SDA P4B results to company level alignment score----
+# calculate aggregation for the loan book
+sda_aggregated <- sda_result_for_aggregation %>%
+  calculate_company_aggregate_score_sda(
+    scenario_emission_intensities = scenario_input_sda,
+    # scenario_source = "geco_2021",
+    # scenario = "1.5c-unif"
+    scenario_source = "weo_2021",
+    scenario = "nze_2050"
+  )
+
+sda_aggregated %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "sda_aggregated_company.csv"))
+
 
 ## calculate sector and loan book level aggregate alignment based on company exposures in loan book----
 
 # the company level aggregate scores are then joined with the matched loan book
 # to derive some high level summary statistics on the loan book level
+companies_aggregated <- tms_aggregated %>%
+  dplyr::bind_rows(sda_aggregated)
 
 # show exposures (n companies and loan size) by alignment with given scenario
-aggregate_exposure_loanbook <- tms_aggregated %>%
+aggregate_exposure_loanbook <- companies_aggregated %>%
   calculate_loanbook_exposure_scores(matched = matched_loanbook)
 
 aggregate_exposure_loanbook %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregate_exposure_loanbook.csv"))
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook.csv"))

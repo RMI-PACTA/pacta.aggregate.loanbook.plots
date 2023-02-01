@@ -5,7 +5,7 @@
 \alias{loanbook_test_data}
 \title{Loan book test data}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 12 rows and 19 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 18 rows and 19 columns.
 }
 \usage{
 loanbook_test_data

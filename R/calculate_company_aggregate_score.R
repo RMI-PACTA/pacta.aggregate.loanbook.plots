@@ -1,6 +1,6 @@
 #' Return company level scenario scores for the main sector of each company
 #'
-#' @param data data.frame. Holds the PACTA for Banks results. Must have been
+#' @param data data.frame. Holds the PACTA for Banks TMS results. Must have been
 #'   calculated according to the green/brown logic of the CA100+ calculation
 #'   and must return unweighted company level TMSR results.
 #' @param technology_direction data frame that indicates which technologies are
@@ -28,14 +28,14 @@
 #'
 #' @return NULL
 #' @export
-calculate_company_aggregate_score <- function(data,
-                                              technology_direction,
-                                              scenario_trajectory,
-                                              green_or_brown,
-                                              scenario_source = "geco_2021",
-                                              scenario = "1.5c",
-                                              bridge_tech = NULL,
-                                              aggregate = TRUE) {
+calculate_company_aggregate_score_tms <- function(data,
+                                                  technology_direction,
+                                                  scenario_trajectory,
+                                                  green_or_brown,
+                                                  scenario_source = "geco_2021",
+                                                  scenario = "1.5c",
+                                                  bridge_tech = NULL,
+                                                  aggregate = TRUE) {
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
   bridge_tech <- bridge_tech %||% "skip"
@@ -264,6 +264,87 @@ calculate_company_aggregate_score <- function(data,
     dplyr::ungroup() %>%
     dplyr::mutate(
       score = .data$total_net_deviation / .data$net_absolute_scenario_value
+    )
+
+  data <- data %>%
+    dplyr::mutate(scenario = .env$scenario) %>%
+    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score")) %>%
+    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+
+  return(data)
+}
+
+
+#' Return company level scenario scores for the main sector of each company
+#'
+#' @param data data.frame. Holds the PACTA for Banks SDA results on company level.
+#' @param scenario_emission_intensities data frame containing the scenario file with
+#'   information on yearly emission intensity levels.
+#' @param scenario_source Character. Vector that indicates which scenario_source
+#'   to use for reference in the calculation of the scores. Currently, the only
+#'   supported value is `"geco_2021"`.
+#' @param scenario Character. Vector that indicates which scenario to calculate
+#'   the score for. Must be a scenario available from `scenario_source`.
+#' @param aggregate Logical. Indicates whether the indicators should be
+#'   calculated for an aggregate of all loan books by different banks in `data`
+#'   or if they should be calculated individually, based on their
+#'   `bank_id`. If only one loan book is included, use the default
+#'   aggregate == TRUE.
+#'
+#' @return NULL
+#' @export
+calculate_company_aggregate_score_sda <- function(data,
+                                                  scenario_emission_intensities,
+                                                  scenario_source = "geco_2021",
+                                                  scenario = "1.5c",
+                                                  aggregate = TRUE) {
+  start_year <- min(data$year, na.rm = TRUE)
+  target_scenario <- paste0("target_", scenario)
+
+  if (!is.logical(aggregate)) {
+    stop("Function argument aggregate must be either TRUE or FALSE!")
+  }
+
+  if (!"bank_id" %in% names(data) & !aggregate) {
+    stop("The input data set does not contain bank identifiers, which are needed
+         to process multiple loan books on an individual level")
+  } else if (!"bank_id" %in% names(data) & aggregate) {
+    data <- data %>%
+      dplyr::mutate(bank_id = "bank")
+  }
+
+  data <- data %>%
+    dplyr::filter(.data$scenario_source == .env$scenario_source)
+
+  # TODO: keep corporate_economy, taking nto account that it needs to done
+  # either separately or treated like a scenario that gets a value for each company
+
+  data <- data %>%
+    group_by(
+      .data$bank_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
+      .data$scenario_source#, .data$technology
+    ) %>%
+    dplyr::filter(.data$name_abcd != "market") %>%
+    dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
+    dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
+    tidyr::pivot_wider(
+      names_from = "emission_factor_metric",
+      values_from = "emission_factor_value"
+    ) %>%
+    dplyr::ungroup()
+
+  # calculate sector score
+  data <- data %>%
+    dplyr::filter(.data$year == .env$start_year + 5) %>%
+    dplyr::group_by(
+      .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector
+    ) %>%
+    dplyr::mutate(
+      emission_intensity_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      score = .data$emission_intensity_deviation / !!rlang::sym(target_scenario)
     )
 
   data <- data %>%
