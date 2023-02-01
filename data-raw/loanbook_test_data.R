@@ -12,7 +12,13 @@ loanbook_test_data <- tibble::tribble(
   "L9", "C9", "test_case_F", NA_character_, NA_character_, "UP9", "test_case_F", 1000000, "USD", 1000000, "USD", "NACE", "Code", 3511, "Loan", "No", NA_character_, NA_character_, NA_character_,
   "L10", "C10", "test_case_G", NA_character_, NA_character_, "UP10", "test_case_G", 1000000, "USD", 1000000, "USD", "NACE", "Code", 3511, "Loan", "No", NA_character_, NA_character_, NA_character_,
   "L11", "C11", "test_auto_A", NA_character_, NA_character_, "UP11", "test_auto_A", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2920, "Loan", "No", NA_character_, NA_character_, NA_character_,
-  "L12", "C12", "test_auto_B", NA_character_, NA_character_, "UP12", "test_auto_B", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2920, "Loan", "No", NA_character_, NA_character_, NA_character_
+  "L12", "C12", "test_auto_B", NA_character_, NA_character_, "UP12", "test_auto_B", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2920, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L13", "C13", "test_steel_A", NA_character_, NA_character_, "UP13", "test_steel_A", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2410, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L14", "C14", "test_steel_B", NA_character_, NA_character_, "UP14", "test_steel_B", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2410, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L15", "C15", "test_cement_A", NA_character_, NA_character_, "UP15", "test_cement_A", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2351, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L16", "C16", "test_cement_B", NA_character_, NA_character_, "UP16", "test_cement_B", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2351, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L17", "C17", "test_airline_1", NA_character_, NA_character_, "UP17", "test_airline_1", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5110, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L18", "C18", "test_airline_2", NA_character_, NA_character_, "UP18", "test_airline_2", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5110, "Loan", "No", NA_character_, NA_character_, NA_character_
 )
 # styler: on
 
