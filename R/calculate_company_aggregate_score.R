@@ -333,53 +333,6 @@ calculate_company_aggregate_score_sda <- function(data,
     ) %>%
     dplyr::ungroup()
 
-  # remove rows if both projected and target values are 0
-  # data_to_remove_no_plans_no_target_tech <- data %>%
-  #   dplyr::group_by(
-  #     .data$bank_id, .data$name_abcd, .data$region, .data$scenario_source,
-  #     .data$sector#, .data$technology
-  #   ) %>%
-  #   dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
-  #   dplyr::summarise(
-  #     projected = sum(.data$projected, na.rm = TRUE),
-  #     target = sum(.data$target, na.rm = TRUE),
-  #     .groups = "drop"
-  #   ) %>%
-  #   dplyr::ungroup() %>%
-  #   dplyr::filter(
-  #     .data$projected == 0,
-  #     .data$target == 0
-  #   )
-
-  # data_to_remove_no_target_in_sector <- data %>%
-  #   dplyr::group_by(.data$bank_id, .data$name_abcd, .data$region, .data$scenario_source, .data$sector) %>%
-  #   dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
-  #   dplyr::summarise(
-  #     target = sum(.data$target, na.rm = TRUE),
-  #     .groups = "drop"
-  #   ) %>%
-  #   dplyr::ungroup() %>%
-  #   dplyr::filter(.data$target == 0)
-
-  # data <- data %>%
-  #   dplyr::anti_join(
-  #     data_to_remove_no_plans_no_target_tech,
-  #     by = c("bank_id", "name_abcd", "region", "scenario_source", "sector", "technology")
-  #   )
-  #
-  # data <- data %>%
-  #   dplyr::anti_join(
-  #     data_to_remove_no_target_in_sector,
-  #     by = c("bank_id", "name_abcd", "region", "scenario_source", "sector")
-  #   )
-
-  # calculate total deviation per technology
-  # data <- data %>%
-  #   dplyr::filter(.data$year == .env$start_year + 5) %>%
-  #   dplyr::mutate(
-  #     total_tech_deviation = (.data$projected - !!rlang::sym(target_scenario)) * .data$directional_dummy
-  #   )
-
   # calculate sector score
   data <- data %>%
     dplyr::filter(.data$year == .env$start_year + 5) %>%
