@@ -68,7 +68,6 @@ for (i in unique_loanbooks_matched) {
     dplyr::filter(.data$bank_id == i) %>%
     dplyr::select(-"bank_id")
 
-
   results_sda_i <- matched_i %>%
     target_sda(
       abcd = abcd,

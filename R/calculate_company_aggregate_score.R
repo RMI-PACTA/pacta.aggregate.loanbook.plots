@@ -71,18 +71,13 @@ calculate_company_aggregate_score_tms <- function(data,
 
   data <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
-    group_by(
-      .data$bank_id, .data$name_abcd, .data$metric, .data$year, .data$region,
-      .data$scenario_source, .data$technology
-    ) %>%
     dplyr::filter(.data$name_abcd != "corporate_economy") %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
     dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
     tidyr::pivot_wider(
       names_from = "metric",
       values_from = "production"
-    ) %>%
-    dplyr::ungroup()
+    )
 
   # add directional dummy
   data <- data %>%
