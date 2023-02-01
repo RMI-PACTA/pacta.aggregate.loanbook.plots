@@ -108,7 +108,16 @@ calculate_loanbook_exposure_scores <- function(data,
     )
 
   out <- sector_aggregate_exposure_loanbook %>%
-    dplyr::bind_rows(total_aggregate_exposure_loanbook)
+    dplyr::bind_rows(total_aggregate_exposure_loanbook) %>%
+    dplyr::relocate(
+      c(
+        "bank_id", "scenario", "region", "sector",
+        "n_companies", "n_companies_aligned", "share_companies_aligned",
+        "sum_loan_size_outstanding", "sum_exposure_companies_aligned", "share_exposure_aligned",
+        "exposure_weighted_net_alignment"
+      )
+    ) %>%
+    dplyr::arrange(.data$bank_id, .data$scenario, .data$region, .data$sector)
 
   return(out)
 }
