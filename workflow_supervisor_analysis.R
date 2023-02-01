@@ -37,6 +37,44 @@ loanbook <- loanbook %>%
   dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
 
+# add benchmark loan book
+prep_benchmark_sectors <- r2dii.data::nace_classification %>%
+  dplyr::filter(.data$borderline == FALSE) %>%
+  dplyr::group_by(.data$sector) %>%
+  dplyr::slice_tail(n = 1) %>%
+  dplyr::ungroup() %>%
+  dplyr::select("sector", "code")
+
+prep_benchmark_companies <- abcd %>%
+  dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$sector) %>%
+  dplyr::inner_join(prep_benchmark_sectors, by = "sector")
+
+loanbook_benchmark <- tibble::tibble(
+  id_loan = paste0("L", prep_benchmark_companies$company_id),
+  id_direct_loantaker = paste0("C", prep_benchmark_companies$company_id),
+  name_direct_loantaker = prep_benchmark_companies$name_company,
+  id_intermediate_parent_1 = NA_character_,
+  name_intermediate_parent_1 = NA_character_,
+  id_ultimate_parent = paste0("UP", prep_benchmark_companies$company_id),
+  name_ultimate_parent = prep_benchmark_companies$name_company,
+  loan_size_outstanding = 100000,
+  loan_size_outstanding_currency = "USD",
+  loan_size_credit_limit = 100000,
+  loan_size_credit_limit_currency = "USD",
+  sector_classification_system = "NACE",
+  sector_classification_input_type = "Code",
+  sector_classification_direct_loantaker = as.numeric(prep_benchmark_companies$code),
+  fi_type = "Loan",
+  flag_project_finance_loan = "No",
+  name_project = NA_character_,
+  lei_direct_loantaker = NA_character_,
+  isin_direct_loantaker = NA_character_,
+  bank_id = "benchmark"
+)
+
+loanbook <- loanbook %>%
+  dplyr::bind_rows(loanbook_benchmark)
+
 # match and prioritize loan book----
 unique_loanbooks_raw <- unique(loanbook$bank_id)
 
