@@ -12,6 +12,14 @@ library(tidyr)
 library(vroom)
 
 # set parameters----
+scenario_source_input <- "weo_2021"
+scenario_select <- "nze_2050"
+region_select <- c("global", "european union")
+region_isos_select <- r2dii.data::region_isos %>%
+  dplyr::filter(
+    .data$source == .env$scenario_source_input,
+    .data$region %in% .env$region_select
+  )
 
 # set directories----
 
@@ -37,43 +45,21 @@ loanbook <- loanbook %>%
   dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
 
-# add benchmark loan book
-prep_benchmark_sectors <- r2dii.data::nace_classification %>%
-  dplyr::filter(.data$borderline == FALSE) %>%
-  dplyr::group_by(.data$sector) %>%
-  dplyr::slice_tail(n = 1) %>%
-  dplyr::ungroup() %>%
-  dplyr::select("sector", "code")
+# regions_to_use <- r2dii.data::region_isos %>%
+#   dplyr::filter(
+#     .data$source %in% .env$scenario_source_input,
+#     .data$region %in% .env$region_select
+#   ) %>%
+#   dplyr::mutate(
+#     isos = toupper(.data$isos)
+#   )
 
-prep_benchmark_companies <- abcd %>%
-  dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$sector) %>%
-  dplyr::inner_join(prep_benchmark_sectors, by = "sector")
-
-loanbook_benchmark <- tibble::tibble(
-  id_loan = paste0("L", prep_benchmark_companies$company_id),
-  id_direct_loantaker = paste0("C", prep_benchmark_companies$company_id),
-  name_direct_loantaker = prep_benchmark_companies$name_company,
-  id_intermediate_parent_1 = NA_character_,
-  name_intermediate_parent_1 = NA_character_,
-  id_ultimate_parent = paste0("UP", prep_benchmark_companies$company_id),
-  name_ultimate_parent = prep_benchmark_companies$name_company,
-  loan_size_outstanding = 100000,
-  loan_size_outstanding_currency = "USD",
-  loan_size_credit_limit = 100000,
-  loan_size_credit_limit_currency = "USD",
-  sector_classification_system = "NACE",
-  sector_classification_input_type = "Code",
-  sector_classification_direct_loantaker = as.numeric(prep_benchmark_companies$code),
-  fi_type = "Loan",
-  flag_project_finance_loan = "No",
-  name_project = NA_character_,
-  lei_direct_loantaker = NA_character_,
-  isin_direct_loantaker = NA_character_,
-  bank_id = "benchmark"
-)
+# add loan book with corporate economy benchmark
+loanbook_corporate_benchmark <- abcd %>%
+  create_benchmark_loanbook()
 
 loanbook <- loanbook %>%
-  dplyr::bind_rows(loanbook_benchmark)
+  dplyr::bind_rows(loanbook_corporate_benchmark)
 
 # match and prioritize loan book----
 unique_loanbooks_raw <- unique(loanbook$bank_id)
@@ -110,7 +96,7 @@ for (i in unique_loanbooks_matched) {
     target_sda(
       abcd = abcd,
       co2_intensity_scenario = scenario_input_sda,
-      region_isos = r2dii.data::region_isos
+      region_isos = region_isos_select
     ) %>%
     dplyr::mutate(bank_id = .env$i)
 
@@ -135,7 +121,7 @@ for (i in unique_loanbooks_matched) {
     target_market_share(
       abcd = abcd,
       scenario = scenario_input_tms,
-      region_isos = r2dii.data::region_isos
+      region_isos = region_isos_select
     ) %>%
     dplyr::mutate(bank_id = .env$i)
 
@@ -172,8 +158,8 @@ for (tms_i in unique_banks_tms) {
         output_directory = output_directory_p4b_standard,
         target_type = "tms",
         bank_id = tms_i,
-        scenario_source = "weo_2021",
-        target_scenario = "target_nze_2050",
+        scenario_source = scenario_source_input,
+        target_scenario = glue::glue("target_{scenario_select}"),
         region = "global",
         sector = "power"
       )
@@ -199,8 +185,8 @@ for (sda_i in unique_banks_sda) {
         output_directory = output_directory_p4b_standard,
         target_type = "sda",
         bank_id = sda_i,
-        scenario_source = "weo_2021",
-        target_scenario = "target_nze_2050",
+        scenario_source = scenario_source_input,
+        target_scenario = glue::glue("target_{scenario_select}"),
         region = "global",
         sector = "steel"
       )
@@ -254,7 +240,7 @@ for (i in unique_banks_tms) {
           dplyr::select(-"bank_id"),
         abcd = abcd,
         scenario = scenario_input_tms,
-        region_isos = r2dii.data::region_isos,
+        region_isos = region_isos_select,
         by_company = TRUE,
         weight_production = FALSE,
         green_or_brown = green_or_brown_aggregate_score
@@ -281,10 +267,8 @@ tms_aggregated <- tms_result_for_aggregation %>%
     technology_direction = technology_direction,
     scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
-    # scenario_source = "geco_2021",
-    # scenario = "1.5c",
-    scenario_source = "weo_2021",
-    scenario = "nze_2050"
+    scenario_source = scenario_source_input,
+    scenario = scenario_select
     # bridge_tech = "gascap"
   )
 
@@ -304,7 +288,7 @@ for (i in unique_banks_sda) {
         abcd = abcd,
         co2_intensity_scenario = scenario_input_sda,
         by_company = TRUE,
-        region_isos = r2dii.data::region_isos
+        region_isos = region_isos_select
       )
 
       sda_result_for_aggregation_i <- sda_result_for_aggregation_i %>%
@@ -326,10 +310,8 @@ for (i in unique_banks_sda) {
 sda_aggregated <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
     scenario_emission_intensities = scenario_input_sda,
-    # scenario_source = "geco_2021",
-    # scenario = "1.5c-unif"
-    scenario_source = "weo_2021",
-    scenario = "nze_2050"
+    scenario_source = scenario_source_input,
+    scenario = scenario_select
   )
 
 sda_aggregated %>%
