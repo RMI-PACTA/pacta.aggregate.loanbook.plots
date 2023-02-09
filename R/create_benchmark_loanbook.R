@@ -13,7 +13,7 @@ create_benchmark_loanbook <- function(data) {
     "technology", "plant_location", "year", "production", "production_unit",
     "emission_factor", "emission_factor_unit", "ald_timestamp"
   )
-  data_has_expected_columns <- if (all(expected_columns) %in% names(data)) TRUE else FALSE
+  data_has_expected_columns <- if (all(expected_columns %in% names(data))) TRUE else FALSE
 
   stopifnot(data_has_expected_columns)
 
