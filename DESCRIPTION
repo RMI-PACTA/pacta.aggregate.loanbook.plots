@@ -25,6 +25,7 @@ Imports:
     r2dii.plot,
     readr,
     rlang,
+    tibble,
     tidyr
 Depends: 
     R (>= 2.10)
