@@ -45,15 +45,6 @@ loanbook <- loanbook %>%
   dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
 
-# regions_to_use <- r2dii.data::region_isos %>%
-#   dplyr::filter(
-#     .data$source %in% .env$scenario_source_input,
-#     .data$region %in% .env$region_select
-#   ) %>%
-#   dplyr::mutate(
-#     isos = toupper(.data$isos)
-#   )
-
 # match and prioritize loan book----
 unique_loanbooks_raw <- unique(loanbook$bank_id)
 
