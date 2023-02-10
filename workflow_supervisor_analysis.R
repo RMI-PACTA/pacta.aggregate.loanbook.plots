@@ -191,7 +191,13 @@ for (sda_i in unique_banks_sda) {
 # not be feasible for political and/or geographic reasons.
 # in the power sector, only renewables continues to follow the SMSP logic
 green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
-  dplyr::mutate(green_or_brown = ifelse(.data$technology %in% c("hydrocap", "nuclearcap"), "brown", .data$green_or_brown))
+  dplyr::mutate(
+    green_or_brown = dplyr::if_else(
+      .data$technology %in% c("hydrocap", "nuclearcap"),
+      "brown",
+      .data$green_or_brown
+    )
+  )
 
 # define if technologies should be treated as build out or phase down in the
 # aggregation
