@@ -66,11 +66,7 @@ calculate_company_aggregate_score_tms <- function(data,
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)
 
-  # TODO: keep corporate_economy, taking nto account that it needs to done
-  # either separately or treated like a scenario that gets a value for each company
-
   data <- data %>%
-    # data_companies <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
     dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
@@ -78,22 +74,6 @@ calculate_company_aggregate_score_tms <- function(data,
       names_from = "metric",
       values_from = "production"
     )
-
-  # data_benchmark <- data %>%
-  #   dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
-  #   dplyr::filter(.data$metric == "corporate_economy") %>%
-  #   dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
-  #   tidyr::pivot_wider(
-  #     names_from = "metric",
-  #     values_from = "production"
-  #   ) %>%
-  #   dplyr::select(-"name_abcd")
-  #
-  # data <- data_companies %>%
-  #   dplyr::inner_join(
-  #     data_benchmark,
-  #     by = c("sector", "technology", "year", "region", "scenario_source", "bank_id")
-  #   )
 
   # add directional dummy
   data <- data %>%
