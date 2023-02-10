@@ -29,7 +29,21 @@ generate_individual_outputs <- function(data,
                                         region = "global",
                                         sector) {
 
+  # match input values
   target_type <- match.arg(target_type)
+
+  # validate input values
+  validate_input_args_generate_individual_outputs(
+    output_directory = output_directory,
+    bank_id = bank_id,
+    scenario_source = scenario_source,
+    target_scenario = target_scenario,
+    region = region,
+    sector = sector
+  )
+
+  #validate input data
+  # validate_data_has_expected_cols()
 
   # create sub directory for the selected institute
   dir.create(file.path(output_directory, bank_id), showWarnings = FALSE)
@@ -195,4 +209,45 @@ generate_individual_outputs <- function(data,
         glue::glue("companies_included_{sector}.csv")
       )
     )
+}
+
+validate_input_args_generate_individual_outputs <- function(output_directory,
+                                                            bank_id,
+                                                            scenario_source,
+                                                            target_scenario,
+                                                            region,
+                                                            sector) {
+  if (!length(output_directory) == 1) {
+    stop("Argument output_directory must be of length 1. Please check your input.")
+  }
+  if (!inherits(output_directory, "character")) {
+    stop("Argument output_directory must be of class character. Please check your input.")
+  }
+  if (!length(bank_id) == 1) {
+    stop("Argument bank_id must be of length 1. Please check your input.")
+  }
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!length(target_scenario) == 1) {
+    stop("Argument target_scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(target_scenario, "character")) {
+    stop("Argument target_scenario must be of length 1. Please check your input.")
+  }
+  if (!length(region) == 1) {
+    stop("Argument region must be of length 1. Please check your input.")
+  }
+  if (!inherits(region, "character")) {
+    stop("Argument region must be of length 1. Please check your input.")
+  }
+  if (!length(sector) == 1) {
+    stop("Argument sector must be of length 1. Please check your input.")
+  }
+  if (!inherits(sector, "character")) {
+    stop("Argument sector must be of length 1. Please check your input.")
+  }
 }
