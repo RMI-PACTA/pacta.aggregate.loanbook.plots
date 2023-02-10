@@ -43,7 +43,11 @@ generate_individual_outputs <- function(data,
   )
 
   #validate input data
-  # validate_data_has_expected_cols()
+  validate_input_data_generate_individual_outputs(
+    data = data,
+    matched_loanbook = matched_loanbook,
+    target_type = target_type
+  )
 
   # create sub directory for the selected institute
   dir.create(file.path(output_directory, bank_id), showWarnings = FALSE)
@@ -250,4 +254,40 @@ validate_input_args_generate_individual_outputs <- function(output_directory,
   if (!inherits(sector, "character")) {
     stop("Argument sector must be of length 1. Please check your input.")
   }
+
+  invisible()
+}
+
+validate_input_data_generate_individual_outputs <- function(data,
+                                                            matched_loanbook,
+                                                            target_type) {
+  if (target_type == "sda") {
+    validate_data_has_expected_cols(
+      data = data,
+      expected_columns = c(
+        "sector", "year", "region", "scenario_source", "emission_factor_metric",
+        "emission_factor_value", "bank_id"
+      )
+    )
+  } else if (target_type == "tms") {
+    validate_data_has_expected_cols(
+      data = data,
+      expected_columns = c(
+        "sector", "technology", "year", "region", "scenario_source", "metric",
+        "production", "technology_share", "scope",
+        "percentage_of_initial_production_by_scope", "bank_id"
+      )
+    )
+  }
+
+  validate_data_has_expected_cols(
+    data = matched_loanbook,
+    expected_columns = c(
+      "bank_id", "name_abcd", "sector", "sector_abcd", "loan_size_outstanding",
+      "loan_size_outstanding_currency", "loan_size_credit_limit",
+      "loan_size_credit_limit_currency"
+    )
+  )
+
+  invisible()
 }
