@@ -151,55 +151,31 @@ unique_banks_sda <- unique(results_sda_total$bank_id)
 # TODO: parameterize inputs
 # TODO: get all available sectors and produce outputs for them all)
 for (tms_i in unique_banks_tms) {
-  tryCatch(
-    {
-      generate_individual_outputs(
-        data = results_tms_total,
-        matched_loanbook = matched_loanbook,
-        output_directory = output_directory_p4b_standard,
-        target_type = "tms",
-        bank_id = tms_i,
-        scenario_source = scenario_source_input,
-        target_scenario = glue::glue("target_{scenario_select}"),
-        region = "global",
-        sector = "power"
-      )
-    },
-    error = function(e) {
-      log_text <- glue::glue(
-        "{Sys.time()} Problem in generating TMSR related outputs for bank:
-        {bank_id}, sector: {sector}, region: {region}, scenario_source:
-        {scenario_source}, target_scenario: {target_scenario}. \n"
-      )
-      write(log_text, file = file.path(output_directory_p4b_standard, "error_messages.txt"), append = TRUE)
-    }
+  generate_individual_outputs(
+    data = results_tms_total,
+    matched_loanbook = matched_loanbook,
+    output_directory = output_directory_p4b_standard,
+    target_type = "tms",
+    bank_id = tms_i,
+    scenario_source = scenario_source_input,
+    target_scenario = glue::glue("target_{scenario_select}"),
+    region = "global",
+    sector = "power"
   )
 }
 
 # TODO: get all available sectors and produce outputs for them all)
 for (sda_i in unique_banks_sda) {
-  tryCatch(
-    {
-      generate_individual_outputs(
-        data = results_sda_total,
-        matched_loanbook = matched_loanbook,
-        output_directory = output_directory_p4b_standard,
-        target_type = "sda",
-        bank_id = sda_i,
-        scenario_source = scenario_source_input,
-        target_scenario = glue::glue("target_{scenario_select}"),
-        region = "global",
-        sector = "steel"
-      )
-    },
-    error = function(e) {
-      log_text <- glue::glue(
-        "{Sys.time()} Problem in generating SDA related outputs for bank:
-        {bank_id}, sector: {sector}, region: {region}, scenario_source:
-        {scenario_source}, target_scenario: {target_scenario}. \n"
-      )
-      write(log_text, file = file.path(output_directory_p4b_standard, "error_messages.txt"), append = TRUE)
-    }
+  generate_individual_outputs(
+    data = results_sda_total,
+    matched_loanbook = matched_loanbook,
+    output_directory = output_directory_p4b_standard,
+    target_type = "sda",
+    bank_id = sda_i,
+    scenario_source = scenario_source_input,
+    target_scenario = glue::glue("target_{scenario_select}"),
+    region = "global",
+    sector = "steel"
   )
 }
 
@@ -215,7 +191,13 @@ for (sda_i in unique_banks_sda) {
 # not be feasible for political and/or geographic reasons.
 # in the power sector, only renewables continues to follow the SMSP logic
 green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
-  dplyr::mutate(green_or_brown = ifelse(.data$technology %in% c("hydrocap", "nuclearcap"), "brown", .data$green_or_brown))
+  dplyr::mutate(
+    green_or_brown = dplyr::if_else(
+      .data$technology %in% c("hydrocap", "nuclearcap"),
+      "brown",
+      .data$green_or_brown
+    )
+  )
 
 # define if technologies should be treated as build out or phase down in the
 # aggregation
