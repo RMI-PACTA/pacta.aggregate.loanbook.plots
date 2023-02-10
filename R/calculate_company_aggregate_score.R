@@ -1,4 +1,6 @@
-#' Return company level scenario scores for the main sector of each company
+#' Return company level technology deviations for TMS sectors. To be used as
+#' input into calculation of company level aggregate scores for production
+#' trajectory sectors.
 #'
 #' @param data data.frame. Holds the PACTA for Banks TMS results. Must have been
 #'   calculated according to the green/brown logic of the CA100+ calculation
@@ -28,14 +30,14 @@
 #'
 #' @return NULL
 #' @export
-calculate_company_aggregate_score_tms <- function(data,
-                                                  technology_direction,
-                                                  scenario_trajectory,
-                                                  green_or_brown,
-                                                  scenario_source = "geco_2021",
-                                                  scenario = "1.5c",
-                                                  bridge_tech = NULL,
-                                                  aggregate = TRUE) {
+calculate_company_tech_deviation <- function(data,
+                                             technology_direction,
+                                             scenario_trajectory,
+                                             green_or_brown,
+                                             scenario_source = "geco_2021",
+                                             scenario = "1.5c",
+                                             bridge_tech = NULL,
+                                             aggregate = TRUE) {
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
   bridge_tech <- bridge_tech %||% "skip"
@@ -242,25 +244,85 @@ calculate_company_aggregate_score_tms <- function(data,
       dplyr::bind_rows(data_scen_t10)
   }
 
-  # calculate sector score
-  data <- data %>%
-    dplyr::group_by(
-      .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector
-    ) %>%
-    dplyr::summarise(
-      total_net_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      score = .data$total_net_deviation / .data$net_absolute_scenario_value
-    )
+  return(data)
+}
 
-  data <- data %>%
-    dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score")) %>%
-    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+
+#' Return company level scenario scores for the main sector of each company with
+#' opton to disaggregate by buidlout / phaseout.
+#'
+#' @param data data.frame. Holds company-technology deviations based on PACTA
+#'   for Banks TMS results. Must have been calculated according to the
+#'   green/brown logic of the CA100+ calculation.
+#' @param scenario_source Character. Vector that indicates which scenario_source
+#'   to use for reference in the calculation of the scores. Currently, the only
+#'   supported value is `"geco_2021"`.
+#' @param scenario Character. Vector that indicates which scenario to calculate
+#'   the score for. Must be a scenario available from `scenario_source`.
+#' @param level Character. Vector that indicates if the aggreagte score should
+#'   be returned based on the net technology deviations (`net`) or disaggregated
+#'   into buildout and phaseout technologies (`bo_po`).
+#' @param aggregate Logical. Indicates whether the indicators should be
+#'   calculated for an aggregate of all loan books by different banks in `data`
+#'   or if they should be calculated individually, based on their
+#'   `bank_id`. If only one loan book is included, use the default
+#'   aggregate == TRUE.
+#'
+#' @return NULL
+#' @export
+calculate_company_aggregate_score_tms <- function(data,
+                                                  scenario_source = "geco_2021",
+                                                  scenario = "1.5c",
+                                                  level = c("net", "bo_po"),
+                                                  aggregate = TRUE) {
+  start_year <- min(data$year, na.rm = TRUE)
+  target_scenario <- paste0("target_", scenario)
+  level <- match.arg(level)
+
+  if (level == "bo_po") {
+    # calculate buildout and phaseout sector score
+    data <- data %>%
+      dplyr::mutate(
+        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector")
+      ) %>%
+      dplyr::summarise(
+        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+        absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "net_absolute_scenario_value", "directional_dummy")
+      ) %>%
+      dplyr::mutate(
+        score1 = .data$total_deviation / .data$absolute_scenario_value,
+        score2 = .data$total_deviation / .data$net_absolute_scenario_value,
+        direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")
+      ) %>%
+      dplyr::select(-"directional_dummy")
+
+    data <- data %>%
+      dplyr::mutate(scenario = .env$scenario) %>%
+      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score1", "score2")) %>%
+      dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+  } else if (level == "net") {
+    # calculate net sector score
+    data <- data %>%
+      dplyr::group_by(
+        .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector
+      ) %>%
+      dplyr::summarise(
+        total_net_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(
+        score = .data$total_net_deviation / .data$net_absolute_scenario_value
+      )
+
+    data <- data %>%
+      dplyr::mutate(scenario = .env$scenario) %>%
+      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score")) %>%
+      dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+  }
 
   return(data)
 }
@@ -313,7 +375,7 @@ calculate_company_aggregate_score_sda <- function(data,
   data <- data %>%
     group_by(
       .data$bank_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
-      .data$scenario_source#, .data$technology
+      .data$scenario_source # , .data$technology
     ) %>%
     dplyr::filter(.data$name_abcd != "market") %>%
     dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
