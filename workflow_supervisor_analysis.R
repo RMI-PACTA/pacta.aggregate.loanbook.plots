@@ -250,8 +250,9 @@ for (i in unique_banks_tms_aggregation) {
 
 ## aggregate TMS P4B results to company level alignment score----
 # calculate aggregation for the loan book
-tms_aggregated <- tms_result_for_aggregation %>%
-  calculate_company_aggregate_score_tms(
+
+tms_result_for_aggregation <- tms_result_for_aggregation %>%
+  calculate_company_tech_deviation(
     technology_direction = technology_direction,
     scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
@@ -260,8 +261,25 @@ tms_aggregated <- tms_result_for_aggregation %>%
     # bridge_tech = "gascap"
   )
 
+tms_aggregated <- tms_result_for_aggregation %>%
+  calculate_company_aggregate_score_tms(
+    scenario_source = scenario_source_input,
+    scenario = scenario_select,
+    level = "net"
+  )
+
 tms_aggregated %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company.csv"))
+
+tms_aggregated_buildout_phaseout <- tms_result_for_aggregation %>%
+  calculate_company_aggregate_score_tms(
+    scenario_source = scenario_source_input,
+    scenario = scenario_select,
+    level = "bo_po"
+  )
+
+tms_aggregated_buildout_phaseout %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company_buildout_phaseout.csv"))
 
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL
