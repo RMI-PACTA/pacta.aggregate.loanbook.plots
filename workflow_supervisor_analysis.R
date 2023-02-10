@@ -242,7 +242,7 @@ for (i in unique_banks_tms_aggregation) {
 ## aggregate TMS P4B results to company level alignment score----
 # calculate aggregation for the loan book
 
-tms_result_for_aggregation <- tms_result_for_aggregation %>%
+tms_company_technology_for_aggregation <- tms_result_for_aggregation %>%
   calculate_company_tech_deviation(
     technology_direction = technology_direction,
     scenario_trajectory = scenario_input_tms,
@@ -252,7 +252,14 @@ tms_result_for_aggregation <- tms_result_for_aggregation %>%
     # bridge_tech = "gascap"
   )
 
-tms_aggregated <- tms_result_for_aggregation %>%
+tms_company_technology_score <- tms_company_technology_for_aggregation %>%
+  dplyr::mutate(score_compaby_technology = .data$total_tech_deviation / !!rlang::sym(paste0("target_", scenario_select)))
+
+tms_company_technology_score %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_technology_score.csv"))
+
+
+tms_aggregated <- tms_company_technology_for_aggregation %>%
   calculate_company_aggregate_score_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
