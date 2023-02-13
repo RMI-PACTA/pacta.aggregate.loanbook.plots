@@ -269,7 +269,7 @@ tms_aggregated <- tms_company_technology_for_aggregation %>%
 tms_aggregated %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company.csv"))
 
-tms_aggregated_buildout_phaseout <- tms_result_for_aggregation %>%
+tms_aggregated_buildout_phaseout <- tms_company_technology_for_aggregation %>%
   calculate_company_aggregate_score_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
