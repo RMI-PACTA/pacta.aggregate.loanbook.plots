@@ -364,13 +364,10 @@ calculate_company_aggregate_score_sda <- function(data,
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)
 
-  # TODO: keep corporate_economy, taking nto account that it needs to done
-  # either separately or treated like a scenario that gets a value for each company
-
   data <- data %>%
     group_by(
       .data$bank_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
-      .data$scenario_source # , .data$technology
+      .data$scenario_source
     ) %>%
     dplyr::filter(.data$name_abcd != "market") %>%
     dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
