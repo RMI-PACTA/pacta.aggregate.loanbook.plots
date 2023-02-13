@@ -286,16 +286,13 @@ calculate_company_aggregate_score_tms <- function(data,
         .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "year", "net_absolute_scenario_value", "directional_dummy")
       ) %>%
       dplyr::mutate(
-        score1 = .data$total_deviation / .data$absolute_scenario_value,
-        score2 = .data$total_deviation / .data$net_absolute_scenario_value,
+        score = .data$total_deviation / .data$net_absolute_scenario_value,
         direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")
       ) %>%
-      dplyr::select(-"directional_dummy")
-
-    data <- data %>%
       dplyr::mutate(scenario = .env$scenario) %>%
-      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "direction", "score1", "score2")) %>%
-      dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
+      dplyr::select(
+        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "direction", "total_deviation", "score")
+      )
 
   } else if (level == "net") {
     # calculate net sector score
@@ -311,13 +308,15 @@ calculate_company_aggregate_score_tms <- function(data,
       dplyr::ungroup() %>%
       dplyr::mutate(
         score = .data$total_net_deviation / .data$net_absolute_scenario_value
-      )
-
-    data <- data %>%
+      ) %>%
       dplyr::mutate(scenario = .env$scenario) %>%
-      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "score")) %>%
-      dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
+      dplyr::select(
+        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "score")
+      )
   }
+
+  data <- data %>%
+    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
 }
