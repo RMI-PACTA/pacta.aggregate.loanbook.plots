@@ -71,7 +71,7 @@ calculate_company_tech_deviation <- function(data,
   data <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
+    dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>%
     tidyr::pivot_wider(
       names_from = "metric",
       values_from = "production"
@@ -300,7 +300,7 @@ calculate_company_aggregate_score_tms <- function(data,
 
     data <- data %>%
       dplyr::mutate(scenario = .env$scenario) %>%
-      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score1", "score2")) %>%
+      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "direction", "score1", "score2")) %>%
       dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
   } else if (level == "net") {
     # calculate net sector score
