@@ -45,15 +45,6 @@ loanbook <- loanbook %>%
   dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
 
-# regions_to_use <- r2dii.data::region_isos %>%
-#   dplyr::filter(
-#     .data$source %in% .env$scenario_source_input,
-#     .data$region %in% .env$region_select
-#   ) %>%
-#   dplyr::mutate(
-#     isos = toupper(.data$isos)
-#   )
-
 # match and prioritize loan book----
 unique_loanbooks_raw <- unique(loanbook$bank_id)
 
@@ -250,8 +241,9 @@ for (i in unique_banks_tms_aggregation) {
 
 ## aggregate TMS P4B results to company level alignment score----
 # calculate aggregation for the loan book
-tms_aggregated <- tms_result_for_aggregation %>%
-  calculate_company_aggregate_score_tms(
+
+tms_company_technology_deviation <- tms_result_for_aggregation %>%
+  calculate_company_tech_deviation(
     technology_direction = technology_direction,
     scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
@@ -260,8 +252,28 @@ tms_aggregated <- tms_result_for_aggregation %>%
     # bridge_tech = "gascap"
   )
 
+tms_company_technology_deviation %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_technology_deviation.csv"))
+
+tms_aggregated <- tms_company_technology_deviation %>%
+  calculate_company_aggregate_score_tms(
+    scenario_source = scenario_source_input,
+    scenario = scenario_select,
+    level = "net"
+  )
+
 tms_aggregated %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company.csv"))
+
+tms_aggregated_buildout_phaseout <- tms_company_technology_deviation %>%
+  calculate_company_aggregate_score_tms(
+    scenario_source = scenario_source_input,
+    scenario = scenario_select,
+    level = "bo_po"
+  )
+
+tms_aggregated_buildout_phaseout %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company_buildout_phaseout.csv"))
 
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL

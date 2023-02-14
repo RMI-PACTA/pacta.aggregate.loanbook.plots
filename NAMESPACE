@@ -2,6 +2,7 @@
 
 export(calculate_company_aggregate_score_sda)
 export(calculate_company_aggregate_score_tms)
+export(calculate_company_tech_deviation)
 export(calculate_loanbook_exposure_scores)
 export(create_benchmark_loanbook)
 export(generate_individual_outputs)

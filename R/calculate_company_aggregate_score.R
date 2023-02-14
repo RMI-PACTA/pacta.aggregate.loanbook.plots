@@ -1,4 +1,6 @@
-#' Return company level scenario scores for the main sector of each company
+#' Return company level technology deviations for TMS sectors. To be used as
+#' input into calculation of company level aggregate scores for production
+#' trajectory sectors.
 #'
 #' @param data data.frame. Holds the PACTA for Banks TMS results. Must have been
 #'   calculated according to the green/brown logic of the CA100+ calculation
@@ -28,14 +30,14 @@
 #'
 #' @return NULL
 #' @export
-calculate_company_aggregate_score_tms <- function(data,
-                                                  technology_direction,
-                                                  scenario_trajectory,
-                                                  green_or_brown,
-                                                  scenario_source = "geco_2021",
-                                                  scenario = "1.5c",
-                                                  bridge_tech = NULL,
-                                                  aggregate = TRUE) {
+calculate_company_tech_deviation <- function(data,
+                                             technology_direction,
+                                             scenario_trajectory,
+                                             green_or_brown,
+                                             scenario_source = "geco_2021",
+                                             scenario = "1.5c",
+                                             bridge_tech = NULL,
+                                             aggregate = TRUE) {
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
   bridge_tech <- bridge_tech %||% "skip"
@@ -66,34 +68,14 @@ calculate_company_aggregate_score_tms <- function(data,
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)
 
-  # TODO: keep corporate_economy, taking nto account that it needs to done
-  # either separately or treated like a scenario that gets a value for each company
-
   data <- data %>%
-    # data_companies <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
     tidyr::pivot_wider(
       names_from = "metric",
       values_from = "production"
     )
-
-  # data_benchmark <- data %>%
-  #   dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
-  #   dplyr::filter(.data$metric == "corporate_economy") %>%
-  #   dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
-  #   tidyr::pivot_wider(
-  #     names_from = "metric",
-  #     values_from = "production"
-  #   ) %>%
-  #   dplyr::select(-"name_abcd")
-  #
-  # data <- data_companies %>%
-  #   dplyr::inner_join(
-  #     data_benchmark,
-  #     by = c("sector", "technology", "year", "region", "scenario_source", "bank_id")
-  #   )
 
   # add directional dummy
   data <- data %>%
@@ -103,7 +85,7 @@ calculate_company_aggregate_score_tms <- function(data,
   data_to_remove_no_plans_no_target_tech <- data %>%
     dplyr::group_by(
       .data$bank_id, .data$name_abcd, .data$region, .data$scenario_source,
-      .data$sector, .data$technology
+      .data$sector, .data$technology, .data$year
     ) %>%
     dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
     dplyr::summarise(
@@ -118,7 +100,7 @@ calculate_company_aggregate_score_tms <- function(data,
     )
 
   data_to_remove_no_target_in_sector <- data %>%
-    dplyr::group_by(.data$bank_id, .data$name_abcd, .data$region, .data$scenario_source, .data$sector) %>%
+    dplyr::group_by(.data$bank_id, .data$name_abcd, .data$region, .data$scenario_source, .data$sector, .data$year) %>%
     dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
     dplyr::summarise(
       target = sum(.data$target, na.rm = TRUE),
@@ -130,13 +112,13 @@ calculate_company_aggregate_score_tms <- function(data,
   data <- data %>%
     dplyr::anti_join(
       data_to_remove_no_plans_no_target_tech,
-      by = c("bank_id", "name_abcd", "region", "scenario_source", "sector", "technology")
+      by = c("bank_id", "name_abcd", "region", "scenario_source", "sector", "technology", "year")
     )
 
   data <- data %>%
     dplyr::anti_join(
       data_to_remove_no_target_in_sector,
-      by = c("bank_id", "name_abcd", "region", "scenario_source", "sector")
+      by = c("bank_id", "name_abcd", "region", "scenario_source", "sector", "year")
     )
 
   # TODO: generalize!
@@ -165,18 +147,14 @@ calculate_company_aggregate_score_tms <- function(data,
           .data$green_or_brown == "green",
           .data$projected + (.data$projected_sector * .data$smsp),
           .data$projected * .data$tmsr
-        ) # ,
-        # year = .env$start_year + 10
+        )
       ) %>%
       dplyr::rename(scen_t10 = !!rlang::sym(target_scenario)) %>%
       dplyr::select(-c("green_or_brown", "tmsr", "smsp", "projected"))
 
-    data_scen_t5 <- data %>%
-      dplyr::filter(.data$year == .env$start_year + 5)
-
     data_scen_t10 <- data_scen_t10 %>%
       dplyr::inner_join(
-        data_scen_t5,
+        data,
         by = c("sector", "technology", "region", "scenario_source", "name_abcd", "bank_id", "directional_dummy")
       ) %>%
       dplyr::mutate(
@@ -190,7 +168,7 @@ calculate_company_aggregate_score_tms <- function(data,
     data_t10_allowance <- data_scen_t10 %>%
       dplyr::filter(.data$technology != .env$bridge_tech) %>%
       dplyr::group_by(
-        .data$sector, .data$region, .data$scenario_source, .data$name_abcd, .data$bank_id
+        .data$sector, .data$region, .data$scenario_source, .data$year, .data$name_abcd, .data$bank_id
       ) %>%
       dplyr::summarise(
         total_phaseout_deviation = sum(.data$phaseout_deviation, na.rm = TRUE),
@@ -211,7 +189,6 @@ calculate_company_aggregate_score_tms <- function(data,
 
   # calculate total deviation per technology
   data <- data %>%
-    dplyr::filter(.data$year == .env$start_year + 5) %>%
     dplyr::mutate(
       total_tech_deviation = (.data$projected - !!rlang::sym(target_scenario)) * .data$directional_dummy
     )
@@ -219,7 +196,7 @@ calculate_company_aggregate_score_tms <- function(data,
   if (exists("data_t10_allowance") & exists("data_scen_t10")) {
     # update total_tech_deviation
     data_t10_allowance <- data_t10_allowance %>%
-      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "allowance")) %>%
+      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "year", "allowance")) %>%
       dplyr::mutate(technology = .env$bridge_tech)
 
     data_scen_t10 <- data_scen_t10 %>%
@@ -227,12 +204,12 @@ calculate_company_aggregate_score_tms <- function(data,
       dplyr::select(
         c(
           "sector", "technology", "region", "scenario_source", "scenario", "name_abcd",
-          "bank_id", "projected", !!target_scenario, "scen_t10", "directional_dummy"
+          "bank_id", "projected", !!target_scenario, "scen_t10", "directional_dummy", "year"
         )
       ) %>%
       dplyr::inner_join(
         data_t10_allowance,
-        by = c("bank_id", "name_abcd", "sector", "technology", "region", "scenario_source")
+        by = c("bank_id", "name_abcd", "sector", "technology", "region", "scenario_source", "year")
       ) %>%
       dplyr::mutate(
         scen_t5_allowance = dplyr::if_else(
@@ -246,8 +223,7 @@ calculate_company_aggregate_score_tms <- function(data,
           .data$projected < !!rlang::sym(target_scenario) ~ .data$projected - !!rlang::sym(target_scenario),
           .data$projected > .data$scen_t5_allowance ~ (.data$projected - .data$scen_t5_allowance) * -1,
           TRUE ~ 0
-        ),
-        year = .env$start_year + 5
+        )
       ) %>%
       dplyr::select(-!!rlang::sym(target_scenario)) %>%
       dplyr::rename(!!target_scenario := "scen_t5_allowance") %>%
@@ -262,25 +238,85 @@ calculate_company_aggregate_score_tms <- function(data,
       dplyr::bind_rows(data_scen_t10)
   }
 
-  # calculate sector score
-  data <- data %>%
-    dplyr::group_by(
-      .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector
-    ) %>%
-    dplyr::summarise(
-      total_net_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      score = .data$total_net_deviation / .data$net_absolute_scenario_value
-    )
+  return(data)
+}
+
+
+#' Return company level scenario scores for the main sector of each company with
+#' opton to disaggregate by buidlout / phaseout.
+#'
+#' @param data data.frame. Holds company-technology deviations based on PACTA
+#'   for Banks TMS results. Must have been calculated according to the
+#'   green/brown logic of the CA100+ calculation.
+#' @param scenario_source Character. Vector that indicates which scenario_source
+#'   to use for reference in the calculation of the scores. Currently, the only
+#'   supported value is `"geco_2021"`.
+#' @param scenario Character. Vector that indicates which scenario to calculate
+#'   the score for. Must be a scenario available from `scenario_source`.
+#' @param level Character. Vector that indicates if the aggreagte score should
+#'   be returned based on the net technology deviations (`net`) or disaggregated
+#'   into buildout and phaseout technologies (`bo_po`).
+#' @param aggregate Logical. Indicates whether the indicators should be
+#'   calculated for an aggregate of all loan books by different banks in `data`
+#'   or if they should be calculated individually, based on their
+#'   `bank_id`. If only one loan book is included, use the default
+#'   aggregate == TRUE.
+#'
+#' @return NULL
+#' @export
+calculate_company_aggregate_score_tms <- function(data,
+                                                  scenario_source = "geco_2021",
+                                                  scenario = "1.5c",
+                                                  level = c("net", "bo_po"),
+                                                  aggregate = TRUE) {
+  start_year <- min(data$year, na.rm = TRUE)
+  target_scenario <- paste0("target_", scenario)
+  level <- match.arg(level)
+
+  if (level == "bo_po") {
+    # calculate buildout and phaseout sector score
+    data <- data %>%
+      dplyr::mutate(
+        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "year")
+      ) %>%
+      dplyr::summarise(
+        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+        absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "year", "net_absolute_scenario_value", "directional_dummy")
+      ) %>%
+      dplyr::mutate(
+        score = .data$total_deviation / .data$net_absolute_scenario_value,
+        direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")
+      ) %>%
+      dplyr::mutate(scenario = .env$scenario) %>%
+      dplyr::select(
+        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "direction", "total_deviation", "score")
+      )
+
+  } else if (level == "net") {
+    # calculate net sector score
+    data <- data %>%
+      dplyr::group_by(
+        .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
+      ) %>%
+      dplyr::summarise(
+        total_net_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(
+        score = .data$total_net_deviation / .data$net_absolute_scenario_value
+      ) %>%
+      dplyr::mutate(scenario = .env$scenario) %>%
+      dplyr::select(
+        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "score")
+      )
+  }
 
   data <- data %>%
-    dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score")) %>%
-    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
 }
@@ -327,17 +363,14 @@ calculate_company_aggregate_score_sda <- function(data,
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)
 
-  # TODO: keep corporate_economy, taking nto account that it needs to done
-  # either separately or treated like a scenario that gets a value for each company
-
   data <- data %>%
     group_by(
       .data$bank_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
-      .data$scenario_source#, .data$technology
+      .data$scenario_source
     ) %>%
     dplyr::filter(.data$name_abcd != "market") %>%
     dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(.data$year %in% c(.env$start_year, .env$start_year + 5)) %>% # to check with the true ald - which year do we want to keep
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
     tidyr::pivot_wider(
       names_from = "emission_factor_metric",
       values_from = "emission_factor_value"
@@ -346,9 +379,8 @@ calculate_company_aggregate_score_sda <- function(data,
 
   # calculate sector score
   data <- data %>%
-    dplyr::filter(.data$year == .env$start_year + 5) %>%
     dplyr::group_by(
-      .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector
+      .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
     ) %>%
     dplyr::mutate(
       emission_intensity_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
@@ -360,8 +392,8 @@ calculate_company_aggregate_score_sda <- function(data,
 
   data <- data %>%
     dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score")) %>%
-    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region)
+    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score", "year")) %>%
+    dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
 }
