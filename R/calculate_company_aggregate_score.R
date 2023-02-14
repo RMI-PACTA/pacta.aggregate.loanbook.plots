@@ -38,6 +38,21 @@ calculate_company_tech_deviation <- function(data,
                                              scenario = "1.5c",
                                              bridge_tech = NULL,
                                              aggregate = TRUE) {
+
+  # validate input values
+  validate_input_args_calculate_company_tech_deviation(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data sets
+  validate_input_data_calculate_company_tech_deviation(
+    data = data,
+    technology_direction = technology_direction,
+    scenario_trajectory = scenario_trajectory,
+    green_or_brown = green_or_brown
+  )
+
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
   bridge_tech <- bridge_tech %||% "skip"
@@ -269,9 +284,23 @@ calculate_company_aggregate_score_tms <- function(data,
                                                   scenario = "1.5c",
                                                   level = c("net", "bo_po"),
                                                   aggregate = TRUE) {
+
+  # validate input values
+  validate_input_args_calculate_company_aggregate_score_tms(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_score_tms(
+    data = data,
+    scenario = scenario
+  )
+
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
   level <- match.arg(level)
+
 
   if (level == "bo_po") {
     # calculate buildout and phaseout sector score
@@ -345,6 +374,18 @@ calculate_company_aggregate_score_sda <- function(data,
                                                   scenario_source = "geco_2021",
                                                   scenario = "1.5c",
                                                   aggregate = TRUE) {
+  # validate input values
+  validate_input_args_calculate_company_aggregate_score_sda(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_score_sda(
+    data = data,
+    scenario_emission_intensities = scenario_emission_intensities
+  )
+
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
 
@@ -397,3 +438,133 @@ calculate_company_aggregate_score_sda <- function(data,
 
   return(data)
 }
+
+validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
+                                                                 scenario) {
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of class character. Please check your input.")
+  }
+  if (!length(scenario) == 1) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario, "character")) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+
+  invisible()
+}
+
+validate_input_data_calculate_company_tech_deviation <- function(data,
+                                                                 technology_direction,
+                                                                 scenario_trajectory,
+                                                                 green_or_brown) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns = c(
+      "sector", "technology", "year", "region", "scenario_source", "name_abcd",
+      "metric", "production", "technology_share", "scope",
+      "percentage_of_initial_production_by_scope", "bank_id"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = technology_direction,
+    expected_columns = c(
+      "scenario_source", "scenario", "sector", "technology", "region",
+      "directional_dummy"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = scenario_trajectory,
+    expected_columns = c(
+      "scenario_source", "scenario", "sector", "technology", "region", "year",
+      "tmsr", "smsp"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = green_or_brown,
+    expected_columns = c(
+      "sector", "technology", "green_or_brown"
+    )
+  )
+
+  invisible()
+}
+
+validate_input_args_calculate_company_aggregate_score_tms <- function(scenario_source,
+                                                                      scenario) {
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of class character. Please check your input.")
+  }
+  if (!length(scenario) == 1) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario, "character")) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+
+  invisible()
+}
+
+validate_input_data_calculate_company_aggregate_score_tms <- function(data,
+                                                                      scenario) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns = c(
+      "sector", "technology", "year", "region", "scenario_source", "name_abcd",
+      "bank_id", "projected", paste0("target_", scenario), "directional_dummy",
+      "total_tech_deviation"
+    )
+  )
+
+  invisible()
+}
+
+validate_input_args_calculate_company_aggregate_score_sda <- function(scenario_source,
+                                                                      scenario) {
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of class character. Please check your input.")
+  }
+  if (!length(scenario) == 1) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario, "character")) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+
+  invisible()
+}
+
+
+validate_input_data_calculate_company_aggregate_score_sda <- function(data,
+                                                                      scenario_emission_intensities) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns <- c(
+      "sector", "year", "region", "scenario_source", "name_abcd",
+      "emission_factor_metric", "emission_factor_value", "bank_id"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = scenario_emission_intensities,
+    expected_columns <- c(
+      "scenario_source", "scenario", "sector",  "region", "year",
+      "emission_factor", "emission_factor_unit"
+    )
+  )
+
+  invisible()
+}
+

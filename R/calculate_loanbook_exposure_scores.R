@@ -121,3 +121,24 @@ calculate_loanbook_exposure_scores <- function(data,
 
   return(out)
 }
+
+validate_input_data_calculate_loanbook_exposure_scores <- function(data,
+                                                                   matched) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns <- c(
+      "bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario",
+      "year", "score"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = matched,
+    expected_columns <- c(
+      "bank_id", "id_loan", "loan_size_outstanding",
+      "loan_size_outstanding_currency", "name_abcd", "sector"
+    )
+  )
+
+  invisible()
+}
