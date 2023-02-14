@@ -8,14 +8,14 @@
 create_benchmark_loanbook <- function(data) {
 
   # check input data
-  expected_columns <- c(
-    "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
-    "technology", "plant_location", "year", "production", "production_unit",
-    "emission_factor", "emission_factor_unit", "ald_timestamp"
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns <- c(
+      "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
+      "technology", "plant_location", "year", "production", "production_unit",
+      "emission_factor", "emission_factor_unit", "ald_timestamp"
+    )
   )
-  data_has_expected_columns <- if (all(expected_columns %in% names(data))) TRUE else FALSE
-
-  stopifnot(data_has_expected_columns)
 
   # get NACE sector codes to use in raw loan book of corporate benchmark
   benchmark_sectors <- r2dii.data::nace_classification %>%
