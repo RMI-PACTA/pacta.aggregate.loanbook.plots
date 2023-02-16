@@ -253,6 +253,10 @@ calculate_company_tech_deviation <- function(data,
       dplyr::bind_rows(data_scen_t10)
   }
 
+  data <- data %>%
+    dplyr::mutate(direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")) %>%
+    dplyr::select(-"directional_dummy")
+
   return(data)
 }
 
@@ -312,15 +316,17 @@ calculate_company_aggregate_score_tms <- function(data,
       dplyr::summarise(
         total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
         absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "year", "net_absolute_scenario_value", "directional_dummy")
+        .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "year", "net_absolute_scenario_value", "direction")
       ) %>%
       dplyr::mutate(
         score = .data$total_deviation / .data$net_absolute_scenario_value,
-        direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")
+        scenario = .env$scenario
       ) %>%
-      dplyr::mutate(scenario = .env$scenario) %>%
       dplyr::select(
-        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "direction", "total_deviation", "score")
+        c(
+          "bank_id", "name_abcd", "sector", "region", "scenario_source",
+          "scenario", "year", "direction", "total_deviation", "score"
+        )
       )
 
   } else if (level == "net") {
@@ -330,17 +336,21 @@ calculate_company_aggregate_score_tms <- function(data,
         .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
       ) %>%
       dplyr::summarise(
-        total_net_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
         net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
         .groups = "drop"
       ) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(
-        score = .data$total_net_deviation / .data$net_absolute_scenario_value
+        score = .data$total_deviation / .data$net_absolute_scenario_value,
+        scenario = .env$scenario,
+        direction = .env$level
       ) %>%
-      dplyr::mutate(scenario = .env$scenario) %>%
       dplyr::select(
-        c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "year", "score")
+        c(
+          "bank_id", "name_abcd", "sector", "region", "scenario_source",
+          "scenario", "year", "direction", "total_deviation", "score"
+        )
       )
   }
 
@@ -424,16 +434,22 @@ calculate_company_aggregate_score_sda <- function(data,
       .data$bank_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
     ) %>%
     dplyr::mutate(
-      emission_intensity_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
+      total_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(
-      score = .data$emission_intensity_deviation / !!rlang::sym(target_scenario)
+      direction = "net",
+      score = .data$total_deviation / !!rlang::sym(target_scenario)
     )
 
   data <- data %>%
     dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario", "score", "year")) %>%
+    dplyr::select(
+      c(
+        "bank_id", "name_abcd", "sector", "region", "scenario_source",
+        "scenario", "year", "direction", "total_deviation", "score"
+      )
+    ) %>%
     dplyr::arrange(.data$bank_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
@@ -520,7 +536,7 @@ validate_input_data_calculate_company_aggregate_score_tms <- function(data,
     data = data,
     expected_columns = c(
       "sector", "technology", "year", "region", "scenario_source", "name_abcd",
-      "bank_id", "projected", paste0("target_", scenario), "directional_dummy",
+      "bank_id", "projected", paste0("target_", scenario), "direction",
       "total_tech_deviation"
     )
   )

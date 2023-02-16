@@ -53,7 +53,7 @@ calculate_loanbook_exposure_scores <- function(data,
     )
 
   total_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
-    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$year) %>%
+    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$year, .data$direction) %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
       sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)
@@ -65,7 +65,7 @@ calculate_loanbook_exposure_scores <- function(data,
     ) %>%
     dplyr::group_by(
       .data$bank_id, .data$n_companies, .data$sum_loan_size_outstanding,
-      .data$scenario, .data$region, .data$year
+      .data$scenario, .data$region, .data$year, .data$direction
     ) %>%
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
@@ -81,7 +81,7 @@ calculate_loanbook_exposure_scores <- function(data,
     dplyr::mutate(sector = "total")
 
   sector_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
-    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$sector, .data$year) %>%
+    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
       sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)
@@ -93,7 +93,7 @@ calculate_loanbook_exposure_scores <- function(data,
     ) %>%
     dplyr::group_by(
       .data$bank_id, .data$n_companies, .data$sum_loan_size_outstanding,
-      .data$scenario, .data$region, .data$sector, .data$year
+      .data$scenario, .data$region, .data$sector, .data$year, .data$direction
     ) %>%
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
@@ -111,10 +111,10 @@ calculate_loanbook_exposure_scores <- function(data,
     dplyr::bind_rows(total_aggregate_exposure_loanbook) %>%
     dplyr::relocate(
       c(
-        "bank_id", "scenario", "region", "sector", "year",
+        "bank_id", "scenario", "region", "sector", "year", "direction",
         "n_companies", "n_companies_aligned", "share_companies_aligned",
-        "sum_loan_size_outstanding", "sum_exposure_companies_aligned", "share_exposure_aligned",
-        "exposure_weighted_net_alignment"
+        "sum_loan_size_outstanding", "sum_exposure_companies_aligned",
+        "share_exposure_aligned", "exposure_weighted_net_alignment"
       )
     ) %>%
     dplyr::arrange(.data$bank_id, .data$scenario, .data$region, .data$sector, .data$year)

@@ -325,9 +325,11 @@ sda_aggregated %>%
 # the company level aggregate scores are then joined with the matched loan book
 # to derive some high level summary statistics on the loan book level
 companies_aggregated <- tms_aggregated %>%
+  # dplyr::bind_rows(tms_aggregated_buildout_phaseout) %>%
   dplyr::bind_rows(sda_aggregated)
 
 # show exposures (n companies and loan size) by alignment with given scenario
+# TODO: correctly aggregate to bo_po level
 aggregate_exposure_loanbook <- companies_aggregated %>%
   calculate_loanbook_exposure_scores(matched = matched_total)
 
