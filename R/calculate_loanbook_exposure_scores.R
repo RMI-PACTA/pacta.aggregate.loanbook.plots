@@ -45,12 +45,22 @@ calculate_loanbook_exposure_scores <- function(data,
     ) %>%
     dplyr::ungroup()
 
+  # if technology_share_by_direction is missing, we have a net aggregation,
+  # which only has one direction. In this case, the share is always 1.
+  if (!"technology_share_by_direction" %in% names(data)) {
+    data <- data %>%
+      dplyr::mutate(technology_share_by_direction = 1)
+  }
 
-  aggregate_exposure_company <- matched %>%
+  aggregate_exposure_company <- data %>%
     dplyr::inner_join(
-      data,
+      matched,
       by = c("bank_id", "name_abcd", "sector")
+    ) %>%
+    dplyr::mutate(
+      exposure_weight = .data$exposure_weight * .data$technology_share_by_direction
     )
+
 
   total_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
     dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$year, .data$direction) %>%
