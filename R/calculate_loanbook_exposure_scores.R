@@ -2,6 +2,9 @@
 #'
 #' @param data data.frame. Holds output pf company indicators
 #' @param matched data.frame. Holds matched and priortised loan book
+#' @param level Character. Vector that indicates if the aggreagte score should
+#'   be returned based on the net technology deviations (`net`) or disaggregated
+#'   into buildout and phaseout technologies (`bo_po`).
 #' @param aggregate Logical. Indicates whether the indicators should be
 #'   calculated for an aggregate of all loan books by different banks in
 #'   `matched` or if they should be calculated individually, based on their
@@ -12,7 +15,10 @@
 #' @export
 calculate_loanbook_exposure_scores <- function(data,
                                                matched,
+                                               level = c("net", "bo_po"),
                                                aggregate = TRUE) {
+  level <- match.arg(level)
+
   if (!is.logical(aggregate)) {
     stop("Function argument aggregate must be either TRUE or FALSE!")
   }
@@ -45,22 +51,21 @@ calculate_loanbook_exposure_scores <- function(data,
     ) %>%
     dplyr::ungroup()
 
-  # if technology_share_by_direction is missing, we have a net aggregation,
-  # which only has one direction. In this case, the share is always 1.
-  if (!"technology_share_by_direction" %in% names(data)) {
-    data <- data %>%
-      dplyr::mutate(technology_share_by_direction = 1)
-  }
-
   aggregate_exposure_company <- data %>%
     dplyr::inner_join(
       matched,
       by = c("bank_id", "name_abcd", "sector")
-    ) %>%
-    dplyr::mutate(
-      exposure_weight = .data$exposure_weight * .data$technology_share_by_direction
     )
 
+  # if we aggregate to the buildout/phaseout level, we need to split the
+  # exposure weights according to the technology_share_by_direction.
+  # if we aggregate to the net level, we just keep the net exposure weights per company
+  if (level == "bo_po") {
+    aggregate_exposure_company <- aggregate_exposure_company %>%
+      dplyr::mutate(
+        exposure_weight = .data$exposure_weight * .data$technology_share_by_direction
+      )
+  }
 
   total_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
     dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$year, .data$direction) %>%

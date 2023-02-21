@@ -332,14 +332,20 @@ companies_aggregated <- tms_aggregated %>%
 
 # net
 aggregate_exposure_loanbook <- companies_aggregated %>%
-  calculate_loanbook_exposure_scores(matched = matched_total)
+  calculate_loanbook_exposure_scores(
+    matched = matched_total,
+    level = "net"
+  )
 
 aggregate_exposure_loanbook %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook.csv"))
 
 # buildout / phaseout
 aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
-  calculate_loanbook_exposure_scores(matched = matched_total)
+  calculate_loanbook_exposure_scores(
+    matched = matched_total,
+    level = "bo_po"
+  )
 
 aggregate_exposure_loanbook_bopo %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
