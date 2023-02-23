@@ -50,12 +50,72 @@ unique_loanbooks_raw <- unique(loanbook$bank_id)
 
 matched_loanbook <- NULL
 
+multi_sector_companies <- abcd %>%
+  dplyr::distinct(company_id, sector) %>%
+  dplyr::mutate(n = dplyr::n(), .by = "company_id") %>%
+  dplyr::filter(n > 1)
+
+multi_sector_companies_power <- multi_sector_companies %>%
+  dplyr::filter(.data$sector == "power") %>%
+  dplyr::pull(.data$company_id)
+
+multi_sector_companies_oil_and_gas <- multi_sector_companies %>%
+  dplyr::filter(.data$sector == "oil and gas") %>%
+  dplyr::pull(.data$company_id)
+
+multi_sector_companies_coal <- multi_sector_companies %>%
+  dplyr::filter(.data$sector == "coal") %>%
+  dplyr::pull(.data$company_id)
+
+multi_sector_companies_energy <- multi_sector_companies %>%
+  dplyr::filter(
+    (.data$company_id %in% multi_sector_companies_power & .data$company_id %in% multi_sector_companies_oil_and_gas) |
+      (.data$company_id %in% multi_sector_companies_power & .data$company_id %in% multi_sector_companies_coal) |
+      (.data$company_id %in% multi_sector_companies_coal & .data$company_id %in% multi_sector_companies_oil_and_gas)
+  ) %>%
+  dplyr::select(c("company_id", "sector"))
+
+start_year <- scenario_input_tms %>%
+  dplyr::filter(
+    scenario_source == scenario_source_input,
+    scenario == scenario_select,
+    region == "global"
+  ) %>%
+  dplyr::distinct(.data$year) %>%
+  dplyr::pull(.data$year) %>%
+  min()
+
+# TODO: should the split always be based on the entire company production or
+# should it be scoped to the scenario region?
+sector_split_energy_companies <- abcd %>%
+  dplyr::inner_join(multi_sector_companies_energy, by = c("company_id", "sector")) %>%
+  dplyr::filter(.data$year == .env$start_year) %>%
+  dplyr::summarise(
+    production = sum(.data$production, na.rm = TRUE),
+    .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "sector", "year", "production_unit")
+  ) %>%
+  dplyr::inner_join(
+    unit_conversion,
+    by = c("sector", "production_unit" = "unit")
+  ) %>%
+  dplyr::mutate(
+    production = .data$production * .data$value_in_GJ,
+    production_unit = "GJ"
+  ) %>%
+  dplyr::select(-"value_in_GJ") %>%
+  dplyr::mutate(
+    sector_split = production / sum(production, na.rm = TRUE),
+    .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "year", "production_unit")
+  )
+
 for (i in unique_loanbooks_raw) {
   loanbook_i <- loanbook %>%
     dplyr::filter(.data$bank_id == i)
 
   matched_i <- match_name(loanbook_i, abcd) %>%
     prioritize()
+
+  names_i <- unique(matched_i$name_abcd)
 
   matched_loanbook <- matched_loanbook %>%
     dplyr::bind_rows(matched_i)
@@ -65,6 +125,8 @@ for (i in unique_loanbooks_raw) {
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
 
 # add loan book with corporate economy benchmark
+# TODO: we need to replace the loan size with a value that reflects the size
+# of the company in the real economy
 loanbook_corporate_benchmark <- abcd %>%
   create_benchmark_loanbook()
 
