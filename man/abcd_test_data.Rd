@@ -5,7 +5,7 @@
 \alias{abcd_test_data}
 \title{ABCD test data}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 456 rows and 13 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 582 rows and 13 columns.
 }
 \usage{
 abcd_test_data

@@ -18,7 +18,9 @@ loanbook_test_data <- tibble::tribble(
   "L15", "C15", "test_cement_A", NA_character_, NA_character_, "UP15", "test_cement_A", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2351, "Loan", "No", NA_character_, NA_character_, NA_character_,
   "L16", "C16", "test_cement_B", NA_character_, NA_character_, "UP16", "test_cement_B", 1000000, "USD", 1000000, "USD", "NACE", "Code", 2351, "Loan", "No", NA_character_, NA_character_, NA_character_,
   "L17", "C17", "test_airline_1", NA_character_, NA_character_, "UP17", "test_airline_1", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5110, "Loan", "No", NA_character_, NA_character_, NA_character_,
-  "L18", "C18", "test_airline_2", NA_character_, NA_character_, "UP18", "test_airline_2", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5110, "Loan", "No", NA_character_, NA_character_, NA_character_
+  "L18", "C18", "test_airline_2", NA_character_, NA_character_, "UP18", "test_airline_2", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5110, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L19", "C23", "energy_major_1", NA_character_, NA_character_, "UP23", "energy_major_1", 1000000, "USD", 1000000, "USD", "NACE", "Code", 6100, "Loan", "No", NA_character_, NA_character_, NA_character_,
+  "L20", "C24", "energy_major_2", NA_character_, NA_character_, "UP24", "energy_major_2", 1000000, "USD", 1000000, "USD", "NACE", "Code", 5100, "Loan", "No", NA_character_, NA_character_, NA_character_
 )
 # styler: on
 
