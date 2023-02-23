@@ -2,32 +2,21 @@
 % Please edit documentation in R/calculate_company_aggregate_score.R
 \name{calculate_company_aggregate_score_tms}
 \alias{calculate_company_aggregate_score_tms}
-\title{Return company level scenario scores for the main sector of each company}
+\title{Return company level scenario scores for the main sector of each company with
+opton to disaggregate by buidlout / phaseout.}
 \usage{
 calculate_company_aggregate_score_tms(
   data,
-  technology_direction,
-  scenario_trajectory,
-  green_or_brown,
   scenario_source = "geco_2021",
   scenario = "1.5c",
-  bridge_tech = NULL,
+  level = c("net", "bo_po"),
   aggregate = TRUE
 )
 }
 \arguments{
-\item{data}{data.frame. Holds the PACTA for Banks TMS results. Must have been
-calculated according to the green/brown logic of the CA100+ calculation
-and must return unweighted company level TMSR results.}
-
-\item{technology_direction}{data frame that indicates which technologies are
-to be considered phase down technologies versus build out technologies}
-
-\item{scenario_trajectory}{data frame containing the scenario file with
-information on yearly tmsr and smsp changes by scenario and region.}
-
-\item{green_or_brown}{data frame. Indicates which technologies are to use
-tmsr versus smsp}
+\item{data}{data.frame. Holds company-technology deviations based on PACTA
+for Banks TMS results. Must have been calculated according to the
+green/brown logic of the CA100+ calculation.}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
 to use for reference in the calculation of the scores. Currently, the only
@@ -36,12 +25,9 @@ supported value is \code{"geco_2021"}.}
 \item{scenario}{Character. Vector that indicates which scenario to calculate
 the score for. Must be a scenario available from \code{scenario_source}.}
 
-\item{bridge_tech}{Character. Vector that indicates if a technology is
-considered a bridge technology. I.e. if the scenario requires a temporary
-build out despite the need for a long term phase down. If so, the alignment
-score can be treated differently than for other technologies. Currently,
-this is only supported for gas fired power generation (\code{"gascap"}). Default
-is \code{NULL} which means that no special treatment is applied.}
+\item{level}{Character. Vector that indicates if the aggreagte score should
+be returned based on the net technology deviations (\code{net}) or disaggregated
+into buildout and phaseout technologies (\code{bo_po}).}
 
 \item{aggregate}{Logical. Indicates whether the indicators should be
 calculated for an aggregate of all loan books by different banks in \code{data}
@@ -50,5 +36,6 @@ or if they should be calculated individually, based on their
 aggregate == TRUE.}
 }
 \description{
-Return company level scenario scores for the main sector of each company
+Return company level scenario scores for the main sector of each company with
+opton to disaggregate by buidlout / phaseout.
 }
