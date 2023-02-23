@@ -47,7 +47,7 @@ prep_sankey <- function(
     group_by(middle_node) %>%
     mutate(middle_node_total = sum(.data$loan_size_outstanding)) %>%
     ungroup() %>%
-    arrange(desc("middle_node_total"), "is_aligned") %>%
+    arrange(desc(.data$middle_node_total)) %>%
     select("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
 
   data_out
