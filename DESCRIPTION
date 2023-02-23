@@ -21,11 +21,13 @@ Imports:
     dplyr,
     ggplot2,
     glue,
+    networkD3,
     r2dii.data,
     r2dii.plot,
     readr,
     rlang,
-    tidyr
+    tidyr,
+    webshot
 Depends: 
     R (>= 2.10)
 LazyData: true
