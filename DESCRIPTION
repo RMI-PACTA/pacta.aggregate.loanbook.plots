@@ -27,7 +27,7 @@ Imports:
     readr,
     rlang,
     tidyr,
-    webshot
+    webshot,
     tibble,
 Depends: 
     R (>= 2.10)
