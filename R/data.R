@@ -6,3 +6,6 @@
 
 #' Units for economic activities per sector and technology
 "activity_units"
+
+#' Units for economic activities per sector and technology
+"unit_conversion"
