@@ -28,6 +28,16 @@ prep_sankey <- function(
     year,
     middle_node = c("sector", "name_abcd")) {
 
+  middle_node <- rlang::arg_match(middle_node)
+  check_prep_sankey(
+    tms_aggregated,
+    sda_aggregated,
+    matched_loanbook,
+    region_tms,
+    region_sda,
+    year
+    )
+
   tms_aggregated <- tms_aggregated %>%
     filter(
       .data$region == region_tms,
@@ -61,4 +71,44 @@ prep_sankey <- function(
     select("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
 
   data_out
+}
+
+check_prep_sankey <- function(
+    tms_aggregated,
+    sda_aggregated,
+    matched_loanbook,
+    region_tms,
+    region_sda,
+    year
+) {
+  names_all <- c("bank_id", "name_abcd", "sector")
+  names_aggergate <- c("region", "year")
+  r2dii.plot:::abort_if_missing_names(tms_aggregated, c(names_all, names_aggergate))
+  r2dii.plot:::abort_if_missing_names(sda_aggregated, c(names_all, names_aggergate))
+  r2dii.plot:::abort_if_missing_names(matched_loanbook, c(names_all, "loan_size_outstanding"))
+  if (!(region_tms %in% unique(tms_aggregated$region))) {
+    abort(c(
+      "`region_tms` value not found in `tms_aggeragted` dataset.",
+      i = glue("Regions in `tms_aggregated` are: {toString(unique(tms_aggregated$region))}"),
+      x = glue("You provided region_tms = {region_tms}.")
+      ))
+  }
+  if (!(region_sda %in% unique(sda_aggregated$region))) {
+    abort(c(
+      "`region_sda` value not found in `sda_aggeragted` dataset.",
+      i = glue("Regions in `sda_aggregated` are: {toString(unique(sda_aggregated$region))}"),
+      x = glue("You provided region_sda = {region_sda}.")
+      ))
+  }
+  if (!(year %in% unique(c(sda_aggregated$year, tms_aggregated$year)))) {
+    abort(c(
+      "`year` value not found in one of the aggeragted datasets.",
+      i = glue(
+        "Years in `sda_aggregated` are: {toString(unique(sda_aggregated$year))}
+         Years in `tms_aggregated` are: {toString(unique(tms_aggregated$year))}
+        "
+        ),
+      x = glue("You provided year = {year}.")
+      ))
+  }
 }
