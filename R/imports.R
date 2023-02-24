@@ -6,4 +6,6 @@
 #' @importFrom rlang %||% .data .env sym abort set_names :=
 #' @importFrom tibble tibble
 #' @importFrom tidyr pivot_wider
+#' @importFrom webshot webshot is_phantomjs_installed
+#' @importFrom networkD3 sankeyNetwork saveNetwork
 NULL
