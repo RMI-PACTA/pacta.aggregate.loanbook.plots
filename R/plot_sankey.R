@@ -47,7 +47,8 @@ links <- data_links %>%
     value = "loan_size_outstanding",
     group = "is_aligned"
     ) %>%
-  bind_rows(links)
+  bind_rows(links) %>%
+  as.data.frame()
 
 # TODO: colour the companies if fully aligned or not
 nodes <- data.frame(
