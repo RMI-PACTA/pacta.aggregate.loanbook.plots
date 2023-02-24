@@ -27,8 +27,8 @@ Imports:
     readr,
     rlang,
     tidyr,
-    webshot,
     tibble,
+    webshot
 Depends: 
     R (>= 2.10)
 LazyData: true
