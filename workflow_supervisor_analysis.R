@@ -350,3 +350,16 @@ aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
 aggregate_exposure_loanbook_bopo %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
 
+# Plot sankey plot of financial flows scenario alignment
+
+data_sankey <- prep_sankey(
+  tms_aggregated,
+  sda_aggregated,
+  matched_loanbook,
+  region_tms = "global",
+  region_sda = "global",
+  year = 2026,
+  middle_node = "name_abcd"
+  )
+
+plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated)
