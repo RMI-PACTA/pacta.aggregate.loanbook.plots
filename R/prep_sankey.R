@@ -33,6 +33,9 @@ prep_sankey <- function(
   sda_aggregated <- sda_aggregated %>%
     filter(.data$region == region_sda)
 
+  matched_loanbook <- matched_loanbook %>%
+    select("bank_id", "name_abcd", "sector", "loan_size_outstanding")
+
   data_out <- tms_aggregated %>%
     dplyr::bind_rows(sda_aggregated) %>%
     inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
