@@ -25,13 +25,20 @@ prep_sankey <- function(
     matched_loanbook,
     region_tms,
     region_sda,
+    year,
     middle_node = c("sector", "name_abcd")) {
 
   tms_aggregated <- tms_aggregated %>%
-    filter(.data$region == region_tms)
+    filter(
+      .data$region == region_tms,
+      .data$year == .env$year
+      )
 
   sda_aggregated <- sda_aggregated %>%
-    filter(.data$region == region_sda)
+    filter(
+      .data$region == region_sda,
+      .data$year == .env$year
+      )
 
   matched_loanbook <- matched_loanbook %>%
     select("bank_id", "name_abcd", "sector", "loan_size_outstanding")
