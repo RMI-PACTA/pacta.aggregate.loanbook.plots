@@ -20,6 +20,8 @@ plot_sankey <- function(
     png_name = "sankey.png"
     ) {
 
+  check_plot_sankey(data, capitalise_node_labels)
+
   if (capitalise_node_labels) {
     data_links <- data %>%
       mutate(
@@ -92,4 +94,13 @@ if (!is.null(save_png_to)) {
   }
 }
 p
+}
+
+check_plot_sankey <- function(data, capitalise_node_labels) {
+  crucial_names <- c("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
+  r2dii.plot:::abort_if_missing_names(data, crucial_names)
+  if (!is.logical(capitalise_node_labels)) {
+    abort(c("`capitalise_node_labels` must have a logical value.",
+               x = glue("You provided: {capitalise_node_labels}.")))
+  }
 }
