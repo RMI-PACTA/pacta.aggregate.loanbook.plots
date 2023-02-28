@@ -1,16 +1,11 @@
-# unit conversions are taken from: https://www.iea.org/data-and-statistics/data-tools/unit-converter
-# last accessed on 23 Feb 2023
-# MW are yearly capacity.
-# we multiply the unit conversion by 365.25 days and 24 hours to get the MW per
-# year conversion
-MWh_in_GJ <- 3.6
-MW_in_GJ <- MWh_in_GJ * 24 * 365.25
+# unit conversions are taken from: http://wds.iea.org/wds/pdf/WORLDBAL_Documentation.pdf
+# last accessed on 27 Feb 2023
 
 unit_conversion <- tibble::tribble(
-  ~sector,       ~unit,             ~value_in_GJ,
-  "coal",        "tonnes per year", 29.31,
-  "oil and gas", "GJ",              1,
-  "power",       "MW",              MW_in_GJ
+  ~sector,       ~unit,             ~value_in_mtoe,
+  "coal",        "tonnes per year", 7e-07,
+  "oil and gas", "GJ",              2.3885e-08,
+  "power",       "MWh",             8.598e-08
 )
 
 usethis::use_data(unit_conversion, overwrite = TRUE)
