@@ -30,7 +30,7 @@ get_energy_sector_split <- function(data,
   # transform power capacity to generation (MW -> MWh)
   # MW are yearly capacity. We therefore apply the capacity factor and multiply by
   # 365.25 days and 24 hours
-  capacity_factors <- capacity_factor_power %>%
+  capacity_factors <- get("capacity_factor_power") %>%
     dplyr::select(c("technology", "capacity_factor")) %>%
     dplyr::distinct()
 
@@ -51,7 +51,7 @@ get_energy_sector_split <- function(data,
       .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "sector", "year", "production_unit")
     ) %>%
     dplyr::inner_join(
-      unit_conversion,
+      get("unit_conversion"),
       by = c("sector", "production_unit" = "unit")
     ) %>%
     dplyr::mutate(
@@ -63,7 +63,7 @@ get_energy_sector_split <- function(data,
   # get the sector split for each company based on common energy units
   sector_split_energy_companies <- sector_split_energy_companies %>%
     dplyr::mutate(
-      sector_split = production / sum(production, na.rm = TRUE),
+      sector_split = .data$production / sum(.data$production, na.rm = TRUE),
       .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "year", "production_unit")
     ) %>%
     dplyr::select(c("company_id", "name_company", "sector", "production_unit", "production", "sector_split")) %>%
