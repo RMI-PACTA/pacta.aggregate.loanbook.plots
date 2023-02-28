@@ -8,7 +8,7 @@
 #'   saved
 #' @param png_name Character. File name of the output.
 #'
-#' @return
+#' @return NULL
 #' @export
 #'
 #' @examples
