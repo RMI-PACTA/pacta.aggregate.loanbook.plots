@@ -23,7 +23,7 @@ capacity_factor_power <- capacity_factor_power_raw %>%
   ) %>%
   # create categories matching PACTA technologies
   dplyr::filter(
-    !.data$product %in% c("Total", "Renewables", "Battery storage"),
+    !.data$product %in% c("Total", "Renewables", "Battery storage", "Hydrogen and H2-based fuels"),
     !grepl("Fossil fuels", .data$product)
   ) %>%
   dplyr::mutate(
@@ -34,7 +34,7 @@ capacity_factor_power <- capacity_factor_power_raw %>%
       .data$product %in% c("Hydro") ~ "hydrocap",
       .data$product %in% c("Nuclear") ~ "nuclearcap",
       .data$product %in% c(
-        "Solar PV", "Wind", "Modern bioenergy and renewable waste", "Bioenergy: with CCUS", "Concentrating solar power", "Geothermal", "Marine", "Hydrogen and H2-based fuels"
+        "Solar PV", "Wind", "Modern bioenergy and renewable waste", "Bioenergy: with CCUS", "Concentrating solar power", "Geothermal", "Marine"
       ) ~ "renewablescap",
       TRUE ~ NA_character_
     )
@@ -59,21 +59,5 @@ capacity_factor_power <- capacity_factor_power_raw %>%
     region = dplyr::if_else(.data$region == "World", "global", .data$region)
   ) %>%
   dplyr::select(c("scenario_source", "scenario", "region", "year", "technology", "capacity_factor"))
-
-# capacity_factor_power <- tibble::tribble(
-#   ~sector,     ~technology, ~capacity_factor,
-#   "power",       "coalcap",             0.40,
-#   "power",        "gascap",             0.20,
-#   # TODO: replace oil placeholder with real value
-#   "power",        "oilcap",             0.20,
-#   # TODO: replace hydro placeholder with real value
-#   "power",      "hydrocap",             0.29,
-#   "power",    "nuclearcap",             0.80,
-#   # TODO: replace renewables placeholder with weighted mean
-#   "power", "renewablescap",             0.30
-#   # "power",         "solar",             0.14,
-#   # "power",  "wind onshore",             0.29,
-#   # "power", "wind offshore",             0.51
-# )
 
 usethis::use_data(capacity_factor_power, overwrite = TRUE)
