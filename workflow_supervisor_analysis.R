@@ -91,8 +91,21 @@ start_year <- scenario_input_tms %>%
   dplyr::pull(.data$year) %>%
   min()
 
+primary_energy_efficiency <- get("primary_energy_efficiency")
+
+capacity_factors <- get("capacity_factor_power") %>%
+  dplyr::select(c("technology", "capacity_factor")) %>%
+  dplyr::distinct()
+
+unit_conversion <- get("unit_conversion")
+
 sector_split_energy_companies <- abcd %>%
-  get_energy_sector_split(start_year = start_year)
+  get_energy_sector_split(
+    start_year = start_year,
+    primary_energy_efficiency = primary_energy_efficiency,
+    capacity_factor_power = capacity_factors,
+    unit_conversion = unit_conversion
+  )
 # TODO match with loan book
 
 # generate all P4B outputs----
