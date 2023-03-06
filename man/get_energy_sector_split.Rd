@@ -4,13 +4,32 @@
 \alias{get_energy_sector_split}
 \title{Return multi sector energy companies including sector split}
 \usage{
-get_energy_sector_split(data, start_year)
+get_energy_sector_split(
+  data,
+  start_year,
+  primary_energy_efficiency,
+  capacity_factor_power,
+  unit_conversion
+)
 }
 \arguments{
 \item{data}{data frame containing the asset-based company data (ABCD) in
 PACTA for Banks format.}
 
 \item{start_year}{Numeric vector containing the start year of the analysis.}
+
+\item{primary_energy_efficiency}{data frame containing efficiency factors for
+power technologies that can be used to back calculated the primary energy
+content implied in a unit of power capacity.}
+
+\item{capacity_factor_power}{data frame providing the capacity factors
+assumed for each of the power technologies in the climate scenario used in
+the analysis. This can be used to transform installed power capacity into
+power generation.}
+
+\item{unit_conversion}{data frame containing conversion factors for all
+energy sectors covered in PACTA so that the metrics can be transformed to a
+single common energy unit.}
 }
 \description{
 Return multi sector energy companies including sector split
