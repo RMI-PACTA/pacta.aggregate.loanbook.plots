@@ -23,7 +23,8 @@ region_isos_select <- r2dii.data::region_isos %>%
 
 # set directories----
 
-# input_path_scenario <- file.path("/path/to/input/directory/scenario/file.csv")
+# input_path_scenario_tms <- file.path("/path/to/input/directory/tms/scenario/file.csv")
+# input_path_scenario_sda <- file.path("/path/to/input/directory/sda/scenario/file.csv")
 # input_directory_abcd <- file.path("/path/to/input/directory/abcd/")
 # input_directory_raw <- file.path("/path/to/input/directory/raw/")
 # input_directory_matched <- file.path("/path/to/input/directory/matched/")
@@ -363,3 +364,17 @@ data_sankey <- prep_sankey(
   )
 
 plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated)
+
+
+data_sankey2 <- prep_sankey(
+  tms_aggregated,
+  sda_aggregated,
+  matched_loanbook,
+  region_tms = "global",
+  region_sda = "global",
+  year = 2026,
+  middle_node = "name_abcd",
+  middle_node2 = "sector"
+  )
+
+plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_name = "sankey2.png")
