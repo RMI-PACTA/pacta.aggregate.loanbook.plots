@@ -13,6 +13,9 @@
 #' @param middle_node Character. Column specifying the middle nodes to be
 #'   plotted in sankey plot. Must be present in `tms_aggegated` and
 #'   `sda_aggregated` input data frames.
+#' @param middle_node2 Character. Column specifying the middle nodes to be
+#'   plotted in sankey plot. Must be present in `tms_aggegated` and
+#'   `sda_aggregated` input data frames.
 #'
 #' @return data.frame
 #' @export
@@ -26,16 +29,18 @@ prep_sankey <- function(
     region_tms,
     region_sda,
     year,
-    middle_node = c("sector", "name_abcd")) {
+    middle_node,
+    middle_node2 = NULL) {
 
-  middle_node <- rlang::arg_match(middle_node)
   check_prep_sankey(
     tms_aggregated,
     sda_aggregated,
     matched_loanbook,
     region_tms,
     region_sda,
-    year
+    year,
+    middle_node,
+    middle_node2
     )
 
   tms_aggregated <- tms_aggregated %>%
@@ -53,7 +58,8 @@ prep_sankey <- function(
   matched_loanbook <- matched_loanbook %>%
     select("bank_id", "name_abcd", "sector", "loan_size_outstanding")
 
-  data_out <- tms_aggregated %>%
+  if (is.null(middle_node2)) {
+    data_out <- tms_aggregated %>%
     dplyr::bind_rows(sda_aggregated) %>%
     inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
     mutate(
@@ -64,11 +70,23 @@ prep_sankey <- function(
       ),
       middle_node =!! sym(middle_node)
       ) %>%
-    group_by(middle_node) %>%
-    mutate(middle_node_total = sum(.data$loan_size_outstanding)) %>%
-    ungroup() %>%
-    arrange(desc(.data$middle_node_total)) %>%
     select("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
+  } else {
+    data_out <- tms_aggregated %>%
+    dplyr::bind_rows(sda_aggregated) %>%
+    inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
+    mutate(
+      is_aligned = case_when(
+        score >= 0 ~ "Aligned",
+        score <0 ~ "Not aligned",
+        TRUE ~ "Unknown"
+      ),
+      middle_node =!! sym(middle_node),
+      middle_node2 =!! sym(middle_node2)
+      ) %>%
+    select("bank_id", "middle_node", "middle_node2", "is_aligned", "loan_size_outstanding")
+
+  }
 
   data_out
 }
@@ -79,7 +97,9 @@ check_prep_sankey <- function(
     matched_loanbook,
     region_tms,
     region_sda,
-    year
+    year,
+    middle_node,
+    middle_node2
 ) {
   names_all <- c("bank_id", "name_abcd", "sector")
   names_aggergate <- c("region", "year")
@@ -111,4 +131,11 @@ check_prep_sankey <- function(
       x = glue("You provided year = {year}.")
       ))
   }
+  r2dii.plot:::abort_if_missing_names(tms_aggregated, middle_node)
+  r2dii.plot:::abort_if_missing_names(sda_aggregated, middle_node)
+  if (!is.null(middle_node2)) {
+    r2dii.plot:::abort_if_missing_names(tms_aggregated, middle_node2)
+    r2dii.plot:::abort_if_missing_names(sda_aggregated, middle_node2)
+  }
+
 }

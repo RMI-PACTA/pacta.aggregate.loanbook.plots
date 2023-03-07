@@ -31,69 +31,92 @@ plot_sankey <- function(
   } else {
     data_links <- data
   }
-links <- data_links %>%
-  select(
-    source = "bank_id",
-    target = "middle_node",
-    value = "loan_size_outstanding",
-    group = "is_aligned"
+  links <- data_links %>%
+    select(
+      source = "bank_id",
+      target = "middle_node",
+      value = "loan_size_outstanding",
+      group = "is_aligned"
+      )
+
+  if ("middle_node2" %in% names(data_links)) {
+    links <- data_links %>%
+      select(
+        "bank_id",
+        source = "middle_node",
+        target = "middle_node2",
+        value = "loan_size_outstanding",
+        group = "is_aligned"
+        ) %>%
+      bind_rows(links)
+
+    links <- data_links %>%
+      select(
+        "bank_id",
+        source = "middle_node2",
+        target = "is_aligned",
+        value = "loan_size_outstanding",
+        group = "is_aligned"
+        ) %>%
+      bind_rows(links) %>%
+      as.data.frame()
+  } else {
+   links <- data_links %>%
+    select(
+      "bank_id",
+      source = "middle_node",
+      target = "is_aligned",
+      value = "loan_size_outstanding",
+      group = "is_aligned"
+      ) %>%
+    bind_rows(links) %>%
+    as.data.frame()
+  }
+
+  # TODO: colour the companies if fully aligned or not
+  nodes <- data.frame(
+    name = unique(c(as.character(links$source), as.character(links$target)))
+  ) %>%
+    mutate(
+      group = case_when(
+      name %in% c("Aligned", "Not aligned", "Unknown") ~ name,
+      TRUE ~ "other"
+    )
     )
 
-links <- data_links %>%
-  select(
-    "bank_id",
-    source = "middle_node",
-    target = "is_aligned",
-    value = "loan_size_outstanding",
-    group = "is_aligned"
-    ) %>%
-  bind_rows(links) %>%
-  as.data.frame()
+  my_color <- 'd3.scaleOrdinal() .domain(["Not aligned", "Aligned", "Unknown", "other"]) .range(["#e10000","#3d8c40", "#808080", "#808080"])'
 
-# TODO: colour the companies if fully aligned or not
-nodes <- data.frame(
-  name = unique(c(as.character(links$source), as.character(links$target)))
-) %>%
-  mutate(
-    group = case_when(
-    name %in% c("Aligned", "Not aligned", "Unknown") ~ name,
-    TRUE ~ "other"
-  )
-  )
+  links$IDsource <- match(links$source, nodes$name)-1
+  links$IDtarget <- match(links$target, nodes$name)-1
 
-my_color <- 'd3.scaleOrdinal() .domain(["Not aligned", "Aligned", "Unknown", "other"]) .range(["#e10000","#3d8c40", "#808080", "#808080"])'
+  p <- networkD3::sankeyNetwork(
+    Links = links,
+    Nodes = nodes,
+    Source = "IDsource",
+    Target = "IDtarget",
+    Value = "value",
+    NodeID = "name",
+    colourScale=my_color,
+    LinkGroup="group",
+    NodeGroup="group",
+    fontSize = 14
+    )
 
-links$IDsource <- match(links$source, nodes$name)-1
-links$IDtarget <- match(links$target, nodes$name)-1
+  if (!is.null(save_png_to)) {
+    # you save it as an html
+    temp_html <- tempfile(fileext = ".html")
+    networkD3::saveNetwork(p, temp_html)
 
-p <- networkD3::sankeyNetwork(
-  Links = links,
-  Nodes = nodes,
-  Source = "IDsource",
-  Target = "IDtarget",
-  Value = "value",
-  NodeID = "name",
-  colourScale=my_color,
-  LinkGroup="group",
-  NodeGroup="group",
-  fontSize = 14
-  )
-
-if (!is.null(save_png_to)) {
-  # you save it as an html
-  temp_html <- tempfile(fileext = ".html")
-  networkD3::saveNetwork(p, temp_html)
-
-  if (webshot::is_phantomjs_installed()) {
-    file_name <- file.path(save_png_to, png_name)
-    # you convert it as png
-    webshot::webshot(temp_html, file_name, vwidth = 1000, vheight = 900)
-  } else {
-    abort(glue("In order to save the plot as .png you need to have `phantomjs` installed.
-               Please run `webshot::install_phantomjs()` if you don't and try running the function again."))
+    if (webshot::is_phantomjs_installed()) {
+      file_name <- file.path(save_png_to, png_name)
+      # you convert it as png
+      webshot::webshot(temp_html, file_name, vwidth = 1000, vheight = 900)
+    } else {
+      abort(glue("In order to save the plot as .png you need to have `phantomjs` installed.
+                 Please run `webshot::install_phantomjs()` if you don't and try running the function again."))
+    }
   }
-}
-p
+  p
 }
 
 check_plot_sankey <- function(data, capitalise_node_labels) {
