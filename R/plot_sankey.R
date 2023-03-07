@@ -76,8 +76,7 @@ p <- networkD3::sankeyNetwork(
   colourScale=my_color,
   LinkGroup="group",
   NodeGroup="group",
-  fontSize = 14,
-  iterations = 0
+  fontSize = 14
   )
 
 if (!is.null(save_png_to)) {
