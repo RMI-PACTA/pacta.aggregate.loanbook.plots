@@ -353,28 +353,60 @@ aggregate_exposure_loanbook_bopo %>%
 
 # Plot sankey plot of financial flows scenario alignment
 
-data_sankey <- prep_sankey(
+if (!is.null(tms_aggregated)) {
+data_sankey_tms <- prep_sankey(
   tms_aggregated,
-  sda_aggregated,
   matched_loanbook,
-  region_tms = "global",
-  region_sda = "global",
+  region = "global",
   year = 2026,
-  middle_node = "name_abcd"
+  middle_node = "sector"
   )
+} else {
+  data_sankey_tms <- NULL
+}
 
-plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated)
-
-
-data_sankey2 <- prep_sankey(
-  tms_aggregated,
+if (!is.null(sda_aggregated)) {
+  data_sankey_sda <- prep_sankey(
   sda_aggregated,
   matched_loanbook,
-  region_tms = "global",
-  region_sda = "global",
+  region = "global",
+  year = 2026,
+  middle_node = "sector"
+  )
+} else {
+  data_sankey_sda <- NULL
+}
+
+data_sankey <- rbind(data_sankey_tms, data_sankey_sda)
+
+plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_sector.png")
+
+if (!is.null(tms_aggregated)) {
+data_sankey_tms2 <- prep_sankey(
+  tms_aggregated,
+  matched_loanbook,
+  region = "global",
   year = 2026,
   middle_node = "name_abcd",
   middle_node2 = "sector"
   )
+} else {
+  data_sankey_tms2 <- NULL
+}
 
-plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_name = "sankey2.png")
+if (!is.null(sda_aggregated)) {
+  data_sankey_sda2 <- prep_sankey(
+  sda_aggregated,
+  matched_loanbook,
+  region = "global",
+  year = 2026,
+  middle_node = "name_abcd",
+  middle_node2 = "sector"
+  )
+} else {
+  data_sankey_sda2 <- NULL
+}
+
+data_sankey2 <- rbind(data_sankey_tms2, data_sankey_sda2)
+
+plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_company_sector.png")
