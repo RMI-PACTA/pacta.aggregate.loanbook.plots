@@ -131,11 +131,29 @@ check_prep_sankey <- function(
       x = glue("You provided year = {year}.")
       ))
   }
-  r2dii.plot:::abort_if_missing_names(tms_aggregated, middle_node)
-  r2dii.plot:::abort_if_missing_names(sda_aggregated, middle_node)
+  abort_if_middle_node_column_not_found(tms_aggregated, middle_node, env = list(data = substitute(tms_aggregated)))
+  abort_if_middle_node_column_not_found(sda_aggregated, middle_node, list(data = substitute(sda_aggregated)))
   if (!is.null(middle_node2)) {
-    r2dii.plot:::abort_if_missing_names(tms_aggregated, middle_node2)
-    r2dii.plot:::abort_if_missing_names(sda_aggregated, middle_node2)
+    abort_if_middle_node_column_not_found(tms_aggregated, middle_node2, list(data = substitute(tms_aggregated)))
+    abort_if_middle_node_column_not_found(sda_aggregated, middle_node2, list(data = substitute(sda_aggregated)))
   }
+}
 
+abort_if_middle_node_column_not_found <- function(data, name, env = parent.frame()) {
+  .data <- deparse_1(substitute(data, env = env))
+
+  if (!(name %in% names(data))) {
+    abort(c(
+      glue("Column name you passed as one of the middle nodes not found in {.data}."),
+      i = glue(
+        "Column names in `{.data}` are: {toString(names(data))}"
+        ),
+      x = glue("You asked to use column named: `{name}`.")
+      ))
+  }
+}
+
+# Backport `base::deparse1()` to R < 4.0.0
+deparse_1 <- function(expr, collapse = " ", width.cutoff = 500L, ...) {
+  paste(deparse(expr, width.cutoff, ...), collapse = collapse)
 }
