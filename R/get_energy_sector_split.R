@@ -19,7 +19,7 @@
 get_energy_sector_split <- function(data,
                                     start_year,
                                     primary_energy_efficiency,
-                                    capacity_factor_power,
+                                    # capacity_factor_power,
                                     unit_conversion) {
   # identify compenies active in more than one energy sector
   multi_sector_companies <- data %>%
@@ -49,16 +49,16 @@ get_energy_sector_split <- function(data,
     ) %>%
     dplyr::select(-"primary_energy_efficiency_factor")
 
-  # transform power capacity to generation (MW -> MWh)
-  # MW are yearly capacity. We therefore apply the capacity factor and multiply by
-  # 365.25 days and 24 hours
-  sector_split_energy_companies_power <- sector_split_energy_companies_power %>%
-    dplyr::filter(.data$sector == "power") %>%
-    dplyr::inner_join(capacity_factors, by = c("technology")) %>%
-    dplyr::mutate(
-      production = .data$production * .data$capacity_factor * 365.25 * 24,
-      production_unit = "MWh"
-    )
+  # # transform power capacity to generation (MW -> MWh)
+  # # MW are yearly capacity. We therefore apply the capacity factor and multiply by
+  # # 365.25 days and 24 hours
+  # sector_split_energy_companies_power <- sector_split_energy_companies_power %>%
+  #   dplyr::filter(.data$sector == "power") %>%
+  #   dplyr::inner_join(capacity_factors, by = c("technology")) %>%
+  #   dplyr::mutate(
+  #     production = .data$production * .data$capacity_factor * 365.25 * 24,
+  #     production_unit = "MWh"
+  #   )
 
   # transform all energy sectors to common unit of energy: mtoe
   sector_split_energy_companies <- sector_split_energy_companies %>%
