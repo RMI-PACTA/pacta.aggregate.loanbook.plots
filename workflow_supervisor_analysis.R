@@ -14,7 +14,8 @@ library(vroom)
 # set parameters----
 scenario_source_input <- "weo_2021"
 scenario_select <- "nze_2050"
-region_select <- c("global", "european union")
+region_select <- "global"
+# region_select <- "european union"
 region_isos_select <- r2dii.data::region_isos %>%
   dplyr::filter(
     .data$source == .env$scenario_source_input,
@@ -66,8 +67,13 @@ for (i in unique_loanbooks_raw) {
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
 
 # add loan book with corporate economy benchmark
+# benchmark_region can be selected based on r2dii.data::region_isos
 loanbook_corporate_benchmark <- abcd %>%
-  create_benchmark_loanbook()
+  create_benchmark_loanbook(
+    scenario_source = scenario_source_input,
+    benchmark_region = "global"
+    # benchmark_region = "european union"
+  )
 
 # matching the benchmark loan book separately, because it is not needed for the
 # generation of standard PACTA output

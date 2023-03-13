@@ -2,10 +2,19 @@
 #'
 #' @param data data frame containing the asset-based company data (ABCD) in
 #'   PACTA for Banks format.
+#' @param scenario_source character vector of length 1. This is used to subset
+#'   the allowed regions as defined in r2dii.data::region_isos. It is
+#'   recommended to simply use the scenario_sourc_input used throughout the
+#'   workflow.
+#' @param benchmark_region character vector of length 1. Select the region based
+#'   on which the benchmark loan book should be created. Only companies with
+#'   production within the selceted region will be kept.
 #'
 #' @return NULL
 #' @export
-create_benchmark_loanbook <- function(data) {
+create_benchmark_loanbook <- function(data,
+                                      scenario_source,
+                                      benchmark_region) {
 
   # check input data
   validate_data_has_expected_cols(
@@ -35,6 +44,26 @@ create_benchmark_loanbook <- function(data) {
     ) %>%
     dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$code)
 
+  # keep only the companies that have production in the provided region
+  benchmark_countries <- r2dii.data::region_isos %>%
+    dplyr::filter(
+      .data$source == .env$scenario_source,
+      .data$region == .env$benchmark_region,
+    ) %>%
+    dplyr::pull(.data$isos) %>%
+    toupper()
+
+  benchmark_companies <- data %>%
+    dplyr::filter(
+      .data$is_ultimate_owner,
+      .data$plant_location %in% .env$benchmark_countries
+    ) %>%
+    dplyr::inner_join(
+      benchmark_sectors,
+      by = "sector"
+    ) %>%
+    dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$code)
+
   # create raw loan book of corporate benchmark according to standard PACTA for
   # Banks raw loan book data structure
   loanbook_benchmark <- tibble::tibble(
@@ -56,7 +85,7 @@ create_benchmark_loanbook <- function(data) {
     name_project = NA_character_,
     lei_direct_loantaker = benchmark_companies$lei,
     isin_direct_loantaker = NA_character_,
-    bank_id = "benchmark_corporate_economy"
+    bank_id = gsub(" ", "_", paste0("benchmark_corporate_economy_", benchmark_region))
   ) %>%
     tibble::rowid_to_column() %>%
     dplyr::mutate(id_loan = paste0("L", .data$rowid)) %>%
