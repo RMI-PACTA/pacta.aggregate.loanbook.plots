@@ -68,17 +68,25 @@ for (i in unique_loanbooks_raw) {
 
 # add loan book with corporate economy benchmark
 # benchmark_region can be selected based on r2dii.data::region_isos
-loanbook_corporate_benchmark <- abcd %>%
-  create_benchmark_loanbook(
-    scenario_source = scenario_source_input,
-    benchmark_region = "global"
-    # benchmark_region = "european union"
-  )
+benchmark_regions <- c("global", "european union")
+
+matched_benchmark <- NULL
 
 # matching the benchmark loan book separately, because it is not needed for the
 # generation of standard PACTA output
-matched_benchmark <- match_name(loanbook_corporate_benchmark, abcd) %>%
-  prioritize()
+for (i in benchmark_regions) {
+  loanbook_corporate_benchmark_i <- abcd %>%
+    create_benchmark_loanbook(
+      scenario_source = scenario_source_input,
+      benchmark_region = i
+    )
+
+  matched_benchmark_i <- match_name(loanbook_corporate_benchmark_i, abcd) %>%
+    prioritize()
+
+  matched_benchmark <- matched_benchmark %>%
+    dplyr::bind_rows(matched_benchmark_i)
+}
 
 # matched_benchmark %>%
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_benchmark.csv"))
