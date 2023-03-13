@@ -14,7 +14,8 @@ library(vroom)
 # set parameters----
 scenario_source_input <- "weo_2021"
 scenario_select <- "nze_2050"
-region_select <- c("global", "european union")
+region_select <- "global"
+# region_select <- "european union"
 region_isos_select <- r2dii.data::region_isos %>%
   dplyr::filter(
     .data$source == .env$scenario_source_input,
@@ -66,13 +67,26 @@ for (i in unique_loanbooks_raw) {
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
 
 # add loan book with corporate economy benchmark
-loanbook_corporate_benchmark <- abcd %>%
-  create_benchmark_loanbook()
+# benchmark_region can be selected based on r2dii.data::region_isos
+benchmark_regions <- c("global", "european union")
+
+matched_benchmark <- NULL
 
 # matching the benchmark loan book separately, because it is not needed for the
 # generation of standard PACTA output
-matched_benchmark <- match_name(loanbook_corporate_benchmark, abcd) %>%
-  prioritize()
+for (i in benchmark_regions) {
+  loanbook_corporate_benchmark_i <- abcd %>%
+    create_benchmark_loanbook(
+      scenario_source = scenario_source_input,
+      benchmark_region = i
+    )
+
+  matched_benchmark_i <- match_name(loanbook_corporate_benchmark_i, abcd) %>%
+    prioritize()
+
+  matched_benchmark <- matched_benchmark %>%
+    dplyr::bind_rows(matched_benchmark_i)
+}
 
 # matched_benchmark %>%
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_benchmark.csv"))
@@ -209,13 +223,11 @@ matched_total <- matched_loanbook %>%
 ## prepare TMS company level P4B results for aggregation----
 tms_result_for_aggregation <- NULL
 
-unique_banks_tms_aggregation <- c(unique_banks_tms, unique(matched_benchmark$bank_id))
-
-for (i in unique_banks_tms_aggregation) {
+for (i in unique_banks_tms) {
   tryCatch(
     {
       tms_result_for_aggregation_i <- target_market_share(
-        data = matched_total %>%
+        data = matched_loanbook %>%
           dplyr::filter(.data$bank_id == i) %>%
           dplyr::select(-"bank_id"),
         abcd = abcd,
@@ -239,6 +251,57 @@ for (i in unique_banks_tms_aggregation) {
     }
   )
 }
+
+tms_result_for_aggregation_benchmark <- NULL
+
+unique_benchmarks_tms <- unique(matched_benchmark$bank_id)
+
+for (i in unique_benchmarks_tms) {
+  tryCatch(
+    {
+      benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
+
+      allowed_countries_i <- r2dii.data::region_isos %>%
+        dplyr::filter(
+          .data$source == .env$scenario_source_input,
+          .data$region == .env$benchmark_region_i,
+        ) %>%
+        dplyr::pull(.data$isos) %>%
+        toupper()
+
+      abcd_benchmark_region_i <- abcd %>%
+        dplyr::filter(.data$plant_location %in% .env$allowed_countries_i)
+
+      tms_result_for_aggregation_benchmark_i <- target_market_share(
+        data = matched_benchmark %>%
+          dplyr::filter(.data$bank_id == i) %>%
+          dplyr::select(-"bank_id"),
+        abcd = abcd_benchmark_region_i,
+        scenario = scenario_input_tms,
+        region_isos = region_isos_select,
+        by_company = TRUE,
+        weight_production = FALSE,
+        green_or_brown = green_or_brown_aggregate_score
+      )
+
+      tms_result_for_aggregation_benchmark_i <- tms_result_for_aggregation_benchmark_i %>%
+        dplyr::mutate(bank_id = .env$i)
+
+      tms_result_for_aggregation_benchmark <- tms_result_for_aggregation_benchmark %>%
+        dplyr::bind_rows(tms_result_for_aggregation_benchmark_i)
+
+    },
+    error = function(e) {
+      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
+      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+    }
+  )
+}
+
+# bind the TMS results from the loan book and benchmark PACTA runs for further
+# aggregation
+tms_result_for_aggregation <- tms_result_for_aggregation %>%
+  dplyr::bind_rows(tms_result_for_aggregation_benchmark)
 
 ## aggregate TMS P4B results to company level alignment score----
 # calculate aggregation for the loan book
@@ -279,13 +342,11 @@ tms_aggregated_buildout_phaseout %>%
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL
 
-unique_banks_sda_aggregation <- c(unique_banks_sda, unique(matched_benchmark$bank_id))
-
-for (i in unique_banks_sda_aggregation) {
+for (i in unique_banks_sda) {
   tryCatch(
     {
       sda_result_for_aggregation_i <- target_sda(
-        data = matched_total %>%
+        data = matched_loanbook %>%
           dplyr::filter(.data$bank_id == i) %>%
           dplyr::select(-"bank_id"),
         abcd = abcd,
@@ -307,6 +368,55 @@ for (i in unique_banks_sda_aggregation) {
     }
   )
 }
+
+sda_result_for_aggregation_benchmark <- NULL
+
+unique_benchmarks_sda <- unique(matched_benchmark$bank_id)
+
+for (i in unique_benchmarks_sda) {
+  tryCatch(
+    {
+      benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
+
+      allowed_countries_i <- r2dii.data::region_isos %>%
+        dplyr::filter(
+          .data$source == .env$scenario_source_input,
+          .data$region == .env$benchmark_region_i,
+        ) %>%
+        dplyr::pull(.data$isos) %>%
+        toupper()
+
+      abcd_benchmark_region_i <- abcd %>%
+        dplyr::filter(.data$plant_location %in% .env$allowed_countries_i)
+
+      sda_result_for_aggregation_benchmark_i <- target_sda(
+        data = matched_benchmark %>%
+          dplyr::filter(.data$bank_id == i) %>%
+          dplyr::select(-"bank_id"),
+        abcd = abcd_benchmark_region_i,
+        co2_intensity_scenario = scenario_input_sda,
+        by_company = TRUE,
+        region_isos = region_isos_select
+      )
+
+      sda_result_for_aggregation_benchmark_i <- sda_result_for_aggregation_benchmark_i %>%
+        dplyr::mutate(bank_id = .env$i)
+
+      sda_result_for_aggregation_benchmark <- sda_result_for_aggregation_benchmark %>%
+        dplyr::bind_rows(sda_result_for_aggregation_benchmark_i)
+
+    },
+    error = function(e) {
+      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
+      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+    }
+  )
+}
+
+# bind the SDA results from the loan book and benchmark PACTA runs for further
+# aggregation
+sda_result_for_aggregation <- sda_result_for_aggregation %>%
+  dplyr::bind_rows(sda_result_for_aggregation_benchmark)
 
 ## aggregate SDA P4B results to company level alignment score----
 # calculate aggregation for the loan book
