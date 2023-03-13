@@ -5,34 +5,29 @@
 \title{Prepare data to plot using \code{plot_sankey()}}
 \usage{
 prep_sankey(
-  tms_aggregated,
-  sda_aggregated,
+  data_alignment,
   matched_loanbook,
-  region_tms,
-  region_sda,
+  region,
   year,
-  middle_node = c("sector", "name_abcd")
+  middle_node,
+  middle_node2 = NULL
 )
 }
 \arguments{
-\item{tms_aggregated}{data.frame. Holds aggregated alignment scores per
+\item{data_alignment}{data.frame. Holds aggregated alignment scores per
 company for tms sectors. Must contain columns: \code{bank_id}, \code{name_abcd},
-\code{sector}.}
-
-\item{sda_aggregated}{data.frame. Holds aggregated alignment scores per
-company for sda sectors. Must contain columns: \code{bank_id}, \code{name_abcd},
 \code{sector}.}
 
 \item{matched_loanbook}{data.frame. Holds the matched loan books of a set of
 banks. Must include a column \code{bank_id} and \code{loan_size_outstanding}.}
 
-\item{region_tms}{Character. Region to filter \code{tms_aggregated} data frame on.}
-
-\item{region_sda}{Character. Region to filter \code{sda_aggregated} data frame on.}
+\item{region}{Character. Region to filter \code{data_alignment} data frame on.}
 
 \item{middle_node}{Character. Column specifying the middle nodes to be
-plotted in sankey plot. Must be present in \code{tms_aggegated} and
-\code{sda_aggregated} input data frames.}
+plotted in sankey plot. Must be present in \code{data_alignment}.}
+
+\item{middle_node2}{Character. Column specifying the middle nodes to be
+plotted in sankey plot. Must be present in \code{data_alignment}.}
 }
 \value{
 data.frame
