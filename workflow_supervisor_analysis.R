@@ -414,19 +414,19 @@ plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_nam
 # Plot timeline of evolution of portfolio-weighted alignment over time - examples
 
 # build-out / phase-out for power
-sector <- "power"
-region <- "global"
+sector_timeline <- "power"
+region_timeline <- "global"
 data_timeline <- prep_timeline(
   aggregate_exposure_loanbook_bopo,
-  sector = sector,
-  region = region,
+  sector = sector_timeline,
+  region = region_timeline,
   bank_ids_to_plot = "bank1")
 plot_timeline(
   data_timeline,
-  sector = sector,
+  sector = sector_timeline,
   scenario_source = scenario_source_input,
   scenario = scenario_select,
-  region = region
+  region = region_timeline
   )
 ggsave(
   filename = "timeline_bopo_power.png",
@@ -436,19 +436,19 @@ ggsave(
   )
 
 # net score for cement
-sector <- "cement"
-region <- "global"
+sector_timeline <- "cement"
+region_timeline <- "global"
 data_timeline <- prep_timeline(
   aggregate_exposure_loanbook,
-  sector = sector,
-  region = region,
+  sector = sector_timeline,
+  region = region_timeline,
   bank_ids_to_plot = "bank1")
 plot_timeline(
   data_timeline,
-  sector = sector,
+  sector = sector_timeline,
   scenario_source = scenario_source_input,
   scenario = scenario_select,
-  region = region
+  region = region_timeline
   )
 
 ggsave(
