@@ -91,7 +91,7 @@ plot_timeline <- function(
     facet_grid(bank_id~direction, labeller = as_labeller(r2dii.plot::to_title)) +
     r2dii.plot::theme_2dii() +
     theme(
-      panel.background = element_rect(fill = "#e8e8e8")
+      panel.background = element_rect(fill = "#6c6c6c")
       ) +
     labs(
       title = title,
