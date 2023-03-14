@@ -4,7 +4,7 @@
 \alias{prep_timeline}
 \title{Prepare data to plot timeline}
 \usage{
-prep_timeline(data, sector, bank_ids_to_plot)
+prep_timeline(data, sector, region, bank_ids_to_plot)
 }
 \arguments{
 \item{data}{data.frame. Must contain columns: 'direction', 'year',

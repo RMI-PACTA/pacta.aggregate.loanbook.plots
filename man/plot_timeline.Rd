@@ -9,6 +9,7 @@ plot_timeline(
   sector = NULL,
   scenario_source = NULL,
   scenario = NULL,
+  region = NULL,
   title = NULL,
   subtitle = NULL,
   alignment_limits = NULL
@@ -25,6 +26,8 @@ plot_timeline(
 caption.}
 
 \item{scenario}{Character. Scenario name to be used in the plot caption.}
+
+\item{region}{Character. Region to be used in the plot caption.}
 
 \item{title}{Character. Custom title if different than default.}
 
