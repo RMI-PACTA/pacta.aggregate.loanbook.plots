@@ -6,10 +6,6 @@
 #' @param primary_energy_efficiency data frame containing efficiency factors for
 #'   power technologies that can be used to back calculated the primary energy
 #'   content implied in a unit of power capacity.
-#' @param capacity_factor_power data frame providing the capacity factors
-#'   assumed for each of the power technologies in the climate scenario used in
-#'   the analysis. This can be used to transform installed power capacity into
-#'   power generation.
 #' @param unit_conversion data frame containing conversion factors for all
 #'   energy sectors covered in PACTA so that the metrics can be transformed to a
 #'   single common energy unit.
@@ -19,7 +15,6 @@
 get_energy_sector_split <- function(data,
                                     start_year,
                                     primary_energy_efficiency,
-                                    # capacity_factor_power,
                                     unit_conversion) {
   # identify compenies active in more than one energy sector
   multi_sector_companies <- data %>%
@@ -49,24 +44,13 @@ get_energy_sector_split <- function(data,
     ) %>%
     dplyr::select(-"primary_energy_efficiency_factor")
 
-  # # transform power capacity to generation (MW -> MWh)
-  # # MW are yearly capacity. We therefore apply the capacity factor and multiply by
-  # # 365.25 days and 24 hours
-  # sector_split_energy_companies_power <- sector_split_energy_companies_power %>%
-  #   dplyr::filter(.data$sector == "power") %>%
-  #   dplyr::inner_join(capacity_factors, by = c("technology")) %>%
-  #   dplyr::mutate(
-  #     production = .data$production * .data$capacity_factor * 365.25 * 24,
-  #     production_unit = "MWh"
-  #   )
-
   # transform all energy sectors to common unit of energy: mtoe
   sector_split_energy_companies <- sector_split_energy_companies %>%
     dplyr::filter(.data$sector != "power") %>%
     dplyr::bind_rows(sector_split_energy_companies_power) %>%
     dplyr::summarise(
       production = sum(.data$production, na.rm = TRUE),
-      .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "sector", "year", "production_unit")
+      .by = c("company_id", "name_company", "sector", "year", "production_unit")
     ) %>%
     dplyr::inner_join(
       unit_conversion,
@@ -82,7 +66,7 @@ get_energy_sector_split <- function(data,
   sector_split_energy_companies <- sector_split_energy_companies %>%
     dplyr::mutate(
       sector_split = .data$production / sum(.data$production, na.rm = TRUE),
-      .by = c("company_id", "name_company", "lei", "is_ultimate_owner", "year", "production_unit")
+      .by = c("company_id", "name_company", "year", "production_unit")
     ) %>%
     dplyr::select(c("company_id", "name_company", "sector", "production_unit", "production", "sector_split")) %>%
     dplyr::distinct()
