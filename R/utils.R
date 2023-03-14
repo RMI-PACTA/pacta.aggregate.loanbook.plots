@@ -25,3 +25,9 @@ validate_data_has_expected_cols <- function(data,
   }
   invisible()
 }
+
+beautify_scenario_label <- function(label) {
+  out <- toupper(label)
+  out <- r2dii.plot::to_title(out)
+  out
+}

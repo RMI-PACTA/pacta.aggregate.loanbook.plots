@@ -7,6 +7,7 @@
 #' @param scenario_source Character. Scenario source to be used in the plot
 #'   caption.
 #' @param scenario Character. Scenario name to be used in the plot caption.
+#' @param region Character. Region to be used in the plot caption.
 #' @param title Character. Custom title if different than default.
 #' @param subtitle Character. Custom subtitle if different than default.
 #' @param alignment_limits Numeric vector of size 2. Limits to be applied to
@@ -23,16 +24,25 @@ plot_timeline <- function(
     sector = NULL,
     scenario_source = NULL,
     scenario = NULL,
+    region = NULL,
     title = NULL,
     subtitle = NULL,
     alignment_limits = NULL
     ) {
 
-  if (!is.null(scenario_source) & !is.null(scenario)) {
-    caption <- glue("Scenario: {beautify_scenario_label(scenario)}\nScenario source: {beautify_scenario_label(scenario_source)}")
+  caption <- ""
+  if (!is.null(scenario_source) | !is.null(scenario) | !is.null(region)) {
+    if (!is.null(scenario)) {
+      caption <- glue("Scenario: {beautify_scenario_label(scenario)}\n", .trim = FALSE)
+    }
+    if (!is.null(scenario_source)) {
+      caption <- glue("{caption}Scenario source: {beautify_scenario_label(scenario_source)}\n", .trim = FALSE)
+    }
+    if(!is.null(region)) {
+      caption <- glue("{caption}Region: {r2dii.plot::to_title(region)}", .trim = FALSE)
+    }
   } else {
-    caption <- ""
-    rlang::warn("No information to display in caption provided. Please provide scenario_source, scenario and year if you want them to be included in the graph", frequency = "once")
+    rlang::warn("No information to display in caption provided. Please provide scenario_source and/or scenario and/or region if you want them to be included in the graph", frequency = "once")
   }
 
   if (is.null(title)) {
@@ -45,9 +55,9 @@ plot_timeline <- function(
 
   if (is.null(subtitle)) {
     if (all(unique(data$direction) == "net")) {
-      subtitle <- "Each dot is a yearly weighted alignment. Colour intensity indicates how positive (green)\nor negative (red) is the alignment value."
+      subtitle <- "Each dot is a yearly weighted alignment.\nColour intensity indicates how high (green) or low (red) is the alignment value."
     } else {
-      subtitle <- "Each dot is a yearly weighted alignment. Buildout alignment is calcuated based on low-carbon technologies\nrequired to be built out by the scenario. Phaseout alignment is calculated based on high-carbon technologies\nwhich should be phased-out according to the scenario. Colour intensity indicates how positive (green)\nor negative (red) is the alignment value."
+      subtitle <- "Each dot is a yearly weighted alignment. Buildout alignment is calcuated based on\nlow-carbon technologies required to be built out by the scenario. Phaseout alignment is\ncalculated based on high-carbon technologies which should be phased-out according to\nthe scenario. Colour intensity indicates how high (green) or low (red) is the alignment value."
     }
   }
 
