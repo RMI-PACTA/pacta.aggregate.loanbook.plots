@@ -37,9 +37,9 @@ plot_timeline <- function(
 
   if (is.null(title)) {
     if (!is.null(sector)) {
-      title <- glue("Aggregate Alignment Scores over Time in the {r2dii.plot::to_title(sector)} Sector")
+      title <- glue("Aggregate Alignment over Time in the {r2dii.plot::to_title(sector)} Sector")
     } else {
-      title <- "Aggregate Alignment Scores over Time"
+      title <- "Aggregate Alignment over Time"
     }
   }
 
