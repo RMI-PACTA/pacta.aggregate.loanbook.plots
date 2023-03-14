@@ -351,7 +351,7 @@ aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
 aggregate_exposure_loanbook_bopo %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
 
-# Plot sankey plot of financial flows scenario alignment
+# Plot sankey plot of financial flows scenario alignment - examples
 
 if (!is.null(tms_aggregated)) {
 data_sankey_tms <- prep_sankey(
@@ -410,3 +410,50 @@ if (!is.null(sda_aggregated)) {
 data_sankey2 <- rbind(data_sankey_tms2, data_sankey_sda2)
 
 plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_company_sector.png")
+
+# Plot timeline of evolution of portfolio-weighted alignment over time - examples
+
+# build-out / phase-out for power
+sector <- "power"
+region <- "global"
+data_timeline <- prep_timeline(
+  aggregate_exposure_loanbook_bopo,
+  sector = sector,
+  region = region,
+  bank_ids_to_plot = "bank1")
+plot_timeline(
+  data_timeline,
+  sector = sector,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select,
+  region = region
+  )
+ggsave(
+  filename = "timeline_bopo_power.png",
+  path = output_directory_p4b_aggregated,
+  width = 8,
+  height = 5
+  )
+
+# net score for cement
+sector <- "cement"
+region <- "global"
+data_timeline <- prep_timeline(
+  aggregate_exposure_loanbook,
+  sector = sector,
+  region = region,
+  bank_ids_to_plot = "bank1")
+plot_timeline(
+  data_timeline,
+  sector = sector,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select,
+  region = region
+  )
+
+ggsave(
+  filename = "timeline_cement.png",
+  path = output_directory_p4b_aggregated,
+  width = 7,
+  height = 5
+  )
