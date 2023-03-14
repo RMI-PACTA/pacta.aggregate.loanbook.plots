@@ -55,9 +55,9 @@ plot_timeline <- function(
 
   if (is.null(subtitle)) {
     if (all(unique(data$direction) == "net")) {
-      subtitle <- "Each dot is a yearly weighted alignment.\nColour intensity indicates how high (green) or low (red) is the alignment value."
+      subtitle <- "Each dot is a yearly exposure-weighted alignment value.\nColour intensity indicates how aligned (green) or misaligned (red) the value is."
     } else {
-      subtitle <- "Each dot is a yearly weighted alignment. Buildout alignment is calcuated based on\nlow-carbon technologies required to be built out by the scenario. Phaseout alignment is\ncalculated based on high-carbon technologies which should be phased-out according to\nthe scenario. Colour intensity indicates how high (green) or low (red) is the alignment value."
+      subtitle <- "Each dot is a yearly exposure-weighted alignment value. Buildout alignment is calcuated based on\nlow-carbon technologies required to be built out by the scenario. Phaseout alignment is\ncalculated based on high-carbon technologies which should be phased-out according to\nthe scenario. Colour intensity indicates how aligned (green) or misaligned (red) the value is."
     }
   }
 
