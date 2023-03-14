@@ -71,9 +71,9 @@ plot_timeline <- function(
   p <- ggplot(
       data,
       aes(
-        x = year,
-        y = exposure_weighted_net_alignment,
-        colour = exposure_weighted_net_alignment
+        x = .data$year,
+        y = .data$exposure_weighted_net_alignment,
+        colour = .data$exposure_weighted_net_alignment
         )
     ) +
     geom_hline(yintercept = 0, colour = "white") +

@@ -15,9 +15,9 @@ prep_timeline <- function(data, sector, region, bank_ids_to_plot) {
 
   data_timeline <- data %>%
     filter(
-      sector == .env$sector,
-      region == .env$region,
-      bank_id %in% bank_ids_to_plot
+      .data$sector == .env$sector,
+      .data$region == .env$region,
+      .data$bank_id %in% bank_ids_to_plot
     )
   data_timeline
 }
