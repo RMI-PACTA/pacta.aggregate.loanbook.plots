@@ -10,6 +10,7 @@ plot_scatter <- function(
     alignment_limit = NULL,
     data_level = c("company", "bank")
     ) {
+  arg_match(data_level)
 
   caption <- ""
   if (!is.null(scenario_source) | !is.null(scenario) | !is.null(region) | !is.null(year)) {
@@ -31,14 +32,22 @@ plot_scatter <- function(
 
   if (is.null(title)) {
     if (!is.null(sector)) {
-      title <- glue("Build-out vs. Phase-out Alignment \nin the {r2dii.plot::to_title(sector)} Sector per Company")
+      title <- glue("Build-out vs. Phase-out Alignment \nin the {r2dii.plot::to_title(sector)} Sector")
     } else {
-      title <- "Build-out vs. Phase-out Alignment per Company"
+      title <- "Build-out vs. Phase-out Alignment"
     }
   }
 
-  if (is.null(subtitle)) {
-    subtitle <- "Each dot is a company. In an ideal situation all dots should be in the top right\nquadrant, indicating that the company is both building out the low-carbon technologies\nand phasing out the high-carbon technologies at a rate required by the scenario."
+  if (data_level == "company") {
+    title <- paste0(title, " per Company")
+    if (is.null(subtitle)) {
+      subtitle <- "Each dot is a company. In an ideal situation all dots should be in the top right\nquadrant, indicating that the company is both building out the low-carbon technologies\nand phasing out the high-carbon technologies at a rate required by the scenario."
+    }
+  } else {
+    title <- paste0(title, " per Bank")
+    if (is.null(subtitle)) {
+      subtitle <- "Each dot is a bank. In an ideal situation all dots should be in the top right quadrant,\nindicating that, at the portfolio level, the bank is both building out the low-carbon\ntechnologies and phasing out the high-carbon technologies at a rate required by the scenario."
+    }
   }
 
   if (is.null(alignment_limit)) {
