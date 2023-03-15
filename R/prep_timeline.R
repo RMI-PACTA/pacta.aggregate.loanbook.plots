@@ -3,6 +3,7 @@
 #' @param data data.frame. Must contain columns: 'direction', 'year',
 #'   'exposure_weighted_net_alignment', 'bank_id', 'sector'.
 #' @param sector Character. Sector to filter data on.
+#' @param region Character. Region to filter data on.
 #' @param bank_ids_to_plot Character vector. Bank ids to filter on.
 #'
 #' @return data.frame

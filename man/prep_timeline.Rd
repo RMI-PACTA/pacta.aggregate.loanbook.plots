@@ -12,6 +12,8 @@ prep_timeline(data, sector, region, bank_ids_to_plot)
 
 \item{sector}{Character. Sector to filter data on.}
 
+\item{region}{Character. Region to filter data on.}
+
 \item{bank_ids_to_plot}{Character vector. Bank ids to filter on.}
 }
 \value{

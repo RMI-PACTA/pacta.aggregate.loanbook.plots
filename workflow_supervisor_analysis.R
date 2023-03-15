@@ -567,3 +567,49 @@ ggsave(
   width = 7,
   height = 5
   )
+
+# Plot scatterplot of alignment scores - examples
+
+# company level
+year_scatter <- 2026
+sector_scatter <- "power"
+region_scatter <- "global"
+data_level1 <- "company"
+data_scatter <- prep_scatter(
+  tms_aggregated_buildout_phaseout,
+  tms_aggregated,
+  year = year_scatter,
+  sector = sector_scatter,
+  region = region_scatter,
+  bank_ids_to_plot = "bank1",
+  data_level = data_level1
+  )
+plot_scatter(
+  data_scatter,
+  data_level = data_level1,
+  year = year_scatter,
+  sector = sector_scatter,
+  region = region_scatter,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select
+  )
+
+# bank level
+data_level2 <- "bank"
+data_scatter2 <- prep_scatter(
+  aggregate_exposure_loanbook_bopo,
+  aggregate_exposure_loanbook,
+  year = year_scatter,
+  sector = sector_scatter,
+  region = region_scatter,
+  data_level = data_level2
+  )
+plot_scatter(
+  data_scatter2,
+  data_level = data_level2,
+  year = year_scatter,
+  sector = sector_scatter,
+  region = region_scatter,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select
+  )
