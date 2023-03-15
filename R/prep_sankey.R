@@ -6,6 +6,7 @@
 #' @param matched_loanbook data.frame. Holds the matched loan books of a set of
 #'   banks. Must include a column `bank_id` and `loan_size_outstanding`.
 #' @param region Character. Region to filter `data_alignment` data frame on.
+#' @param year Integer. Year on which `data_alignment` should be filtered.
 #' @param middle_node Character. Column specifying the middle nodes to be
 #'   plotted in sankey plot. Must be present in `data_alignment`.
 #' @param middle_node2 Character. Column specifying the middle nodes to be

@@ -1,3 +1,26 @@
+#' Plot alignment scatterplot
+#'
+#' @param data data.frame. Should have the same format as output of
+#'   `prep_scatter()` and contain columns: 'name', 'buildout', phaseout', 'net'.
+#' @param sector Character. Sector name to be used in the plot title.
+#' @param scenario_source Character. Scenario source to be used in the plot
+#'   caption.
+#' @param scenario Character. Scenario name to be used in the plot caption.
+#' @param year Integer. Year of the analysis to be used in the plot caption.
+#' @param region Character. Region to be used in the plot caption.
+#' @param title Character. Custom title if different than default.
+#' @param subtitle Character. Custom subtitle if different than default.
+#' @param alignment_limit Numeric. Limit to be applied to the x- and y-axis
+#'   scales and to alignment values for colouring. By default the maximum
+#'   absolute alignment value of is used.
+#' @param data_level Character. Level of the plotted data. Can be 'bank' or
+#'   'company'.
+#'
+#' @return object of type "ggplot"
+#' @export
+#'
+#' @examples
+#' #TODO
 plot_scatter <- function(
     data,
     sector = NULL,
@@ -54,7 +77,7 @@ plot_scatter <- function(
     alignment_limit <- max(abs(c(data$buildout, data$phaseout, data$net)), na.rm = TRUE)
   }
 
-  check_plot_scatter(data)
+  check_plot_scatter(data, alignment_limit)
 
   data_net_0 <- data.frame(
     buildout = c(-alignment_limit, 0, alignment_limit),
@@ -62,7 +85,7 @@ plot_scatter <- function(
     net = c(0, 0, 0)
   )
 
-  p <- ggplot(data, aes(x = buildout, y = phaseout, colour = net)) +
+  p <- ggplot(data, aes(x = .data$buildout, y = .data$phaseout, colour = .data$net)) +
     geom_hline(yintercept = 0, colour = "#c0c0c0") +
     geom_vline(xintercept = 0, colour = "#c0c0c0") +
     geom_line(data = data_net_0) +
@@ -144,6 +167,10 @@ plot_scatter <- function(
   p
 }
 
-check_plot_scatter <- function(data) {
-
+check_plot_scatter <- function(data, alignment_limit) {
+  r2dii.plot:::abort_if_missing_names(data, c("name", "buildout",
+   "phaseout", "net"))
+  if ((length(alignment_limit) != 1) | (!is.numeric(alignment_limit))){
+    rlang::abort("'alignment_limit' must be a numeric value.")
+  }
 }
