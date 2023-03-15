@@ -23,6 +23,8 @@ banks. Must include a column \code{bank_id} and \code{loan_size_outstanding}.}
 
 \item{region}{Character. Region to filter \code{data_alignment} data frame on.}
 
+\item{year}{Integer. Year on which \code{data_alignment} should be filtered.}
+
 \item{middle_node}{Character. Column specifying the middle nodes to be
 plotted in sankey plot. Must be present in \code{data_alignment}.}
 
