@@ -5,16 +5,19 @@
 # capacity by this efficiency factor to derive the physical energy input.
 # We apply such factors for fossil fuel based power generation only, since we
 # are interested in approximating the exposure to fossil fuels.
+# Values for efficiency of electricity production are taken from IEA "Energy
+# Efficiency Indicators for Public Electricity Prodcution from Fossil Fuels" at
+# https://iea.blob.core.windows.net/assets/acaecb98-4430-4395-a4fa-d1a4d5ccb3d3/EnergyEfficiencyIndicatorsforPublicElectricityProductionfromFossilFuels.pdf
+# last accessed on 15 March, 2023.
 
-# TODO: values are approximate placeholders and need updating
 primary_energy_efficiency <- tibble::tribble(
-  ~sector,     ~technology, ~primary_energy_efficiency_factor,
-  "power",       "coalcap",                              0.30,
-  "power",        "gascap",                              0.30,
-  "power",        "oilcap",                              0.30,
-  "power",      "hydrocap",                                 1,
-  "power",    "nuclearcap",                                 1,
-  "power", "renewablescap",                                 1
+  ~region,  ~sector,     ~technology, ~primary_energy_efficiency_factor,
+  "global", "power",       "coalcap",                             0.343,
+  "global", "power",        "gascap",                             0.395,
+  "global", "power",        "oilcap",                             0.365,
+  "global", "power",      "hydrocap",                                 1,
+  "global", "power",    "nuclearcap",                                 1,
+  "global", "power", "renewablescap",                                 1
 )
 
 usethis::use_data(primary_energy_efficiency, overwrite = TRUE)
