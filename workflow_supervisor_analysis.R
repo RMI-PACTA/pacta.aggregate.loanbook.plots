@@ -191,8 +191,6 @@ for (sda_i in unique_banks_sda) {
 
 # aggregate P4B alignment----
 
-# TODO: add aggregation for SDA sectors
-
 ## set specifications----
 
 # for the calculation of the aggregate company score, we do not force companies
