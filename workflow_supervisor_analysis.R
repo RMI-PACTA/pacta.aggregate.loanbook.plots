@@ -59,8 +59,6 @@ for (i in unique_loanbooks_raw) {
   matched_i <- match_name(loanbook_i, abcd) %>%
     prioritize()
 
-  names_i <- unique(matched_i$name_abcd)
-
   matched_loanbook <- matched_loanbook %>%
     dplyr::bind_rows(matched_i)
 }
@@ -92,6 +90,7 @@ for (i in benchmark_regions) {
 
 # matched_benchmark %>%
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_benchmark.csv"))
+
 
 # generate all P4B outputs----
 unique_loanbooks_matched <- unique(matched_loanbook$bank_id)
