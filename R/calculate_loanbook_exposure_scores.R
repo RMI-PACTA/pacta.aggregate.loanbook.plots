@@ -67,34 +67,6 @@ calculate_loanbook_exposure_scores <- function(data,
       )
   }
 
-  total_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
-    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$year, .data$direction) %>%
-    dplyr::mutate(
-      n_companies = dplyr::n(),
-      sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      companies_aligned = dplyr::if_else(.data$score >= 0, TRUE, FALSE),
-      exposure_companies_aligned = dplyr::if_else(.data$score >= 0, .data$loan_size_outstanding, 0)
-    ) %>%
-    dplyr::group_by(
-      .data$bank_id, .data$n_companies, .data$sum_loan_size_outstanding,
-      .data$scenario, .data$region, .data$year, .data$direction
-    ) %>%
-    dplyr::summarise(
-      n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
-      sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
-      exposure_weighted_net_alignment = stats::weighted.mean(.data$score, w = .data$exposure_weight, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      share_companies_aligned = .data$n_companies_aligned / .data$n_companies,
-      share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
-    ) %>%
-    dplyr::mutate(sector = "total")
-
   sector_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
     dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
     dplyr::mutate(
@@ -123,7 +95,6 @@ calculate_loanbook_exposure_scores <- function(data,
     )
 
   out <- sector_aggregate_exposure_loanbook %>%
-    dplyr::bind_rows(total_aggregate_exposure_loanbook) %>%
     dplyr::relocate(
       c(
         "bank_id", "scenario", "region", "sector", "year", "direction",
