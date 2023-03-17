@@ -440,7 +440,6 @@ companies_aggregated <- tms_aggregated %>%
   dplyr::bind_rows(sda_aggregated)
 
 # show exposures (n companies and loan size) by alignment with given scenario
-# TODO: correctly aggregate to bo_po level
 
 # net
 aggregate_exposure_loanbook <- companies_aggregated %>%
