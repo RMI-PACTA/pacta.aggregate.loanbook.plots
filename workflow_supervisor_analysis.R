@@ -157,7 +157,7 @@ unique_banks_tms <- unique(results_tms_total$bank_id)
 unique_banks_sda <- unique(results_sda_total$bank_id)
 
 ## run automatic result generation ----------
-# TODO: parameterize inputs
+
 # TODO: get all available sectors and produce outputs for them all)
 for (tms_i in unique_banks_tms) {
   generate_individual_outputs(
