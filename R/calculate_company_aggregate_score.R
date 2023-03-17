@@ -147,7 +147,8 @@ calculate_company_tech_deviation <- function(data,
         grepl(.env$scenario, .data$scenario),
         .data$sector == "power",
         .data$year == .env$start_year + 10
-      )
+      ) %>%
+      dplyr::select(-"year")
 
     data_scen_t10 <- data %>%
       dplyr::filter(.data$year == .env$start_year) %>%
