@@ -22,6 +22,8 @@ region_isos_select <- r2dii.data::region_isos %>%
     .data$region %in% .env$region_select
   )
 
+start_year <- 2021
+
 # set directories----
 
 # input_path_scenario_tms <- file.path("/path/to/input/directory/tms/scenario/file.csv")
@@ -78,6 +80,7 @@ for (i in benchmark_regions) {
   loanbook_corporate_benchmark_i <- abcd %>%
     create_benchmark_loanbook(
       scenario_source = scenario_source_input,
+      start_year = start_year,
       benchmark_region = i
     )
 

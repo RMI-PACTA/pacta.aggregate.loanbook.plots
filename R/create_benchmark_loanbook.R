@@ -3,9 +3,12 @@
 #' @param data data frame containing the asset-based company data (ABCD) in
 #'   PACTA for Banks format.
 #' @param scenario_source character vector of length 1. This is used to subset
-#'   the allowed regions as defined in r2dii.data::region_isos. It is
+#'   the allowed regions as defined in `r2dii.data::region_isos`. It is
 #'   recommended to simply use the scenario_sourc_input used throughout the
 #'   workflow.
+#' @param start_year character vector of length 1. Defines the initial year of
+#'   the analysis. The company weights will be picked based on the production
+#'   capacity in the `start_year`.
 #' @param benchmark_region character vector of length 1. Select the region based
 #'   on which the benchmark loan book should be created. Only companies with
 #'   production within the selceted region will be kept.
@@ -14,6 +17,7 @@
 #' @export
 create_benchmark_loanbook <- function(data,
                                       scenario_source,
+                                      start_year,
                                       benchmark_region) {
 
   # check input data
@@ -56,13 +60,17 @@ create_benchmark_loanbook <- function(data,
   benchmark_companies <- data %>%
     dplyr::filter(
       .data$is_ultimate_owner,
-      .data$plant_location %in% .env$benchmark_countries
+      .data$plant_location %in% .env$benchmark_countries,
+      .data$year == .env$start_year
     ) %>%
     dplyr::inner_join(
       benchmark_sectors,
       by = "sector"
     ) %>%
-    dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$code)
+    dplyr::summarise(
+      production_sector = sum(.data$production, na.rm = TRUE),
+      .by = c("company_id", "name_company", "lei", "code")
+    )
 
   # create raw loan book of corporate benchmark according to standard PACTA for
   # Banks raw loan book data structure
@@ -73,9 +81,9 @@ create_benchmark_loanbook <- function(data,
     name_intermediate_parent_1 = NA_character_,
     id_ultimate_parent = paste0("UP", benchmark_companies$company_id),
     name_ultimate_parent = benchmark_companies$name_company,
-    loan_size_outstanding = 100000,
+    loan_size_outstanding = benchmark_companies$production_sector,
     loan_size_outstanding_currency = "USD",
-    loan_size_credit_limit = 100000,
+    loan_size_credit_limit = benchmark_companies$production_sector,
     loan_size_credit_limit_currency = "USD",
     sector_classification_system = "NACE",
     sector_classification_input_type = "Code",
