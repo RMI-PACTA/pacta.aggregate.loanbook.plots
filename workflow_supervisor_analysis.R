@@ -12,8 +12,8 @@ library(tidyr)
 library(vroom)
 
 # set parameters----
-scenario_source_input <- "weo_2021"
-scenario_select <- "nze_2050"
+scenario_source_input <- "geco_2021"#"weo_2021"
+scenario_select <- "1.5c"#"nze_2050"
 region_select <- "global"
 # region_select <- "european union"
 region_isos_select <- r2dii.data::region_isos %>%
@@ -315,8 +315,8 @@ tms_company_technology_deviation <- tms_result_for_aggregation %>%
     scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
     scenario_source = scenario_source_input,
-    scenario = scenario_select
-    # bridge_tech = "gascap"
+    scenario = scenario_select,
+    bridge_tech = "gascap"
   )
 
 tms_company_technology_deviation %>%
@@ -423,11 +423,14 @@ sda_result_for_aggregation <- sda_result_for_aggregation %>%
 
 ## aggregate SDA P4B results to company level alignment score----
 # calculate aggregation for the loan book
+# temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
+if (scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
+
 sda_aggregated <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
     scenario_emission_intensities = scenario_input_sda,
     scenario_source = scenario_source_input,
-    scenario = scenario_select
+    scenario = scenario_select_sda
   )
 
 sda_aggregated %>%
