@@ -68,7 +68,7 @@ for (i in unique_loanbooks_raw) {
 # matched_loanbook %>%
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
 
-# add loan book with corporate economy benchmark
+# add loan book with corporate economy benchmark----
 # benchmark_region can be selected based on r2dii.data::region_isos
 benchmark_regions <- c("global", "european union")
 
@@ -463,6 +463,8 @@ aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
 
 aggregate_exposure_loanbook_bopo %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
+
+# bespoke plots for supervisory analysis----
 
 # Plot sankey plot of financial flows scenario alignment - examples
 
