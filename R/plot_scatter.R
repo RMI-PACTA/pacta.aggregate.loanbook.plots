@@ -134,7 +134,7 @@ plot_scatter <- function(
       size = 3,
       hjust = 0
       ) +
-    geom_point() +
+    geom_point(aes(shape = .data$datapoint)) +
     scale_x_continuous(
       name = "Buildout",
       limits = c(-alignment_limit, alignment_limit),
@@ -153,6 +153,11 @@ plot_scatter <- function(
       midpoint = 0,
       limits = c(-alignment_limit, alignment_limit),
     ) +
+    scale_shape_manual(
+      name = "",
+      values = c("bank" = 16, "benchmark" = 21, "company" = 16, "other" = 16),
+      labels = r2dii.plot::to_title
+    ) +
     r2dii.plot::theme_2dii() +
     theme(
       panel.background = element_rect(fill = "#6c6c6c"),
@@ -164,6 +169,14 @@ plot_scatter <- function(
       subtitle = subtitle,
       caption = caption
     )
+
+  if (data_level == "company") {
+    p <- p +
+      guides(
+        shape = "none"
+      )
+  }
+
   p
 }
 

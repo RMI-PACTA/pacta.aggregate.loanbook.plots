@@ -55,7 +55,16 @@ prep_scatter <- function(
       ) %>%
     select("name" = name_col, "direction", "value" = value_col) %>%
     distinct() %>%
-    tidyr::pivot_wider(names_from = "direction", values_from = "value")
+    tidyr::pivot_wider(names_from = "direction", values_from = "value") %>%
+    mutate(
+      datapoint = case_when(
+        grepl(".*[Bb]enchmark,*", .data$name) ~ "benchmark",
+        TRUE & (data_level == "bank") ~ "bank",
+        TRUE & (data_level == "company") ~ "company",
+        TRUE ~ "other"
+      )
+    )
+
   data_scatter
 }
 
