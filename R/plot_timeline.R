@@ -47,17 +47,17 @@ plot_timeline <- function(
 
   if (is.null(title)) {
     if (!is.null(sector)) {
-      title <- glue("Aggregate Alignment over Time in the {r2dii.plot::to_title(sector)} Sector")
+      title <- glue("Aggregated Alignment over Time in the {r2dii.plot::to_title(sector)} Sector")
     } else {
-      title <- "Aggregate Alignment over Time"
+      title <- "Aggregated Alignment over Time"
     }
   }
 
   if (is.null(subtitle)) {
     if (all(unique(data$direction) == "net")) {
-      subtitle <- "Each dot is a yearly exposure-weighted alignment value.\nColour intensity indicates how aligned (green) or misaligned (red) the value is."
+      subtitle <- "Each dot is a yearly alignment value which is calculated as an exposure-weighted percentage deviation\nfrom scenario target. Colour intensity indicates how aligned (green) or misaligned (red) the value is."
     } else {
-      subtitle <- "Each dot is a yearly exposure-weighted alignment value. Buildout alignment is calcuated based on\nlow-carbon technologies required to be built out by the scenario. Phaseout alignment is\ncalculated based on high-carbon technologies which should be phased-out according to\nthe scenario. Colour intensity indicates how aligned (green) or misaligned (red) the value is."
+      subtitle <- "Each dot is a yearly alignment value which is calculated as an exposure-weighted percentage deviation from\nscenario target. Build-out alignment is calcuated based on low-carbon technologies required to be built out by\nthe scenario. Phase-out alignment is calculated based on high-carbon technologies which should be phased-out\naccording to the scenario. Colour intensity indicates how aligned (green) or misaligned (red) the value is."
     }
   }
 
@@ -80,15 +80,19 @@ plot_timeline <- function(
     geom_line() +
     geom_point() +
     scale_x_continuous(name = "Year") +
-    scale_y_continuous(name = "Exposure weighted alignment") +
+    scale_y_continuous(
+      name = "Exposure-weighted deviation from scenario target",
+      labels = scales::percent
+      ) +
     scale_colour_gradient2(
       low = "#e10000",
       mid = "white",
       high = "#3d8c40",
       midpoint = 0,
-      limits = alignment_limits
+      limits = alignment_limits,
+      labels = scales::percent
     ) +
-    facet_grid(bank_id~direction, labeller = as_labeller(r2dii.plot::to_title)) +
+    facet_grid(bank_id~direction, labeller = as_labeller(format_facet_labels)) +
     r2dii.plot::theme_2dii() +
     theme(
       panel.background = element_rect(fill = "#6c6c6c")
@@ -107,4 +111,13 @@ check_timeline <- function(data, alignment_limits) {
   if ((length(alignment_limits) != 2) | (!is.numeric(alignment_limits))){
     rlang::abort("'alignment_limits' must be a numeric vector of size 2.")
   }
+}
+
+format_facet_labels <- function(str) {
+  str_out <- case_when(
+    grepl("(?i)buildout", str) ~ "Build-out",
+    grepl("(?i)phaseout", str) ~ "Phase-out",
+    TRUE ~ r2dii.plot::to_title(str)
+  )
+  str_out
 }
