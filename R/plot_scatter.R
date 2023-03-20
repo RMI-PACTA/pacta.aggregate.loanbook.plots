@@ -91,9 +91,9 @@ plot_scatter <- function(
     geom_line(data = data_net_0) +
     annotate(
       geom = "text",
-      x = alignment_limit * 0.7,
-      y = -alignment_limit * 0.6,
-      label = "Net alignment = 0",
+      x = alignment_limit * 0.65,
+      y = -alignment_limit * 0.58,
+      label = "0% net deviation from target",
       color = "white",
       angle = -45,
       size = 3
@@ -136,21 +136,24 @@ plot_scatter <- function(
       ) +
     geom_point() +
     scale_x_continuous(
-      name = "Buildout",
+      name = "Deviation from low-carbon build-out target",
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
     scale_y_continuous(
-      name = "Phaseout",
+      name = "Deviation from high-carbon phase-out target",
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
     scale_colour_gradient2(
-      name = "Net",
+      name = "Net\ndeviation",
       low = "#e10000",
       mid = "white",
       high = "#3d8c40",
       midpoint = 0,
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
     ) +
     r2dii.plot::theme_2dii() +
