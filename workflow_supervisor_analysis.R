@@ -12,8 +12,8 @@ library(tidyr)
 library(vroom)
 
 # set parameters----
-scenario_source_input <- "geco_2021"#"weo_2021"
-scenario_select <- "1.5c"#"nze_2050"
+scenario_source_input <- "weo_2021"
+scenario_select <- "nze_2050"
 region_select <- "global"
 # region_select <- "european union"
 region_isos_select <- r2dii.data::region_isos %>%
@@ -313,8 +313,8 @@ tms_company_technology_deviation <- tms_result_for_aggregation %>%
     scenario_trajectory = scenario_input_tms,
     green_or_brown = green_or_brown_aggregate_score,
     scenario_source = scenario_source_input,
-    scenario = scenario_select,
-    bridge_tech = "gascap"
+    scenario = scenario_select
+    # bridge_tech = "gascap"
   )
 
 tms_company_technology_deviation %>%
