@@ -64,12 +64,12 @@ plot_scatter <- function(
   if (data_level == "company") {
     title <- paste0(title, " per Company")
     if (is.null(subtitle)) {
-      subtitle <- "Each dot is a company. In an ideal situation all dots should be in the top right\nquadrant, indicating that the company is both building out the low-carbon technologies\nand phasing out the high-carbon technologies at a rate required by the scenario."
+      subtitle <- "Each dot is a company. The companies in the top right quadrant are both building out\n low-carbon technologies and phasing out high-carbon technologies at rates\ngreater or equal to those required by the scenario."
     }
   } else {
     title <- paste0(title, " per Bank")
     if (is.null(subtitle)) {
-      subtitle <- "Each dot is a bank. In an ideal situation all dots should be in the top right quadrant,\nindicating that, at the portfolio level, the bank is both building out the low-carbon\ntechnologies and phasing out the high-carbon technologies at a rate required by the scenario."
+      subtitle <- "Each dot is a bank. The banks in the top right quadrant are both building out\nlow-carbon technologies and phasing out high-carbon technologies at rates \ngreater or equal to those required by the scenario."
     }
   }
 
