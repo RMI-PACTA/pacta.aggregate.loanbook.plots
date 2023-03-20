@@ -44,7 +44,7 @@ plot_scatter <- function(
       caption <- glue("{caption}Scenario source: {beautify_scenario_label(scenario_source)}\n", .trim = FALSE)
     }
     if (!is.null(year)) {
-      caption <- glue("{caption}Year of the analysis: {year}\n", .trim = FALSE)
+      caption <- glue("{caption}Alignment assessed in year: {year}\n", .trim = FALSE)
     }
     if(!is.null(region)) {
       caption <- glue("{caption}Region: {r2dii.plot::to_title(region)}", .trim = FALSE)
