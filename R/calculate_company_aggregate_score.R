@@ -20,8 +20,8 @@
 #'   considered a bridge technology. I.e. if the scenario requires a temporary
 #'   build out despite the need for a long term phase down. If so, the alignment
 #'   score can be treated differently than for other technologies. Currently,
-#'   this is only supported for gas fired power generation (`"gascap"`). Default
-#'   is `NULL` which means that no special treatment is applied.
+#'   the only allowed values are (`"none", "gascap"`). Default is `"none"` which
+#'   means that no special calculations are applied to any technology.
 #' @param aggregate Logical. Indicates whether the indicators should be
 #'   calculated for an aggregate of all loan books by different banks in `data`
 #'   or if they should be calculated individually, based on their
@@ -36,13 +36,16 @@ calculate_company_tech_deviation <- function(data,
                                              green_or_brown,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
-                                             bridge_tech = NULL,
+                                             bridge_tech = c("none", "gascap"),
                                              aggregate = TRUE) {
+
+  bridge_tech <- rlang::arg_match(bridge_tech)
 
   # validate input values
   validate_input_args_calculate_company_tech_deviation(
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    bridge_tech = bridge_tech
   )
 
   # validate input data sets
@@ -55,7 +58,6 @@ calculate_company_tech_deviation <- function(data,
 
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
-  bridge_tech <- bridge_tech %||% "skip"
 
   technology_direction <- technology_direction %>%
     dplyr::filter(
@@ -63,10 +65,6 @@ calculate_company_tech_deviation <- function(data,
       grepl(pattern = .env$scenario, x = .data$scenario)
     ) %>%
     dplyr::select(c("sector", "technology", "region", "directional_dummy"))
-
-  if (length(bridge_tech) > 1) {
-    stop("Function argument bridge_tech must be a character vector of length 1")
-  }
 
   if (!is.logical(aggregate)) {
     stop("Function argument aggregate must be either TRUE or FALSE!")
@@ -136,122 +134,11 @@ calculate_company_tech_deviation <- function(data,
       by = c("bank_id", "name_abcd", "region", "scenario_source", "sector", "year")
     )
 
-  # TODO: generalize!
-  if (bridge_tech == "gascap") {
-    # for now power sector only
-
-    # calculate progress towards t10
-    scenario_t10 <- scenario_trajectory %>%
-      dplyr::filter(
-        .data$scenario_source == .env$scenario_source,
-        grepl(.env$scenario, .data$scenario),
-        .data$sector == "power",
-        .data$year == .env$start_year + 10
-      )
-
-    data_scen_t10 <- data %>%
-      dplyr::filter(.data$year == .env$start_year) %>%
-      dplyr::select(-"year") %>%
-      dplyr::group_by(.data$sector, .data$region, .data$scenario_source, .data$name_abcd, .data$bank_id) %>%
-      dplyr::mutate(projected_sector = sum(.data$projected, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::inner_join(scenario_t10, by = c("sector", "technology", "region", "scenario_source")) %>%
-      dplyr::inner_join(green_or_brown, by = c("sector", "technology")) %>%
-      dplyr::mutate(
-        !!target_scenario := dplyr::if_else(
-          .data$green_or_brown == "green",
-          .data$projected + (.data$projected_sector * .data$smsp),
-          .data$projected * .data$tmsr
-        )
-      ) %>%
-      dplyr::rename(scen_t10 = !!rlang::sym(target_scenario)) %>%
-      dplyr::select(-c("green_or_brown", "tmsr", "smsp", "projected"))
-
-    data_scen_t10 <- data_scen_t10 %>%
-      dplyr::inner_join(
-        data,
-        by = c("sector", "technology", "region", "scenario_source", "name_abcd", "bank_id", "directional_dummy")
-      ) %>%
-      dplyr::mutate(
-        add_scen_t5_t10 = abs(.data$scen_t10 - !!rlang::sym(target_scenario)),
-        deviation_prod_t5_scen_t10 = (.data$projected - .data$scen_t10) * .data$directional_dummy,
-        phaseout_deviation = dplyr::if_else(.data$directional_dummy == -1, .data$deviation_prod_t5_scen_t10, 0),
-        buildout_deviation = dplyr::if_else(.data$directional_dummy == 1, .data$deviation_prod_t5_scen_t10, 0)
-      )
-
-    # calculate allowance
-    data_t10_allowance <- data_scen_t10 %>%
-      dplyr::filter(.data$technology != .env$bridge_tech) %>%
-      dplyr::group_by(
-        .data$sector, .data$region, .data$scenario_source, .data$year, .data$name_abcd, .data$bank_id
-      ) %>%
-      dplyr::summarise(
-        total_phaseout_deviation = sum(.data$phaseout_deviation, na.rm = TRUE),
-        total_buildout_deviation = sum(.data$buildout_deviation, na.rm = TRUE),
-        total_net_deviation = sum(.data$deviation_prod_t5_scen_t10, na.rm = TRUE),
-        t5_t10_scenario_buildout = sum(.data$add_scen_t5_t10, na.rm = TRUE),
-        .groups = "drop"
-      ) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate(
-        allowance = dplyr::if_else(
-          .data$total_buildout_deviation >= 0,
-          max(.data$total_phaseout_deviation / .data$t5_t10_scenario_buildout, 0),
-          0
-        )
-      )
-  }
-
   # calculate total deviation per technology
   data <- data %>%
     dplyr::mutate(
       total_tech_deviation = (.data$projected - !!rlang::sym(target_scenario)) * .data$directional_dummy
     )
-
-  if (exists("data_t10_allowance") & exists("data_scen_t10")) {
-    # update total_tech_deviation
-    data_t10_allowance <- data_t10_allowance %>%
-      dplyr::select(c("bank_id", "name_abcd", "sector", "region", "scenario_source", "year", "allowance")) %>%
-      dplyr::mutate(technology = .env$bridge_tech)
-
-    data_scen_t10 <- data_scen_t10 %>%
-      dplyr::filter(.data$technology == .env$bridge_tech) %>%
-      dplyr::select(
-        c(
-          "sector", "technology", "region", "scenario_source", "scenario", "name_abcd",
-          "bank_id", "projected", !!target_scenario, "scen_t10", "directional_dummy", "year"
-        )
-      ) %>%
-      dplyr::inner_join(
-        data_t10_allowance,
-        by = c("bank_id", "name_abcd", "sector", "technology", "region", "scenario_source", "year")
-      ) %>%
-      dplyr::mutate(
-        scen_t5_allowance = dplyr::if_else(
-          .data$allowance <= 0,
-          !!rlang::sym(target_scenario),
-          !!rlang::sym(target_scenario) + (.data$scen_t10 - !!rlang::sym(target_scenario)) * .data$allowance
-        )
-      ) %>%
-      dplyr::mutate(
-        total_tech_deviation = dplyr::case_when(
-          .data$projected < !!rlang::sym(target_scenario) ~ .data$projected - !!rlang::sym(target_scenario),
-          .data$projected > .data$scen_t5_allowance ~ (.data$projected - .data$scen_t5_allowance) * -1,
-          TRUE ~ 0
-        )
-      ) %>%
-      dplyr::select(-!!rlang::sym(target_scenario)) %>%
-      dplyr::rename(!!target_scenario := "scen_t5_allowance") %>%
-      dplyr::select(
-        c(
-          "sector", "technology", "year", "region", "scenario_source", "name_abcd", "bank_id", "projected", !!target_scenario, "directional_dummy", "total_tech_deviation"
-        )
-      )
-
-    data <- data %>%
-      dplyr::filter(.data$technology != .env$bridge_tech) %>%
-      dplyr::bind_rows(data_scen_t10)
-  }
 
   # add direction
   data <- data %>%
@@ -276,6 +163,37 @@ calculate_company_tech_deviation <- function(data,
       .by = c("sector", "year", "region", "scenario_source", "name_abcd", "bank_id", "direction", "activity_unit")
     ) %>%
     dplyr::select(-"prod_sector")
+
+  # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
+  if (bridge_tech == "gascap") {
+    data <- data %>%
+      apply_bridge_technology_cap(
+        bridge_tech = bridge_tech,
+        target_scenario = target_scenario
+      )
+  }
+
+  return(data)
+}
+
+apply_bridge_technology_cap <- function(data,
+                                        bridge_tech,
+                                        target_scenario) {
+  data_cap <- data %>%
+    dplyr::filter(.data$technology == .env$bridge_tech)
+
+  data_cap <- data_cap %>%
+    dplyr::mutate(
+      total_tech_deviation = dplyr::case_when(
+        .data$projected < !!rlang::sym(target_scenario) ~ .data$projected - !!rlang::sym(target_scenario),
+        .data$projected > !!rlang::sym(target_scenario) ~ (.data$projected - !!rlang::sym(target_scenario)) * -1,
+        TRUE ~ 0
+      )
+    )
+
+  data <- data %>%
+    dplyr::filter(.data$technology != .env$bridge_tech) %>%
+    dplyr::bind_rows(data_cap)
 
   return(data)
 }
@@ -479,7 +397,8 @@ calculate_company_aggregate_score_sda <- function(data,
 }
 
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
-                                                                 scenario) {
+                                                                 scenario,
+                                                                 bridge_tech) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -490,8 +409,16 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
     stop("Argument scenario must be of length 1. Please check your input.")
   }
   if (!inherits(scenario, "character")) {
-    stop("Argument scenario must be of length 1. Please check your input.")
+    stop("Argument scenario must be of class character. Please check your input.")
   }
+  if (!length(bridge_tech) == 1) {
+    stop("Argument bridge_tech must be of length 1. Please check your input.")
+  }
+  if (!inherits(bridge_tech, "character")) {
+    stop("Argument bridge_tech must be of class character. Please check your input.")
+  }
+
+
 
   invisible()
 }

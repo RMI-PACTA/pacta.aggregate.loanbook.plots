@@ -68,7 +68,7 @@ for (i in unique_loanbooks_raw) {
 # matched_loanbook %>%
 #   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
 
-# add loan book with corporate economy benchmark
+# add loan book with corporate economy benchmark----
 # benchmark_region can be selected based on r2dii.data::region_isos
 benchmark_regions <- c("global", "european union")
 
@@ -421,11 +421,14 @@ sda_result_for_aggregation <- sda_result_for_aggregation %>%
 
 ## aggregate SDA P4B results to company level alignment score----
 # calculate aggregation for the loan book
+# temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
+if (scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
+
 sda_aggregated <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
     scenario_emission_intensities = scenario_input_sda,
     scenario_source = scenario_source_input,
-    scenario = scenario_select
+    scenario = scenario_select_sda
   )
 
 sda_aggregated %>%
@@ -460,6 +463,8 @@ aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
 
 aggregate_exposure_loanbook_bopo %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
+
+# bespoke plots for supervisory analysis----
 
 # Plot sankey plot of financial flows scenario alignment - examples
 
