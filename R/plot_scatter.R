@@ -15,6 +15,12 @@
 #'   absolute alignment value of is used.
 #' @param data_level Character. Level of the plotted data. Can be 'bank' or
 #'   'company'.
+#' @param cap_outliers Numeric. Cap which should be applied to the alignment
+#'   values in the data. Values bigger than cap are plotted on the border of the
+#'   plot.
+#' @param floor_outliers Numeric. Floor which should be applied to the alignment
+#'   values in the data. Values smaller than floor are plotted on the border of
+#'   the plot.
 #'
 #' @return object of type "ggplot"
 #' @export
@@ -31,7 +37,9 @@ plot_scatter <- function(
     title = NULL,
     subtitle = NULL,
     alignment_limit = NULL,
-    data_level = c("company", "bank")
+    data_level = c("company", "bank"),
+    cap_outliers = NULL,
+    floor_outliers = NULL
     ) {
   arg_match(data_level)
 
@@ -73,11 +81,32 @@ plot_scatter <- function(
     }
   }
 
+  check_plot_scatter(data, alignment_limit, cap_outliers, floor_outliers)
+
+  if(!is.null(floor_outliers)) {
+    data <- data %>%
+      mutate(
+        buildout = if_else(.data$buildout <= floor_outliers, floor_outliers, .data$buildout),
+        phaseout = if_else(.data$phaseout <= floor_outliers, floor_outliers, .data$phaseout),
+        net = if_else(.data$net <= floor_outliers, floor_outliers, .data$net)
+      )
+    subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
+  }
+  if (!is.null(cap_outliers)) {
+    data <- data %>%
+      mutate(
+        buildout = if_else(.data$buildout >= cap_outliers, cap_outliers, .data$buildout),
+        phaseout = if_else(.data$phaseout >= cap_outliers, cap_outliers, .data$phaseout),
+        net = if_else(.data$net >= cap_outliers, cap_outliers, .data$net)
+      )
+    if (is.null(floor_outliers)) {
+      subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
+    }
+  }
+
   if (is.null(alignment_limit)) {
     alignment_limit <- max(abs(c(data$buildout, data$phaseout, data$net)), na.rm = TRUE)
   }
-
-  check_plot_scatter(data, alignment_limit)
 
   data_net_0 <- data.frame(
     buildout = c(-alignment_limit, 0, alignment_limit),
@@ -145,6 +174,7 @@ plot_scatter <- function(
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
+    coord_cartesian(clip = 'off') +
     scale_colour_gradient2(
       name = "Net",
       low = "#e10000",
@@ -180,10 +210,22 @@ plot_scatter <- function(
   p
 }
 
-check_plot_scatter <- function(data, alignment_limit) {
+check_plot_scatter <- function(data, alignment_limit, cap_outliers, floor_outliers) {
   r2dii.plot:::abort_if_missing_names(data, c("name", "buildout",
    "phaseout", "net"))
-  if ((length(alignment_limit) != 1) | (!is.numeric(alignment_limit))){
-    rlang::abort("'alignment_limit' must be a numeric value.")
+  if (!is.null(alignment_limit)) {
+    if ((length(alignment_limit) != 1) | (!is.numeric(alignment_limit))){
+      rlang::abort("'alignment_limit' must be a numeric value.")
+    }
+  }
+  if (!is.null(cap_outliers)) {
+    if ((length(cap_outliers) != 1) | (!is.numeric(cap_outliers))){
+     rlang::abort("'cap_outliers' must be a numeric value.")
+    }
+  }
+  if (!is_null(floor_outliers)) {
+    if ((length(floor_outliers) != 1) | (!is.numeric(floor_outliers))){
+      rlang::abort("'floor_outliers' must be a numeric value.")
+    }
   }
 }
