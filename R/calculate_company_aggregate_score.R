@@ -20,8 +20,8 @@
 #'   considered a bridge technology. I.e. if the scenario requires a temporary
 #'   build out despite the need for a long term phase down. If so, the alignment
 #'   score can be treated differently than for other technologies. Currently,
-#'   this is only supported for gas fired power generation (`"gascap"`). Default
-#'   is `NULL` which means that no special treatment is applied.
+#'   the only allowed values are (`"none", "gascap"`). Default is `"none"` which
+#'   means that no special calculations are applied to any technology.
 #' @param aggregate Logical. Indicates whether the indicators should be
 #'   calculated for an aggregate of all loan books by different banks in `data`
 #'   or if they should be calculated individually, based on their
@@ -39,10 +39,13 @@ calculate_company_tech_deviation <- function(data,
                                              bridge_tech = c("none", "gascap"),
                                              aggregate = TRUE) {
 
+  bridge_tech <- rlang::arg_match(bridge_tech)
+
   # validate input values
   validate_input_args_calculate_company_tech_deviation(
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    bridge_tech = bridge_tech
   )
 
   # validate input data sets
@@ -55,7 +58,6 @@ calculate_company_tech_deviation <- function(data,
 
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
-  bridge_tech <- rlang::arg_match(bridge_tech)
 
   technology_direction <- technology_direction %>%
     dplyr::filter(
@@ -63,10 +65,6 @@ calculate_company_tech_deviation <- function(data,
       grepl(pattern = .env$scenario, x = .data$scenario)
     ) %>%
     dplyr::select(c("sector", "technology", "region", "directional_dummy"))
-
-  if (length(bridge_tech) > 1) {
-    stop("Function argument bridge_tech must be a character vector of length 1")
-  }
 
   if (!is.logical(aggregate)) {
     stop("Function argument aggregate must be either TRUE or FALSE!")
@@ -399,7 +397,8 @@ calculate_company_aggregate_score_sda <- function(data,
 }
 
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
-                                                                 scenario) {
+                                                                 scenario,
+                                                                 bridge_tech) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -410,8 +409,16 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
     stop("Argument scenario must be of length 1. Please check your input.")
   }
   if (!inherits(scenario, "character")) {
-    stop("Argument scenario must be of length 1. Please check your input.")
+    stop("Argument scenario must be of class character. Please check your input.")
   }
+  if (!length(bridge_tech) == 1) {
+    stop("Argument bridge_tech must be of length 1. Please check your input.")
+  }
+  if (!inherits(bridge_tech, "character")) {
+    stop("Argument bridge_tech must be of class character. Please check your input.")
+  }
+
+
 
   invisible()
 }

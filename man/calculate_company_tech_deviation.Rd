@@ -13,7 +13,7 @@ calculate_company_tech_deviation(
   green_or_brown,
   scenario_source = "geco_2021",
   scenario = "1.5c",
-  bridge_tech = NULL,
+  bridge_tech = c("none", "gascap"),
   aggregate = TRUE
 )
 }
@@ -42,8 +42,8 @@ the score for. Must be a scenario available from \code{scenario_source}.}
 considered a bridge technology. I.e. if the scenario requires a temporary
 build out despite the need for a long term phase down. If so, the alignment
 score can be treated differently than for other technologies. Currently,
-this is only supported for gas fired power generation (\code{"gascap"}). Default
-is \code{NULL} which means that no special treatment is applied.}
+the only allowed values are (\verb{"none", "gascap"}). Default is \code{"none"} which
+means that no special calculations are applied to any technology.}
 
 \item{aggregate}{Logical. Indicates whether the indicators should be
 calculated for an aggregate of all loan books by different banks in \code{data}
