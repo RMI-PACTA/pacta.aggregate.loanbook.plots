@@ -69,7 +69,7 @@ plot_scatter <- function(
   } else {
     title <- paste0(title, " per Bank")
     if (is.null(subtitle)) {
-      subtitle <- "Each dot is a bank. The banks in the top right quadrant are both building out\nlow-carbon technologies and phasing out high-carbon technologies at rates \ngreater or equal to those required by the scenario."
+      subtitle <- "Each dot is a bank. The banks in the top right quadrant are exposed to companies\nwhich on aggregate level are both building out low-carbon technologies and phasing out\nhigh-carbon technologies at rates greater or equal to those required by the scenario."
     }
   }
 
@@ -93,7 +93,7 @@ plot_scatter <- function(
       geom = "text",
       x = alignment_limit * 0.65,
       y = -alignment_limit * 0.58,
-      label = "0% net deviation from target",
+      label = "0% net deviation from scenario",
       color = "white",
       angle = -45,
       size = 3
@@ -136,13 +136,13 @@ plot_scatter <- function(
       ) +
     geom_point() +
     scale_x_continuous(
-      name = "Deviation from low-carbon build-out target",
+      name = "Deviation from scenario value\nfor low-carbon technologies build-out",
       labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
     scale_y_continuous(
-      name = "Deviation from high-carbon phase-out target",
+      name = "Deviation from scenario value\nfor high-carbon technologies phase-out",
       labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
