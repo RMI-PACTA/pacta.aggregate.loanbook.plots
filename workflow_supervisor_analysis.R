@@ -220,7 +220,7 @@ green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
 # define if technologies should be treated as build out or phase down in the
 # aggregation
 technology_direction <- scenario_input_tms %>%
-  dplyr::filter(.data$year %in% c(2021, 2026)) %>%
+  dplyr::filter(.data$year %in% c(2022, 2027)) %>%
   dplyr::distinct(.data$scenario_source, .data$scenario, .data$sector, .data$technology, .data$region) %>%
   dplyr::inner_join(r2dii.data::green_or_brown, by = c("sector", "technology")) %>%
   dplyr::mutate(
@@ -484,7 +484,7 @@ data_sankey_tms <- prep_sankey(
   tms_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "sector"
   )
 } else {
@@ -496,7 +496,7 @@ if (!is.null(sda_aggregated)) {
   sda_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "sector"
   )
 } else {
@@ -512,7 +512,7 @@ data_sankey_tms2 <- prep_sankey(
   tms_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "name_abcd",
   middle_node2 = "sector"
   )
@@ -525,7 +525,7 @@ if (!is.null(sda_aggregated)) {
   sda_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "name_abcd",
   middle_node2 = "sector"
   )
@@ -587,7 +587,7 @@ ggsave(
 # Plot scatterplot of alignment scores - examples
 
 # company level
-year_scatter <- 2026
+year_scatter <- 2027
 sector_scatter <- "power"
 region_scatter <- "global"
 data_level1 <- "company"
