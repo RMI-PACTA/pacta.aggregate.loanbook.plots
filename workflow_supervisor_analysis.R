@@ -11,6 +11,18 @@ library(rlang)
 library(tidyr)
 library(vroom)
 
+# set directories----
+
+# path_to_regions_geco_2022 <- file.path("/path/to/input/directory/scenario/region_geco2022.csv")
+# path_to_regions_weo_2022 <- file.path("/path/to/input/directory/scenario/region_weo2022.csv")
+# input_path_scenario_tms <- file.path("/path/to/input/directory/scenario/tms_file.csv")
+# input_path_scenario_sda <- file.path("/path/to/input/directory/scenario/sda_file.csv")
+# input_directory_abcd <- file.path("/path/to/input/directory/abcd/")
+# input_directory_raw <- file.path("/path/to/input/directory/raw/")
+# input_directory_matched <- file.path("/path/to/input/directory/matched/")
+# output_directory_p4b_standard <- file.path("/path/to/input/directory/output/standard")
+# output_directory_p4b_aggregated <- file.path("/path/to/input/directory/aggregated")
+
 # set parameters----
 scenario_source_input <- "weo_2022"
 scenario_select <- "nze_2050"
@@ -34,15 +46,6 @@ region_isos_select <- region_isos_updated %>%
 
 start_year <- 2022
 
-# set directories----
-
-# input_path_scenario_tms <- file.path("/path/to/input/directory/tms/scenario/file.csv")
-# input_path_scenario_sda <- file.path("/path/to/input/directory/sda/scenario/file.csv")
-# input_directory_abcd <- file.path("/path/to/input/directory/abcd/")
-# input_directory_raw <- file.path("/path/to/input/directory/raw/")
-# input_directory_matched <- file.path("/path/to/input/directory/matched/")
-# output_directory_p4b_standard <- file.path("/path/to/input/directory/output/standard")
-# output_directory_p4b_aggregated <- file.path("/path/to/input/directory/aggregated")
 
 # load input data----
 scenario_input_tms <- read.csv(input_path_scenario_tms)
