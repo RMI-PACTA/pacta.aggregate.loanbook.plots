@@ -575,7 +575,7 @@ ggsave(
 
 # Plot scatterplot of alignment scores - examples
 
-# company level
+# company level, excluding outliers
 year_scatter <- 2026
 sector_scatter <- "power"
 region_scatter <- "global"
@@ -596,7 +596,9 @@ plot_scatter(
   sector = sector_scatter,
   region = region_scatter,
   scenario_source = scenario_source_input,
-  scenario = scenario_select
+  scenario = scenario_select,
+  cap_outliers = 2,
+  floor_outliers = -2
   )
 
 # bank level
