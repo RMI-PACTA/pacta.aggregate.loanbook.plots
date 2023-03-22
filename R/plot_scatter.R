@@ -52,7 +52,7 @@ plot_scatter <- function(
       caption <- glue("{caption}Scenario source: {beautify_scenario_label(scenario_source)}\n", .trim = FALSE)
     }
     if (!is.null(year)) {
-      caption <- glue("{caption}Year of the analysis: {year}\n", .trim = FALSE)
+      caption <- glue("{caption}Alignment assessed in year: {year}\n", .trim = FALSE)
     }
     if(!is.null(region)) {
       caption <- glue("{caption}Region: {r2dii.plot::to_title(region)}", .trim = FALSE)
@@ -72,12 +72,12 @@ plot_scatter <- function(
   if (data_level == "company") {
     title <- paste0(title, " per Company")
     if (is.null(subtitle)) {
-      subtitle <- "Each dot is a company. In an ideal situation all dots should be in the top right\nquadrant, indicating that the company is both building out the low-carbon technologies\nand phasing out the high-carbon technologies at a rate required by the scenario."
+      subtitle <- "Each dot is a company. The companies in the top right quadrant are both building out\n low-carbon technologies and phasing out high-carbon technologies at rates\ngreater or equal to those required by the scenario."
     }
   } else {
     title <- paste0(title, " per Bank")
     if (is.null(subtitle)) {
-      subtitle <- "Each dot is a bank. In an ideal situation all dots should be in the top right quadrant,\nindicating that, at the portfolio level, the bank is both building out the low-carbon\ntechnologies and phasing out the high-carbon technologies at a rate required by the scenario."
+      subtitle <- "Each dot is a bank. The banks in the top right quadrant are exposed to companies\nwhich on aggregate level are both building out low-carbon technologies and phasing out\nhigh-carbon technologies at rates greater or equal to those required by the scenario."
     }
   }
 
@@ -120,9 +120,9 @@ plot_scatter <- function(
     geom_line(data = data_net_0) +
     annotate(
       geom = "text",
-      x = alignment_limit * 0.7,
-      y = -alignment_limit * 0.6,
-      label = "Net alignment = 0",
+      x = alignment_limit * 0.65,
+      y = -alignment_limit * 0.58,
+      label = "0% net deviation from scenario",
       color = "white",
       angle = -45,
       size = 3
@@ -165,21 +165,24 @@ plot_scatter <- function(
       ) +
     geom_point(aes(shape = .data$datapoint)) +
     scale_x_continuous(
-      name = "Buildout",
+      name = "Deviation from scenario value\nfor low-carbon technologies build-out",
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
     scale_y_continuous(
-      name = "Phaseout",
+      name = "Deviation from scenario value\nfor high-carbon technologies phase-out",
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
     scale_colour_gradient2(
-      name = "Net",
+      name = "Net\ndeviation",
       low = "#e10000",
       mid = "white",
       high = "#3d8c40",
       midpoint = 0,
+      labels = scales::percent,
       limits = c(-alignment_limit, alignment_limit),
     ) +
     scale_shape_manual(
