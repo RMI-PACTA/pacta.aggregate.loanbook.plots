@@ -12,17 +12,27 @@ library(tidyr)
 library(vroom)
 
 # set parameters----
-scenario_source_input <- "weo_2021"
+scenario_source_input <- "weo_2022"
 scenario_select <- "nze_2050"
 region_select <- "global"
 # region_select <- "european union"
-region_isos_select <- r2dii.data::region_isos %>%
+
+# r2dii.data is not updated yet, so we manually update the region_isos data to
+# cover the 2022 scenarios
+regions_geco_2022 <- readr::read_csv(path_to_regions_geco_2022)
+regions_weo_2022 <- readr::read_csv(path_to_regions_weo_2022)
+
+region_isos_updated <- r2dii.data::region_isos %>%
+  rbind(regions_geco_2022) %>%
+  rbind(regions_weo_2022)
+
+region_isos_select <- region_isos_updated %>%
   dplyr::filter(
     .data$source == .env$scenario_source_input,
     .data$region %in% .env$region_select
   )
 
-start_year <- 2021
+start_year <- 2022
 
 # set directories----
 
@@ -81,6 +91,7 @@ for (i in benchmark_regions) {
     create_benchmark_loanbook(
       scenario_source = scenario_source_input,
       start_year = start_year,
+      region_isos = region_isos_updated,
       benchmark_region = i
     )
 
@@ -262,7 +273,7 @@ for (i in unique_benchmarks_tms) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- r2dii.data::region_isos %>%
+      allowed_countries_i <- region_isos_updated %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -379,7 +390,7 @@ for (i in unique_benchmarks_sda) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- r2dii.data::region_isos %>%
+      allowed_countries_i <- region_isos_updated %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -422,7 +433,7 @@ sda_result_for_aggregation <- sda_result_for_aggregation %>%
 ## aggregate SDA P4B results to company level alignment score----
 # calculate aggregation for the loan book
 # temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
-if (scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
+if (scenario_source_input == "geco_2021" & scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
 
 sda_aggregated <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
