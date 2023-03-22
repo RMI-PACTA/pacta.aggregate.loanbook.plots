@@ -174,7 +174,7 @@ plot_scatter <- function(
       limits = c(-alignment_limit, alignment_limit),
       expand = expansion(mult = 0)
       ) +
-    coord_cartesian(clip = 'off') +
+    #coord_cartesian(clip = 'off') +
     scale_colour_gradient2(
       name = "Net",
       low = "#e10000",
