@@ -86,18 +86,18 @@ plot_scatter <- function(
   if(!is.null(floor_outliers)) {
     data <- data %>%
       mutate(
-        buildout = if_else(.data$buildout <= floor_outliers, floor_outliers, .data$buildout),
-        phaseout = if_else(.data$phaseout <= floor_outliers, floor_outliers, .data$phaseout),
-        net = if_else(.data$net <= floor_outliers, floor_outliers, .data$net)
+        buildout = if_else(.data$buildout <= .env$floor_outliers, .env$floor_outliers, .data$buildout),
+        phaseout = if_else(.data$phaseout <= .env$floor_outliers, .env$floor_outliers, .data$phaseout),
+        net = if_else(.data$net <= .env$floor_outliers, .env$floor_outliers, .data$net)
       )
     subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
   }
   if (!is.null(cap_outliers)) {
     data <- data %>%
       mutate(
-        buildout = if_else(.data$buildout >= cap_outliers, cap_outliers, .data$buildout),
-        phaseout = if_else(.data$phaseout >= cap_outliers, cap_outliers, .data$phaseout),
-        net = if_else(.data$net >= cap_outliers, cap_outliers, .data$net)
+        buildout = if_else(.data$buildout >= .env$cap_outliers, .env$cap_outliers, .data$buildout),
+        phaseout = if_else(.data$phaseout >= .env$cap_outliers, .env$cap_outliers, .data$phaseout),
+        net = if_else(.data$net >= .env$cap_outliers, .env$cap_outliers, .data$net)
       )
     if (is.null(floor_outliers)) {
       subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
@@ -223,7 +223,7 @@ check_plot_scatter <- function(data, alignment_limit, cap_outliers, floor_outlie
      rlang::abort("'cap_outliers' must be a numeric value.")
     }
   }
-  if (!is_null(floor_outliers)) {
+  if (!is.null(floor_outliers)) {
     if ((length(floor_outliers) != 1) | (!is.numeric(floor_outliers))){
       rlang::abort("'floor_outliers' must be a numeric value.")
     }
