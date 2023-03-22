@@ -4,7 +4,13 @@
 \alias{create_benchmark_loanbook}
 \title{Return raw loan book containing the corporate economy benchmark}
 \usage{
-create_benchmark_loanbook(data, scenario_source, start_year, benchmark_region)
+create_benchmark_loanbook(
+  data,
+  scenario_source,
+  start_year,
+  region_isos,
+  benchmark_region
+)
 }
 \arguments{
 \item{data}{data frame containing the asset-based company data (ABCD) in
@@ -18,6 +24,9 @@ workflow.}
 \item{start_year}{character vector of length 1. Defines the initial year of
 the analysis. The company weights will be picked based on the production
 capacity in the \code{start_year}.}
+
+\item{region_isos}{data frame containing the regional mapping for scenarios
+to country iso codes, following the format of \code{r2dii.data::region_isos}}
 
 \item{benchmark_region}{character vector of length 1. Select the region based
 on which the benchmark loan book should be created. Only companies with
