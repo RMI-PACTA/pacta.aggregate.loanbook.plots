@@ -9,6 +9,8 @@
 #' @param start_year character vector of length 1. Defines the initial year of
 #'   the analysis. The company weights will be picked based on the production
 #'   capacity in the `start_year`.
+#' @param region_isos data frame containing the regional mapping for scenarios
+#'   to country iso codes, following the format of `r2dii.data::region_isos`
 #' @param benchmark_region character vector of length 1. Select the region based
 #'   on which the benchmark loan book should be created. Only companies with
 #'   production within the selceted region will be kept.
@@ -18,6 +20,7 @@
 create_benchmark_loanbook <- function(data,
                                       scenario_source,
                                       start_year,
+                                      region_isos,
                                       benchmark_region) {
 
   # check input data
@@ -49,7 +52,7 @@ create_benchmark_loanbook <- function(data,
     dplyr::distinct(.data$company_id, .data$name_company, .data$lei, .data$code)
 
   # keep only the companies that have production in the provided region
-  benchmark_countries <- r2dii.data::region_isos %>%
+  benchmark_countries <- region_isos %>%
     dplyr::filter(
       .data$source == .env$scenario_source,
       .data$region == .env$benchmark_region,

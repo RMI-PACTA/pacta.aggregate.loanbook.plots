@@ -11,28 +11,41 @@ library(rlang)
 library(tidyr)
 library(vroom)
 
-# set parameters----
-scenario_source_input <- "weo_2021"
-scenario_select <- "nze_2050"
-region_select <- "global"
-# region_select <- "european union"
-region_isos_select <- r2dii.data::region_isos %>%
-  dplyr::filter(
-    .data$source == .env$scenario_source_input,
-    .data$region %in% .env$region_select
-  )
-
-start_year <- 2021
-
 # set directories----
 
-# input_path_scenario_tms <- file.path("/path/to/input/directory/tms/scenario/file.csv")
-# input_path_scenario_sda <- file.path("/path/to/input/directory/sda/scenario/file.csv")
+# path_to_regions_geco_2022 <- file.path("/path/to/input/directory/scenario/region_geco2022.csv")
+# path_to_regions_weo_2022 <- file.path("/path/to/input/directory/scenario/region_weo2022.csv")
+# input_path_scenario_tms <- file.path("/path/to/input/directory/scenario/tms_file.csv")
+# input_path_scenario_sda <- file.path("/path/to/input/directory/scenario/sda_file.csv")
 # input_directory_abcd <- file.path("/path/to/input/directory/abcd/")
 # input_directory_raw <- file.path("/path/to/input/directory/raw/")
 # input_directory_matched <- file.path("/path/to/input/directory/matched/")
 # output_directory_p4b_standard <- file.path("/path/to/input/directory/output/standard")
 # output_directory_p4b_aggregated <- file.path("/path/to/input/directory/aggregated")
+
+# set parameters----
+scenario_source_input <- "weo_2022"
+scenario_select <- "nze_2050"
+region_select <- "global"
+# region_select <- "european union"
+
+# r2dii.data is not updated yet, so we manually update the region_isos data to
+# cover the 2022 scenarios
+regions_geco_2022 <- readr::read_csv(path_to_regions_geco_2022)
+regions_weo_2022 <- readr::read_csv(path_to_regions_weo_2022)
+
+region_isos_updated <- r2dii.data::region_isos %>%
+  rbind(regions_geco_2022) %>%
+  rbind(regions_weo_2022)
+
+region_isos_select <- region_isos_updated %>%
+  dplyr::filter(
+    .data$source == .env$scenario_source_input,
+    .data$region %in% .env$region_select
+  )
+
+start_year <- 2022
+
 
 # load input data----
 scenario_input_tms <- read.csv(input_path_scenario_tms)
@@ -81,6 +94,7 @@ for (i in benchmark_regions) {
     create_benchmark_loanbook(
       scenario_source = scenario_source_input,
       start_year = start_year,
+      region_isos = region_isos_updated,
       benchmark_region = i
     )
 
@@ -209,7 +223,7 @@ green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
 # define if technologies should be treated as build out or phase down in the
 # aggregation
 technology_direction <- scenario_input_tms %>%
-  dplyr::filter(.data$year %in% c(2021, 2026)) %>%
+  dplyr::filter(.data$year %in% c(2022, 2027)) %>%
   dplyr::distinct(.data$scenario_source, .data$scenario, .data$sector, .data$technology, .data$region) %>%
   dplyr::inner_join(r2dii.data::green_or_brown, by = c("sector", "technology")) %>%
   dplyr::mutate(
@@ -262,7 +276,7 @@ for (i in unique_benchmarks_tms) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- r2dii.data::region_isos %>%
+      allowed_countries_i <- region_isos_updated %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -379,7 +393,7 @@ for (i in unique_benchmarks_sda) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- r2dii.data::region_isos %>%
+      allowed_countries_i <- region_isos_updated %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -422,7 +436,7 @@ sda_result_for_aggregation <- sda_result_for_aggregation %>%
 ## aggregate SDA P4B results to company level alignment score----
 # calculate aggregation for the loan book
 # temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
-if (scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
+if (scenario_source_input == "geco_2021" & scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
 
 sda_aggregated <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
@@ -473,7 +487,7 @@ data_sankey_tms <- prep_sankey(
   tms_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "sector"
   )
 } else {
@@ -485,7 +499,7 @@ if (!is.null(sda_aggregated)) {
   sda_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "sector"
   )
 } else {
@@ -501,7 +515,7 @@ data_sankey_tms2 <- prep_sankey(
   tms_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "name_abcd",
   middle_node2 = "sector"
   )
@@ -514,7 +528,7 @@ if (!is.null(sda_aggregated)) {
   sda_aggregated,
   matched_loanbook,
   region = "global",
-  year = 2026,
+  year = 2027,
   middle_node = "name_abcd",
   middle_node2 = "sector"
   )
@@ -576,7 +590,7 @@ ggsave(
 # Plot scatterplot of alignment scores - examples
 
 # company level, excluding outliers
-year_scatter <- 2026
+year_scatter <- 2027
 sector_scatter <- "power"
 region_scatter <- "global"
 data_level1 <- "company"
