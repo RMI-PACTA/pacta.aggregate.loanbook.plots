@@ -11,7 +11,13 @@
 calculate_loanbook_exposure_scores <- function(data,
                                                matched,
                                                level = c("net", "bo_po")) {
-  level <- match.arg(level)
+  level <- rlang::arg_match(level)
+
+  # validate input data sets
+  validate_input_data_calculate_loanbook_exposure_scores(
+    data = data,
+    matched = matched
+  )
 
   matched <- matched %>%
     dplyr::select(
@@ -95,8 +101,8 @@ validate_input_data_calculate_loanbook_exposure_scores <- function(data,
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
-      "bank_id", "name_abcd", "sector", "region", "scenario_source", "scenario",
-      "year", "score"
+      "bank_id", "name_abcd", "sector", "activity_unit", "region",
+      "scenario_source", "scenario", "year", "direction", "score"
     )
   )
 
