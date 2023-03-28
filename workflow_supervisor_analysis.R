@@ -334,25 +334,25 @@ tms_company_technology_deviation <- tms_result_for_aggregation %>%
 tms_company_technology_deviation %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_technology_deviation.csv"))
 
-tms_aggregated <- tms_company_technology_deviation %>%
+tms_company_aggregated_alignment_net <- tms_company_technology_deviation %>%
   calculate_company_aggregate_score_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
     level = "net"
   )
 
-tms_aggregated %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company.csv"))
+tms_company_aggregated_alignment_net %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_aggregated_alignment_net.csv"))
 
-tms_aggregated_buildout_phaseout <- tms_company_technology_deviation %>%
+tms_company_aggregated_alignment_bo_po <- tms_company_technology_deviation %>%
   calculate_company_aggregate_score_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
     level = "bo_po"
   )
 
-tms_aggregated_buildout_phaseout %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_aggregated_company_buildout_phaseout.csv"))
+tms_company_aggregated_alignment_bo_po %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_aggregated_alignment_bo_po.csv"))
 
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL
@@ -438,53 +438,53 @@ sda_result_for_aggregation <- sda_result_for_aggregation %>%
 # temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
 if (scenario_source_input == "geco_2021" & scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
 
-sda_aggregated <- sda_result_for_aggregation %>%
+sda_company_aggregated_alignment_net <- sda_result_for_aggregation %>%
   calculate_company_aggregate_score_sda(
     scenario_emission_intensities = scenario_input_sda,
     scenario_source = scenario_source_input,
     scenario = scenario_select_sda
   )
 
-sda_aggregated %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "sda_aggregated_company.csv"))
+sda_company_aggregated_alignment_net %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "sda_company_aggregated_alignment_net.csv"))
 
 
 ## calculate sector and loan book level aggregate alignment based on company exposures in loan book----
 
 # the company level aggregate scores are then joined with the matched loan book
 # to derive some high level summary statistics on the loan book level
-companies_aggregated <- tms_aggregated %>%
-  dplyr::bind_rows(sda_aggregated)
+company_aggregated_alignment_net <- tms_company_aggregated_alignment_net %>%
+  dplyr::bind_rows(sda_company_aggregated_alignment_net)
 
 # show exposures (n companies and loan size) by alignment with given scenario
 
 # net
-aggregate_exposure_loanbook <- companies_aggregated %>%
+loanbook_exposure_aggregated_alignment_net <- company_aggregated_alignment_net %>%
   calculate_loanbook_exposure_scores(
     matched = matched_total,
     level = "net"
   )
 
-aggregate_exposure_loanbook %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook.csv"))
+loanbook_exposure_aggregated_alignment_net %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "loanbook_exposure_aggregated_alignment_net.csv"))
 
 # buildout / phaseout
-aggregate_exposure_loanbook_bopo <- tms_aggregated_buildout_phaseout %>%
+loanbook_exposure_aggregated_alignment_bo_po <- tms_company_aggregated_alignment_bo_po %>%
   calculate_loanbook_exposure_scores(
     matched = matched_total,
     level = "bo_po"
   )
 
-aggregate_exposure_loanbook_bopo %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "aggregate_exposure_loanbook_bopo.csv"))
+loanbook_exposure_aggregated_alignment_bo_po %>%
+  readr::write_csv(file.path(output_directory_p4b_aggregated, "loanbook_exposure_aggregated_alignment_bo_po.csv"))
 
 # bespoke plots for supervisory analysis----
 
 # Plot sankey plot of financial flows scenario alignment - examples
 
-if (!is.null(tms_aggregated)) {
+if (!is.null(tms_company_aggregated_alignment_net)) {
 data_sankey_tms <- prep_sankey(
-  tms_aggregated,
+  tms_company_aggregated_alignment_net,
   matched_loanbook,
   region = "global",
   year = 2027,
@@ -494,9 +494,9 @@ data_sankey_tms <- prep_sankey(
   data_sankey_tms <- NULL
 }
 
-if (!is.null(sda_aggregated)) {
+if (!is.null(sda_company_aggregated_alignment_net)) {
   data_sankey_sda <- prep_sankey(
-  sda_aggregated,
+  sda_company_aggregated_alignment_net,
   matched_loanbook,
   region = "global",
   year = 2027,
@@ -510,9 +510,9 @@ data_sankey <- rbind(data_sankey_tms, data_sankey_sda)
 
 plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_sector.png")
 
-if (!is.null(tms_aggregated)) {
+if (!is.null(tms_company_aggregated_alignment_net)) {
 data_sankey_tms2 <- prep_sankey(
-  tms_aggregated,
+  tms_company_aggregated_alignment_net,
   matched_loanbook,
   region = "global",
   year = 2027,
@@ -523,9 +523,9 @@ data_sankey_tms2 <- prep_sankey(
   data_sankey_tms2 <- NULL
 }
 
-if (!is.null(sda_aggregated)) {
+if (!is.null(sda_company_aggregated_alignment_net)) {
   data_sankey_sda2 <- prep_sankey(
-  sda_aggregated,
+  sda_company_aggregated_alignment_net,
   matched_loanbook,
   region = "global",
   year = 2027,
@@ -546,7 +546,7 @@ plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_nam
 sector_timeline <- "power"
 region_timeline <- "global"
 data_timeline <- prep_timeline(
-  aggregate_exposure_loanbook_bopo,
+  loanbook_exposure_aggregated_alignment_bo_po,
   sector = sector_timeline,
   region = region_timeline,
   bank_ids_to_plot = "bank1")
@@ -568,7 +568,7 @@ ggsave(
 sector_timeline <- "cement"
 region_timeline <- "global"
 data_timeline <- prep_timeline(
-  aggregate_exposure_loanbook,
+  loanbook_exposure_aggregated_alignment_net,
   sector = sector_timeline,
   region = region_timeline,
   bank_ids_to_plot = "bank1")
@@ -595,8 +595,8 @@ sector_scatter <- "power"
 region_scatter <- "global"
 data_level1 <- "company"
 data_scatter <- prep_scatter(
-  tms_aggregated_buildout_phaseout,
-  tms_aggregated,
+  tms_company_aggregated_alignment_bo_po,
+  tms_company_aggregated_alignment_net,
   year = year_scatter,
   sector = sector_scatter,
   region = region_scatter,
@@ -618,8 +618,8 @@ plot_scatter(
 # bank level
 data_level2 <- "bank"
 data_scatter2 <- prep_scatter(
-  aggregate_exposure_loanbook_bopo,
-  aggregate_exposure_loanbook,
+  loanbook_exposure_aggregated_alignment_bo_po,
+  loanbook_exposure_aggregated_alignment_net,
   year = year_scatter,
   sector = sector_scatter,
   region = region_scatter,
