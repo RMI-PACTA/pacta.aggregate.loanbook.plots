@@ -13,8 +13,7 @@ calculate_company_tech_deviation(
   green_or_brown,
   scenario_source = "geco_2021",
   scenario = "1.5c",
-  bridge_tech = c("none", "gascap"),
-  aggregate = TRUE
+  bridge_tech = c("none", "gascap")
 )
 }
 \arguments{
@@ -44,12 +43,6 @@ build out despite the need for a long term phase down. If so, the alignment
 score can be treated differently than for other technologies. Currently,
 the only allowed values are (\verb{"none", "gascap"}). Default is \code{"none"} which
 means that no special calculations are applied to any technology.}
-
-\item{aggregate}{Logical. Indicates whether the indicators should be
-calculated for an aggregate of all loan books by different banks in \code{data}
-or if they should be calculated individually, based on their
-\code{bank_id}. If only one loan book is included, use the default
-aggregate == TRUE.}
 }
 \description{
 Return company level technology deviations for TMS sectors. To be used as

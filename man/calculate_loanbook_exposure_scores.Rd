@@ -4,12 +4,7 @@
 \alias{calculate_loanbook_exposure_scores}
 \title{Return loan book level aggregation of company scores by exposure}
 \usage{
-calculate_loanbook_exposure_scores(
-  data,
-  matched,
-  level = c("net", "bo_po"),
-  aggregate = TRUE
-)
+calculate_loanbook_exposure_scores(data, matched, level = c("net", "bo_po"))
 }
 \arguments{
 \item{data}{data.frame. Holds output pf company indicators}
@@ -19,12 +14,6 @@ calculate_loanbook_exposure_scores(
 \item{level}{Character. Vector that indicates if the aggreagte score should
 be returned based on the net technology deviations (\code{net}) or disaggregated
 into buildout and phaseout technologies (\code{bo_po}).}
-
-\item{aggregate}{Logical. Indicates whether the indicators should be
-calculated for an aggregate of all loan books by different banks in
-\code{matched} or if they should be calculated individually, based on their
-\code{bank_id}. If only one loan book is included, use the default
-aggregate == TRUE.}
 }
 \description{
 Return loan book level aggregation of company scores by exposure
