@@ -58,6 +58,7 @@ abcd["production"][is.na(abcd["production"])] <- 0
 
 # loanbook <- loanbook_test_data
 loanbook <- purrr::map_dfr(list.files(input_directory_raw, full.names = T), .f = vroom::vroom, id = "bank_id")
+# aggregation functions expect a bank_id to be able to distinguish banks/loan books in later analysis
 loanbook <- loanbook %>%
   dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))

@@ -22,11 +22,6 @@
 #'   score can be treated differently than for other technologies. Currently,
 #'   the only allowed values are (`"none", "gascap"`). Default is `"none"` which
 #'   means that no special calculations are applied to any technology.
-#' @param aggregate Logical. Indicates whether the indicators should be
-#'   calculated for an aggregate of all loan books by different banks in `data`
-#'   or if they should be calculated individually, based on their
-#'   `bank_id`. If only one loan book is included, use the default
-#'   aggregate == TRUE.
 #'
 #' @return NULL
 #' @export
@@ -36,8 +31,7 @@ calculate_company_tech_deviation <- function(data,
                                              green_or_brown,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
-                                             bridge_tech = c("none", "gascap"),
-                                             aggregate = TRUE) {
+                                             bridge_tech = c("none", "gascap")) {
 
   bridge_tech <- rlang::arg_match(bridge_tech)
 
@@ -65,18 +59,6 @@ calculate_company_tech_deviation <- function(data,
       grepl(pattern = .env$scenario, x = .data$scenario)
     ) %>%
     dplyr::select(c("sector", "technology", "region", "directional_dummy"))
-
-  if (!is.logical(aggregate)) {
-    stop("Function argument aggregate must be either TRUE or FALSE!")
-  }
-
-  if (!"bank_id" %in% names(data) & !aggregate) {
-    stop("The input data set does not contain bank identifiers, which are needed
-         to process multiple loan books on an individual level")
-  } else if (!"bank_id" %in% names(data) & aggregate) {
-    data <- data %>%
-      dplyr::mutate(bank_id = "bank")
-  }
 
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)
@@ -213,19 +195,13 @@ apply_bridge_technology_cap <- function(data,
 #' @param level Character. Vector that indicates if the aggreagte score should
 #'   be returned based on the net technology deviations (`net`) or disaggregated
 #'   into buildout and phaseout technologies (`bo_po`).
-#' @param aggregate Logical. Indicates whether the indicators should be
-#'   calculated for an aggregate of all loan books by different banks in `data`
-#'   or if they should be calculated individually, based on their
-#'   `bank_id`. If only one loan book is included, use the default
-#'   aggregate == TRUE.
 #'
 #' @return NULL
 #' @export
 calculate_company_aggregate_score_tms <- function(data,
                                                   scenario_source = "geco_2021",
                                                   scenario = "1.5c",
-                                                  level = c("net", "bo_po"),
-                                                  aggregate = TRUE) {
+                                                  level = c("net", "bo_po")) {
 
   # validate input values
   validate_input_args_calculate_company_aggregate_score_tms(
@@ -307,19 +283,13 @@ calculate_company_aggregate_score_tms <- function(data,
 #'   supported value is `"geco_2021"`.
 #' @param scenario Character. Vector that indicates which scenario to calculate
 #'   the score for. Must be a scenario available from `scenario_source`.
-#' @param aggregate Logical. Indicates whether the indicators should be
-#'   calculated for an aggregate of all loan books by different banks in `data`
-#'   or if they should be calculated individually, based on their
-#'   `bank_id`. If only one loan book is included, use the default
-#'   aggregate == TRUE.
 #'
 #' @return NULL
 #' @export
 calculate_company_aggregate_score_sda <- function(data,
                                                   scenario_emission_intensities,
                                                   scenario_source = "geco_2021",
-                                                  scenario = "1.5c",
-                                                  aggregate = TRUE) {
+                                                  scenario = "1.5c") {
   # validate input values
   validate_input_args_calculate_company_aggregate_score_sda(
     scenario_source = scenario_source,
@@ -334,18 +304,6 @@ calculate_company_aggregate_score_sda <- function(data,
 
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
-
-  if (!is.logical(aggregate)) {
-    stop("Function argument aggregate must be either TRUE or FALSE!")
-  }
-
-  if (!"bank_id" %in% names(data) & !aggregate) {
-    stop("The input data set does not contain bank identifiers, which are needed
-         to process multiple loan books on an individual level")
-  } else if (!"bank_id" %in% names(data) & aggregate) {
-    data <- data %>%
-      dplyr::mutate(bank_id = "bank")
-  }
 
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source)

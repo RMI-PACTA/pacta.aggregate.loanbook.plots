@@ -8,8 +8,7 @@ calculate_company_aggregate_score_sda(
   data,
   scenario_emission_intensities,
   scenario_source = "geco_2021",
-  scenario = "1.5c",
-  aggregate = TRUE
+  scenario = "1.5c"
 )
 }
 \arguments{
@@ -24,12 +23,6 @@ supported value is \code{"geco_2021"}.}
 
 \item{scenario}{Character. Vector that indicates which scenario to calculate
 the score for. Must be a scenario available from \code{scenario_source}.}
-
-\item{aggregate}{Logical. Indicates whether the indicators should be
-calculated for an aggregate of all loan books by different banks in \code{data}
-or if they should be calculated individually, based on their
-\code{bank_id}. If only one loan book is included, use the default
-aggregate == TRUE.}
 }
 \description{
 Return company level scenario scores for the main sector of each company

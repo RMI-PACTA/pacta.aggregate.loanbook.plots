@@ -9,8 +9,7 @@ calculate_company_aggregate_score_tms(
   data,
   scenario_source = "geco_2021",
   scenario = "1.5c",
-  level = c("net", "bo_po"),
-  aggregate = TRUE
+  level = c("net", "bo_po")
 )
 }
 \arguments{
@@ -28,12 +27,6 @@ the score for. Must be a scenario available from \code{scenario_source}.}
 \item{level}{Character. Vector that indicates if the aggreagte score should
 be returned based on the net technology deviations (\code{net}) or disaggregated
 into buildout and phaseout technologies (\code{bo_po}).}
-
-\item{aggregate}{Logical. Indicates whether the indicators should be
-calculated for an aggregate of all loan books by different banks in \code{data}
-or if they should be calculated individually, based on their
-\code{bank_id}. If only one loan book is included, use the default
-aggregate == TRUE.}
 }
 \description{
 Return company level scenario scores for the main sector of each company with
