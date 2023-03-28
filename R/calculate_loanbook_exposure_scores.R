@@ -5,31 +5,13 @@
 #' @param level Character. Vector that indicates if the aggreagte score should
 #'   be returned based on the net technology deviations (`net`) or disaggregated
 #'   into buildout and phaseout technologies (`bo_po`).
-#' @param aggregate Logical. Indicates whether the indicators should be
-#'   calculated for an aggregate of all loan books by different banks in
-#'   `matched` or if they should be calculated individually, based on their
-#'   `bank_id`. If only one loan book is included, use the default
-#'   aggregate == TRUE.
 #'
 #' @return NULL
 #' @export
 calculate_loanbook_exposure_scores <- function(data,
                                                matched,
-                                               level = c("net", "bo_po"),
-                                               aggregate = TRUE) {
+                                               level = c("net", "bo_po")) {
   level <- match.arg(level)
-
-  if (!is.logical(aggregate)) {
-    stop("Function argument aggregate must be either TRUE or FALSE!")
-  }
-
-  if (!"bank_id" %in% names(matched) & !aggregate) {
-    stop("The input macthed data set does not contain bank identifiers, which
-         are needed to process multiple loan books on an individual level")
-  } else if (!"bank_id" %in% names(matched) & aggregate) {
-    matched <- matched %>%
-      dplyr::mutate(bank_id = unique(data$bank_id))
-  }
 
   matched <- matched %>%
     dplyr::select(
