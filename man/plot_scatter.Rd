@@ -14,7 +14,9 @@ plot_scatter(
   title = NULL,
   subtitle = NULL,
   alignment_limit = NULL,
-  data_level = c("company", "bank")
+  data_level = c("company", "bank"),
+  cap_outliers = NULL,
+  floor_outliers = NULL
 )
 }
 \arguments{
@@ -42,6 +44,14 @@ absolute alignment value of is used.}
 
 \item{data_level}{Character. Level of the plotted data. Can be 'bank' or
 'company'.}
+
+\item{cap_outliers}{Numeric. Cap which should be applied to the alignment
+values in the data. Values bigger than cap are plotted on the border of the
+plot.}
+
+\item{floor_outliers}{Numeric. Floor which should be applied to the alignment
+values in the data. Values smaller than floor are plotted on the border of
+the plot.}
 }
 \value{
 object of type "ggplot"
