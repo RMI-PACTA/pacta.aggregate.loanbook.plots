@@ -208,11 +208,11 @@ for (sda_i in unique_banks_sda) {
 
 ## set specifications----
 
-# for the calculation of the aggregate company score, we do not force companies
+# for the calculation of the aggregate company alignment metric, we do not force companies
 # to enter a new market to build out hydro power or nuclear power, as this may
 # not be feasible for political and/or geographic reasons.
 # in the power sector, only renewables continues to follow the SMSP logic
-green_or_brown_aggregate_score <- r2dii.data::green_or_brown %>%
+green_or_brown_aggregate_alignment <- r2dii.data::green_or_brown %>%
   dplyr::mutate(
     green_or_brown = dplyr::if_else(
       .data$technology %in% c("hydrocap", "nuclearcap"),
@@ -251,7 +251,7 @@ for (i in unique_banks_tms) {
         region_isos = region_isos_select,
         by_company = TRUE,
         weight_production = FALSE,
-        green_or_brown = green_or_brown_aggregate_score
+        green_or_brown = green_or_brown_aggregate_alignment
       )
 
       tms_result_for_aggregation_i <- tms_result_for_aggregation_i %>%
@@ -297,7 +297,7 @@ for (i in unique_benchmarks_tms) {
         region_isos = region_isos_select,
         by_company = TRUE,
         weight_production = FALSE,
-        green_or_brown = green_or_brown_aggregate_score
+        green_or_brown = green_or_brown_aggregate_alignment
       )
 
       tms_result_for_aggregation_benchmark_i <- tms_result_for_aggregation_benchmark_i %>%
@@ -319,14 +319,14 @@ for (i in unique_benchmarks_tms) {
 tms_result_for_aggregation <- tms_result_for_aggregation %>%
   dplyr::bind_rows(tms_result_for_aggregation_benchmark)
 
-## aggregate TMS P4B results to company level alignment score----
+## aggregate TMS P4B results to company level alignment metric----
 # calculate aggregation for the loan book
 
 tms_company_technology_deviation <- tms_result_for_aggregation %>%
   calculate_company_tech_deviation(
     technology_direction = technology_direction,
     scenario_trajectory = scenario_input_tms,
-    green_or_brown = green_or_brown_aggregate_score,
+    green_or_brown = green_or_brown_aggregate_alignment,
     scenario_source = scenario_source_input,
     scenario = scenario_select
     # bridge_tech = "gascap"
@@ -336,7 +336,7 @@ tms_company_technology_deviation %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_technology_deviation.csv"))
 
 tms_company_aggregated_alignment_net <- tms_company_technology_deviation %>%
-  calculate_company_aggregate_score_tms(
+  calculate_company_aggregate_alignment_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
     level = "net"
@@ -346,7 +346,7 @@ tms_company_aggregated_alignment_net %>%
   readr::write_csv(file.path(output_directory_p4b_aggregated, "tms_company_aggregated_alignment_net.csv"))
 
 tms_company_aggregated_alignment_bo_po <- tms_company_technology_deviation %>%
-  calculate_company_aggregate_score_tms(
+  calculate_company_aggregate_alignment_tms(
     scenario_source = scenario_source_input,
     scenario = scenario_select,
     level = "bo_po"
@@ -434,13 +434,13 @@ for (i in unique_benchmarks_sda) {
 sda_result_for_aggregation <- sda_result_for_aggregation %>%
   dplyr::bind_rows(sda_result_for_aggregation_benchmark)
 
-## aggregate SDA P4B results to company level alignment score----
+## aggregate SDA P4B results to company level alignment metric----
 # calculate aggregation for the loan book
 # temporary fix for the scenario name issue in geco_2021, relates to https://github.com/RMI-PACTA/r2dii.analysis/issues/425
 if (scenario_source_input == "geco_2021" & scenario_select == "1.5c") {scenario_select_sda <- "1.5c-unif"} else {scenario_select_sda <- scenario_select}
 
 sda_company_aggregated_alignment_net <- sda_result_for_aggregation %>%
-  calculate_company_aggregate_score_sda(
+  calculate_company_aggregate_alignment_sda(
     scenario_emission_intensities = scenario_input_sda,
     scenario_source = scenario_source_input,
     scenario = scenario_select_sda
@@ -452,8 +452,8 @@ sda_company_aggregated_alignment_net %>%
 
 ## calculate sector and loan book level aggregate alignment based on company exposures in loan book----
 
-# the company level aggregate scores are then joined with the matched loan book
-# to derive some high level summary statistics on the loan book level
+# the company level aggregate alignment metrics are then joined with the matched
+# loan book to derive some high level summary statistics on the loan book level
 company_aggregated_alignment_net <- tms_company_aggregated_alignment_net %>%
   dplyr::bind_rows(sda_company_aggregated_alignment_net)
 
@@ -461,7 +461,7 @@ company_aggregated_alignment_net <- tms_company_aggregated_alignment_net %>%
 
 # net
 loanbook_exposure_aggregated_alignment_net <- company_aggregated_alignment_net %>%
-  calculate_loanbook_exposure_scores(
+  aggregate_alignment_loanbook_exposure(
     matched = matched_total,
     level = "net"
   )
@@ -471,7 +471,7 @@ loanbook_exposure_aggregated_alignment_net %>%
 
 # buildout / phaseout
 loanbook_exposure_aggregated_alignment_bo_po <- tms_company_aggregated_alignment_bo_po %>%
-  calculate_loanbook_exposure_scores(
+  aggregate_alignment_loanbook_exposure(
     matched = matched_total,
     level = "bo_po"
   )
@@ -565,7 +565,7 @@ ggsave(
   height = 5
   )
 
-# net score for cement
+# net aggregate alignment for cement
 sector_timeline <- "cement"
 region_timeline <- "global"
 data_timeline <- prep_timeline(
@@ -588,7 +588,7 @@ ggsave(
   height = 5
   )
 
-# Plot scatterplot of alignment scores - examples
+# Plot scatterplot of alignment metrics - examples
 
 # company level, excluding outliers
 year_scatter <- 2027

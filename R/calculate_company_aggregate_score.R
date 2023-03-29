@@ -32,7 +32,6 @@ calculate_company_tech_deviation <- function(data,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
                                              bridge_tech = c("none", "gascap")) {
-
   bridge_tech <- rlang::arg_match(bridge_tech)
 
   # validate input values
@@ -199,19 +198,19 @@ apply_bridge_technology_cap <- function(data,
 #'
 #' @return NULL
 #' @export
-calculate_company_aggregate_score_tms <- function(data,
-                                                  scenario_source = "geco_2021",
-                                                  scenario = "1.5c",
-                                                  level = c("net", "bo_po")) {
+calculate_company_aggregate_alignment_tms <- function(data,
+                                                      scenario_source = "geco_2021",
+                                                      scenario = "1.5c",
+                                                      level = c("net", "bo_po")) {
 
   # validate input values
-  validate_input_args_calculate_company_aggregate_score_tms(
+  validate_input_args_calculate_company_aggregate_alignment_tms(
     scenario_source = scenario_source,
     scenario = scenario
   )
 
   # validate input data set
-  validate_input_data_calculate_company_aggregate_score_tms(
+  validate_input_data_calculate_company_aggregate_alignment_tms(
     data = data,
     scenario = scenario
   )
@@ -243,7 +242,6 @@ calculate_company_aggregate_score_tms <- function(data,
           "technology_share_by_direction", "alignment_metric"
         )
       )
-
   } else if (level == "net") {
     # calculate net sector alignment_metric
     data <- data %>%
@@ -286,18 +284,18 @@ calculate_company_aggregate_score_tms <- function(data,
 #'
 #' @return NULL
 #' @export
-calculate_company_aggregate_score_sda <- function(data,
-                                                  scenario_emission_intensities,
-                                                  scenario_source = "geco_2021",
-                                                  scenario = "1.5c") {
+calculate_company_aggregate_alignment_sda <- function(data,
+                                                      scenario_emission_intensities,
+                                                      scenario_source = "geco_2021",
+                                                      scenario = "1.5c") {
   # validate input values
-  validate_input_args_calculate_company_aggregate_score_sda(
+  validate_input_args_calculate_company_aggregate_alignment_sda(
     scenario_source = scenario_source,
     scenario = scenario
   )
 
   # validate input data set
-  validate_input_data_calculate_company_aggregate_score_sda(
+  validate_input_data_calculate_company_aggregate_alignment_sda(
     data = data,
     scenario_emission_intensities = scenario_emission_intensities
   )
@@ -420,8 +418,8 @@ validate_input_data_calculate_company_tech_deviation <- function(data,
   invisible()
 }
 
-validate_input_args_calculate_company_aggregate_score_tms <- function(scenario_source,
-                                                                      scenario) {
+validate_input_args_calculate_company_aggregate_alignment_tms <- function(scenario_source,
+                                                                          scenario) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -438,8 +436,8 @@ validate_input_args_calculate_company_aggregate_score_tms <- function(scenario_s
   invisible()
 }
 
-validate_input_data_calculate_company_aggregate_score_tms <- function(data,
-                                                                      scenario) {
+validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
+                                                                          scenario) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns = c(
@@ -452,8 +450,8 @@ validate_input_data_calculate_company_aggregate_score_tms <- function(data,
   invisible()
 }
 
-validate_input_args_calculate_company_aggregate_score_sda <- function(scenario_source,
-                                                                      scenario) {
+validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenario_source,
+                                                                          scenario) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -471,8 +469,8 @@ validate_input_args_calculate_company_aggregate_score_sda <- function(scenario_s
 }
 
 
-validate_input_data_calculate_company_aggregate_score_sda <- function(data,
-                                                                      scenario_emission_intensities) {
+validate_input_data_calculate_company_aggregate_alignment_sda <- function(data,
+                                                                          scenario_emission_intensities) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
@@ -484,11 +482,10 @@ validate_input_data_calculate_company_aggregate_score_sda <- function(data,
   validate_data_has_expected_cols(
     data = scenario_emission_intensities,
     expected_columns <- c(
-      "scenario_source", "scenario", "sector",  "region", "year",
+      "scenario_source", "scenario", "sector", "region", "year",
       "emission_factor", "emission_factor_unit"
     )
   )
 
   invisible()
 }
-

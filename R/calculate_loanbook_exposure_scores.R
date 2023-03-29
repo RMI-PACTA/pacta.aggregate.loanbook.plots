@@ -1,20 +1,20 @@
 #' Return loan book level aggregation of company alignment metrics by exposure
 #'
 #' @param data data.frame. Holds output pf company indicators
-#' @param matched data.frame. Holds matched and priortised loan book
-#' @param level Character. Vector that indicates if the aggreagte alignment
+#' @param matched data.frame. Holds matched and prioritised loan book
+#' @param level Character. Vector that indicates if the aggregate alignment
 #'   metric should be returned based on the net technology deviations (`net`) or
 #'   disaggregated into buildout and phaseout technologies (`bo_po`).
 #'
 #' @return NULL
 #' @export
-calculate_loanbook_exposure_scores <- function(data,
-                                               matched,
-                                               level = c("net", "bo_po")) {
+aggregate_alignment_loanbook_exposure <- function(data,
+                                                  matched,
+                                                  level = c("net", "bo_po")) {
   level <- rlang::arg_match(level)
 
   # validate input data sets
-  validate_input_data_calculate_loanbook_exposure_scores(
+  validate_input_data_aggregate_alignment_loanbook_exposure(
     data = data,
     matched = matched
   )
@@ -96,8 +96,8 @@ calculate_loanbook_exposure_scores <- function(data,
   return(out)
 }
 
-validate_input_data_calculate_loanbook_exposure_scores <- function(data,
-                                                                   matched) {
+validate_input_data_aggregate_alignment_loanbook_exposure <- function(data,
+                                                                      matched) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
