@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_loanbook_exposure_scores.R
 \name{calculate_loanbook_exposure_scores}
 \alias{calculate_loanbook_exposure_scores}
-\title{Return loan book level aggregation of company scores by exposure}
+\title{Return loan book level aggregation of company alignment metrics by exposure}
 \usage{
 calculate_loanbook_exposure_scores(data, matched, level = c("net", "bo_po"))
 }
@@ -11,10 +11,10 @@ calculate_loanbook_exposure_scores(data, matched, level = c("net", "bo_po"))
 
 \item{matched}{data.frame. Holds matched and priortised loan book}
 
-\item{level}{Character. Vector that indicates if the aggreagte score should
-be returned based on the net technology deviations (\code{net}) or disaggregated
-into buildout and phaseout technologies (\code{bo_po}).}
+\item{level}{Character. Vector that indicates if the aggreagte alignment
+metric should be returned based on the net technology deviations (\code{net}) or
+disaggregated into buildout and phaseout technologies (\code{bo_po}).}
 }
 \description{
-Return loan book level aggregation of company scores by exposure
+Return loan book level aggregation of company alignment metrics by exposure
 }

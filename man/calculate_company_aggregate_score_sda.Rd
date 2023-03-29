@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_company_aggregate_score.R
 \name{calculate_company_aggregate_score_sda}
 \alias{calculate_company_aggregate_score_sda}
-\title{Return company level scenario scores for the main sector of each company}
+\title{Return company level sector alignment metric for each company}
 \usage{
 calculate_company_aggregate_score_sda(
   data,
@@ -18,12 +18,12 @@ calculate_company_aggregate_score_sda(
 information on yearly emission intensity levels.}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
-to use for reference in the calculation of the scores. Currently, the only
-supported value is \code{"geco_2021"}.}
+to use for reference in the calculation of the alignment metrics. Currently,
+the only supported value is \code{"geco_2021"}.}
 
 \item{scenario}{Character. Vector that indicates which scenario to calculate
-the score for. Must be a scenario available from \code{scenario_source}.}
+the alignment metric for. Must be a scenario available from \code{scenario_source}.}
 }
 \description{
-Return company level scenario scores for the main sector of each company
+Return company level sector alignment metric for each company
 }

@@ -2,8 +2,8 @@
 % Please edit documentation in R/calculate_company_aggregate_score.R
 \name{calculate_company_aggregate_score_tms}
 \alias{calculate_company_aggregate_score_tms}
-\title{Return company level scenario scores for the main sector of each company with
-opton to disaggregate by buidlout / phaseout.}
+\title{Return company level sector alignment metric for each company with
+option to disaggregate by buildout / phaseout.}
 \usage{
 calculate_company_aggregate_score_tms(
   data,
@@ -18,17 +18,17 @@ for Banks TMS results. Must have been calculated according to the
 green/brown logic of the CA100+ calculation.}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
-to use for reference in the calculation of the scores. Currently, the only
-supported value is \code{"geco_2021"}.}
+to use for reference in the calculation of the alignment metrics. Currently,
+the only supported value is \code{"geco_2021"}.}
 
 \item{scenario}{Character. Vector that indicates which scenario to calculate
-the score for. Must be a scenario available from \code{scenario_source}.}
+the alignment metric for. Must be a scenario available from \code{scenario_source}.}
 
-\item{level}{Character. Vector that indicates if the aggreagte score should
-be returned based on the net technology deviations (\code{net}) or disaggregated
-into buildout and phaseout technologies (\code{bo_po}).}
+\item{level}{Character. Vector that indicates if the aggreagte alignment
+metric should be returned based on the net technology deviations (\code{net}) or
+disaggregated into buildout and phaseout technologies (\code{bo_po}).}
 }
 \description{
-Return company level scenario scores for the main sector of each company with
-opton to disaggregate by buidlout / phaseout.
+Return company level sector alignment metric for each company with
+option to disaggregate by buildout / phaseout.
 }

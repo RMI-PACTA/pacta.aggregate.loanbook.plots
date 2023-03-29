@@ -3,8 +3,8 @@
 \name{calculate_company_tech_deviation}
 \alias{calculate_company_tech_deviation}
 \title{Return company level technology deviations for TMS sectors. To be used as
-input into calculation of company level aggregate scores for production
-trajectory sectors.}
+input into calculation of company level aggregate alignment metrics for
+production trajectory sectors.}
 \usage{
 calculate_company_tech_deviation(
   data,
@@ -31,21 +31,21 @@ information on yearly tmsr and smsp changes by scenario and region.}
 tmsr versus smsp}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
-to use for reference in the calculation of the scores. Currently, the only
-supported value is \code{"geco_2021"}.}
+to use for reference in the calculation of the alignment metrics. Currently,
+the only supported value is \code{"geco_2021"}.}
 
 \item{scenario}{Character. Vector that indicates which scenario to calculate
-the score for. Must be a scenario available from \code{scenario_source}.}
+the alignment metric for. Must be a scenario available from \code{scenario_source}.}
 
 \item{bridge_tech}{Character. Vector that indicates if a technology is
 considered a bridge technology. I.e. if the scenario requires a temporary
 build out despite the need for a long term phase down. If so, the alignment
-score can be treated differently than for other technologies. Currently,
+metric can be treated differently than for other technologies. Currently,
 the only allowed values are (\verb{"none", "gascap"}). Default is \code{"none"} which
 means that no special calculations are applied to any technology.}
 }
 \description{
 Return company level technology deviations for TMS sectors. To be used as
-input into calculation of company level aggregate scores for production
-trajectory sectors.
+input into calculation of company level aggregate alignment metrics for
+production trajectory sectors.
 }
