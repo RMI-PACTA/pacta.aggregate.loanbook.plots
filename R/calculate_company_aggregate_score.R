@@ -230,7 +230,6 @@ calculate_company_aggregate_score_tms <- function(data,
       ) %>%
       dplyr::summarise(
         total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-        absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
         .by = c("bank_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year", "net_absolute_scenario_value", "direction", "technology_share_by_direction")
       ) %>%
       dplyr::mutate(
