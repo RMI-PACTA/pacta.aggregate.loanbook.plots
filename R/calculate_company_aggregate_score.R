@@ -134,6 +134,7 @@ calculate_company_tech_deviation <- function(data,
       by = c("sector", "technology")
     )
 
+  # TODO: functionise and possibly run outside of this function
   # add technology share by direction
   data <- data %>%
     dplyr::mutate(
