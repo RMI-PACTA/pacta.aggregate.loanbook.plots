@@ -17,12 +17,13 @@ prep_scatter(
 \arguments{
 \item{data_bopo}{data.frame. Data containing buildout and phaseout alignment
 values. Must contain columns: 'bank_id', 'year', 'sector', 'region',
-'direction' and either 'name_abcd' and 'score' or
+'direction' and either 'name_abcd' and 'alignment_metric' or
 'exposure_weighted_net_alignment'.}
 
 \item{data_net}{data.frame. Data containing net alignment values. Must
 contain columns: 'bank_id', 'year', 'sector', 'region', 'direction' and
-either 'name_abcd' and 'score' or 'exposure_weighted_net_alignment'.}
+either 'name_abcd' and 'alignment_metric' or
+'exposure_weighted_net_alignment'.}
 
 \item{data_level}{Character. Level of the plotted data. Can be 'bank' or
 'company'.}

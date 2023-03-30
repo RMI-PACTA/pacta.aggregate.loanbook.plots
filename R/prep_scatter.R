@@ -2,11 +2,12 @@
 #'
 #' @param data_bopo data.frame. Data containing buildout and phaseout alignment
 #'   values. Must contain columns: 'bank_id', 'year', 'sector', 'region',
-#'   'direction' and either 'name_abcd' and 'score' or
+#'   'direction' and either 'name_abcd' and 'alignment_metric' or
 #'   'exposure_weighted_net_alignment'.
 #' @param data_net data.frame. Data containing net alignment values. Must
 #'   contain columns: 'bank_id', 'year', 'sector', 'region', 'direction' and
-#'   either 'name_abcd' and 'score' or 'exposure_weighted_net_alignment'.
+#'   either 'name_abcd' and 'alignment_metric' or
+#'   'exposure_weighted_net_alignment'.
 #' @param data_level Character. Level of the plotted data. Can be 'bank' or
 #'   'company'.
 #' @param year Integer. Year on which the data should be filtered.
@@ -35,7 +36,7 @@ prep_scatter <- function(
     value_col = "exposure_weighted_net_alignment"
   } else {
     name_col = "name_abcd"
-    value_col = "score"
+    value_col = "alignment_metric"
   }
 
   check_prep_scatter(data_bopo, year, sector, region, bank_ids_to_plot, name_col, value_col)

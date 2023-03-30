@@ -1,6 +1,6 @@
 #' Prepare data to plot using `plot_sankey()`
 #'
-#' @param data_alignment data.frame. Holds aggregated alignment scores per
+#' @param data_alignment data.frame. Holds aggregated alignment metrics per
 #'   company for tms sectors. Must contain columns: `bank_id`, `name_abcd`,
 #'   `sector`.
 #' @param matched_loanbook data.frame. Holds the matched loan books of a set of
@@ -48,8 +48,8 @@ prep_sankey <- function(
     inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
     mutate(
       is_aligned = case_when(
-        score >= 0 ~ "Aligned",
-        score <0 ~ "Not aligned",
+        alignment_metric >= 0 ~ "Aligned",
+        alignment_metric <0 ~ "Not aligned",
         TRUE ~ "Unknown"
       ),
       middle_node =!! sym(middle_node)
@@ -60,8 +60,8 @@ prep_sankey <- function(
     inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
     mutate(
       is_aligned = case_when(
-        score >= 0 ~ "Aligned",
-        score <0 ~ "Not aligned",
+        alignment_metric >= 0 ~ "Aligned",
+        alignment_metric <0 ~ "Not aligned",
         TRUE ~ "Unknown"
       ),
       middle_node =!! sym(middle_node),

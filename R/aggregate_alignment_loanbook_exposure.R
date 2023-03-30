@@ -1,20 +1,20 @@
-#' Return loan book level aggregation of company scores by exposure
+#' Return loan book level aggregation of company alignment metrics by exposure
 #'
 #' @param data data.frame. Holds output pf company indicators
-#' @param matched data.frame. Holds matched and priortised loan book
-#' @param level Character. Vector that indicates if the aggreagte score should
-#'   be returned based on the net technology deviations (`net`) or disaggregated
-#'   into buildout and phaseout technologies (`bo_po`).
+#' @param matched data.frame. Holds matched and prioritised loan book
+#' @param level Character. Vector that indicates if the aggregate alignment
+#'   metric should be returned based on the net technology deviations (`net`) or
+#'   disaggregated into buildout and phaseout technologies (`bo_po`).
 #'
 #' @return NULL
 #' @export
-calculate_loanbook_exposure_scores <- function(data,
-                                               matched,
-                                               level = c("net", "bo_po")) {
+aggregate_alignment_loanbook_exposure <- function(data,
+                                                  matched,
+                                                  level = c("net", "bo_po")) {
   level <- rlang::arg_match(level)
 
   # validate input data sets
-  validate_input_data_calculate_loanbook_exposure_scores(
+  validate_input_data_aggregate_alignment_loanbook_exposure(
     data = data,
     matched = matched
   )
@@ -63,8 +63,8 @@ calculate_loanbook_exposure_scores <- function(data,
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(
-      companies_aligned = dplyr::if_else(.data$score >= 0, TRUE, FALSE),
-      exposure_companies_aligned = dplyr::if_else(.data$score >= 0, .data$loan_size_outstanding, 0)
+      companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE),
+      exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
     ) %>%
     dplyr::group_by(
       .data$bank_id, .data$n_companies, .data$sum_loan_size_outstanding,
@@ -73,7 +73,7 @@ calculate_loanbook_exposure_scores <- function(data,
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
       sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
-      exposure_weighted_net_alignment = stats::weighted.mean(.data$score, w = .data$exposure_weight, na.rm = TRUE),
+      exposure_weighted_net_alignment = stats::weighted.mean(.data$alignment_metric, w = .data$exposure_weight, na.rm = TRUE),
       .groups = "drop"
     ) %>%
     dplyr::ungroup() %>%
@@ -96,13 +96,13 @@ calculate_loanbook_exposure_scores <- function(data,
   return(out)
 }
 
-validate_input_data_calculate_loanbook_exposure_scores <- function(data,
-                                                                   matched) {
+validate_input_data_aggregate_alignment_loanbook_exposure <- function(data,
+                                                                      matched) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
       "bank_id", "name_abcd", "sector", "activity_unit", "region",
-      "scenario_source", "scenario", "year", "direction", "score"
+      "scenario_source", "scenario", "year", "direction", "alignment_metric"
     )
   )
 

@@ -14,7 +14,7 @@ prep_sankey(
 )
 }
 \arguments{
-\item{data_alignment}{data.frame. Holds aggregated alignment scores per
+\item{data_alignment}{data.frame. Holds aggregated alignment metrics per
 company for tms sectors. Must contain columns: \code{bank_id}, \code{name_abcd},
 \code{sector}.}
 
