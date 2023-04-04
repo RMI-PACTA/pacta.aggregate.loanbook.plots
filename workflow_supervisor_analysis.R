@@ -1,6 +1,7 @@
 # load packages----
 devtools::load_all()
 
+library(dotenv)
 library(dplyr)
 library(r2dii.analysis)
 library(r2dii.data)
@@ -11,56 +12,71 @@ library(rlang)
 library(tidyr)
 library(vroom)
 
-# set directories----
+dotenv::load_dot_env()
 
-# path_to_regions_geco_2022 <- file.path("/path/to/input/directory/scenario/region_geco2022.csv")
-# path_to_regions_weo_2022 <- file.path("/path/to/input/directory/scenario/region_weo2022.csv")
-# input_path_scenario_tms <- file.path("/path/to/input/directory/scenario/tms_file.csv")
-# input_path_scenario_sda <- file.path("/path/to/input/directory/scenario/sda_file.csv")
-# input_directory_abcd <- file.path("/path/to/input/directory/abcd/")
-# input_directory_raw <- file.path("/path/to/input/directory/raw/")
-# input_directory_matched <- file.path("/path/to/input/directory/matched/")
-# output_directory_p4b_standard <- file.path("/path/to/input/directory/output/standard")
-# output_directory_p4b_aggregated <- file.path("/path/to/input/directory/aggregated")
+# set up project paths----
+if (file.exists(here::here(".env"))) {
+  input_path_scenario <- Sys.getenv("DIR_SCENARIO")
+  input_dir_abcd <- Sys.getenv("DIR_ABCD")
+  input_path_raw <- Sys.getenv("DIR_RAW")
+  input_path_matched <- Sys.getenv("DIR_MATCHED")
 
-# set parameters----
-scenario_source_input <- "weo_2022"
-scenario_select <- "nze_2050"
-region_select <- "global"
-# region_select <- "european union"
+  input_path_regions_geco_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_GECO_2022"))
+  input_path_regions_weo_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_WEO_2022"))
+  input_path_scenario_tms <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_TMS"))
+  input_path_scenario_sda <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_SDA"))
+  input_path_abcd <- file.path(input_dir_abcd, Sys.getenv("FILENAME_ABCD"))
 
+  output_path <- Sys.getenv("DIR_OUTPUT")
+  output_path_standard <- file.path(output_path, "standard")
+  output_path_aggregated <- file.path(output_path, "aggregated")
+} else {
+  stop("Please set up a configuration file at the root of the repository, as
+       explained in the README.md")
+}
+
+# set project parameters----
+scenario_source_input <- Sys.getenv("PARAM_SCENARIO_SOURCE")
+scenario_select <- Sys.getenv("PARAM_SCENARIO_SELECT")
+region_select <- Sys.getenv("PARAM_REGION_SELECT")
+start_year <- as.numeric(Sys.getenv("PARAM_START_YEAR"))
+benchmark_regions <- unlist(base::strsplit(Sys.getenv("PARAM_BENCHMARK_REGIONS"), ","))
+
+# TODO: add check if all files exist, resort to test files if not
+
+# TODO: remove the temp section once r2dii.data is updated
+############# TEMP #############
 # r2dii.data is not updated yet, so we manually update the region_isos data to
 # cover the 2022 scenarios
-regions_geco_2022 <- readr::read_csv(path_to_regions_geco_2022)
-regions_weo_2022 <- readr::read_csv(path_to_regions_weo_2022)
+regions_geco_2022 <- readr::read_csv(input_path_regions_geco_2022)
+regions_weo_2022 <- readr::read_csv(input_path_regions_weo_2022)
 
-region_isos_updated <- r2dii.data::region_isos %>%
+region_isos_complete <- r2dii.data::region_isos %>%
   rbind(regions_geco_2022) %>%
   rbind(regions_weo_2022)
+################################
+# region_isos_complete <- r2dii.data::region_isos
 
-region_isos_select <- region_isos_updated %>%
+region_isos_select <- region_isos_complete %>%
   dplyr::filter(
     .data$source == .env$scenario_source_input,
     .data$region %in% .env$region_select
   )
-
-start_year <- 2022
-
 
 # load input data----
 scenario_input_tms <- read.csv(input_path_scenario_tms)
 scenario_input_sda <- read.csv(input_path_scenario_sda)
 
 # abcd <- abcd_test_data
-abcd <- readr::read_csv(file.path(input_directory_abcd, "abcd_test_data.csv"))
+abcd <- readr::read_csv(file.path(input_path_abcd))
 # replace potential NA values with 0 in production
 abcd["production"][is.na(abcd["production"])] <- 0
 
 # loanbook <- loanbook_test_data
-loanbook <- purrr::map_dfr(list.files(input_directory_raw, full.names = T), .f = vroom::vroom, id = "bank_id")
+loanbook <- purrr::map_dfr(list.files(input_path_raw, full.names = T), .f = vroom::vroom, id = "bank_id")
 # aggregation functions expect a bank_id to be able to distinguish banks/loan books in later analysis
 loanbook <- loanbook %>%
-  dplyr::mutate(bank_id = gsub(pattern = paste0(input_directory_raw, "/"), replacement = "", x = .data$bank_id)) %>%
+  dplyr::mutate(bank_id = gsub(pattern = paste0(input_path_raw, "/"), replacement = "", x = .data$bank_id)) %>%
   dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
 
 # match and prioritize loan book----
@@ -80,12 +96,10 @@ for (i in unique_loanbooks_raw) {
 }
 
 # matched_loanbook %>%
-#   readr::write_csv(file.path(input_directory_matched, "matched_prio_all_banks.csv"))
+#   readr::write_csv(file.path(input_path_matched, "matched_prio_all_banks.csv"))
 
 # add loan book with corporate economy benchmark----
 # benchmark_region can be selected based on r2dii.data::region_isos
-benchmark_regions <- c("global", "european union")
-
 matched_benchmark <- NULL
 
 # matching the benchmark loan book separately, because it is not needed for the
@@ -95,7 +109,7 @@ for (i in benchmark_regions) {
     create_benchmark_loanbook(
       scenario_source = scenario_source_input,
       start_year = start_year,
-      region_isos = region_isos_updated,
+      region_isos = region_isos_complete,
       benchmark_region = i
     )
 
@@ -107,7 +121,7 @@ for (i in benchmark_regions) {
 }
 
 # matched_benchmark %>%
-#   readr::write_csv(file.path(input_directory_matched, "matched_prio_benchmark.csv"))
+#   readr::write_csv(file.path(input_path_matched, "matched_prio_benchmark.csv"))
 
 
 # generate all P4B outputs----
@@ -134,7 +148,7 @@ for (i in unique_loanbooks_matched) {
 }
 
 # results_sda_total %>%
-#   readr::write_csv(file.path(output_directory_p4b_standard, "sda_results_all_banks.csv"))
+#   readr::write_csv(file.path(output_path_standard, "sda_results_all_banks.csv"))
 
 
 ## generate TMS outputs----
@@ -159,13 +173,13 @@ for (i in unique_loanbooks_matched) {
 }
 
 # results_tms_total %>%
-#   readr::write_csv(file.path(output_directory_p4b_standard, "tms_results_all_banks.csv"))
+#   readr::write_csv(file.path(output_path_standard, "tms_results_all_banks.csv"))
 
 # generate P4B plots----
 
-# results_tms_total <- readr::read_csv(file.path(output_directory_p4b_standard, "tms_results_all_banks.csv"), col_types = readr::cols())
-# results_sda_total <- readr::read_csv(file.path(output_directory_p4b_standard, "sda_results_all_banks.csv"), col_types = readr::cols())
-# matched_loanbook <- readr::read_csv("file.path(input_directory_matched, "matched_prio_all_banks.csv"), col_types = readr::cols())
+# results_tms_total <- readr::read_csv(file.path(output_path_standard, "tms_results_all_banks.csv"), col_types = readr::cols())
+# results_sda_total <- readr::read_csv(file.path(output_path_standard, "sda_results_all_banks.csv"), col_types = readr::cols())
+# matched_loanbook <- readr::read_csv("file.path(input_path_matched, "matched_prio_all_banks.csv"), col_types = readr::cols())
 
 ## retrieve set of unique banks to loop over----
 unique_banks_tms <- unique(results_tms_total$bank_id)
@@ -178,7 +192,7 @@ for (tms_i in unique_banks_tms) {
   generate_individual_outputs(
     data = results_tms_total,
     matched_loanbook = matched_loanbook,
-    output_directory = output_directory_p4b_standard,
+    output_directory = output_path_standard,
     target_type = "tms",
     bank_id = tms_i,
     scenario_source = scenario_source_input,
@@ -193,7 +207,7 @@ for (sda_i in unique_banks_sda) {
   generate_individual_outputs(
     data = results_sda_total,
     matched_loanbook = matched_loanbook,
-    output_directory = output_directory_p4b_standard,
+    output_directory = output_path_standard,
     target_type = "sda",
     bank_id = sda_i,
     scenario_source = scenario_source_input,
@@ -263,7 +277,7 @@ for (i in unique_banks_tms) {
     },
     error = function(e) {
       log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for aggregation. Skipping! \n")
-      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+      write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
 }
@@ -277,7 +291,7 @@ for (i in unique_benchmarks_tms) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- region_isos_updated %>%
+      allowed_countries_i <- region_isos_complete %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -309,7 +323,7 @@ for (i in unique_benchmarks_tms) {
     },
     error = function(e) {
       log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
-      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+      write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
 }
@@ -333,7 +347,7 @@ company_technology_deviation_tms <- tms_result_for_aggregation %>%
   )
 
 company_technology_deviation_tms %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "company_technology_deviation_tms.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "company_technology_deviation_tms.csv"))
 
 company_aggregated_alignment_net_tms <- company_technology_deviation_tms %>%
   calculate_company_aggregate_alignment_tms(
@@ -343,7 +357,7 @@ company_aggregated_alignment_net_tms <- company_technology_deviation_tms %>%
   )
 
 company_aggregated_alignment_net_tms %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "company_aggregated_alignment_net_tms.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "company_aggregated_alignment_net_tms.csv"))
 
 company_aggregated_alignment_bo_po_tms <- company_technology_deviation_tms %>%
   calculate_company_aggregate_alignment_tms(
@@ -353,7 +367,7 @@ company_aggregated_alignment_bo_po_tms <- company_technology_deviation_tms %>%
   )
 
 company_aggregated_alignment_bo_po_tms %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "company_aggregated_alignment_bo_po_tms.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "company_aggregated_alignment_bo_po_tms.csv"))
 
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL
@@ -380,7 +394,7 @@ for (i in unique_banks_sda) {
     },
     error = function(e) {
       log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for aggregation. Skipping! \n")
-      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+      write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
 }
@@ -394,7 +408,7 @@ for (i in unique_benchmarks_sda) {
     {
       benchmark_region_i <- gsub("benchmark_corporate_economy_", "", i)
 
-      allowed_countries_i <- region_isos_updated %>%
+      allowed_countries_i <- region_isos_complete %>%
         dplyr::filter(
           .data$source == .env$scenario_source_input,
           .data$region == .env$benchmark_region_i,
@@ -424,7 +438,7 @@ for (i in unique_benchmarks_sda) {
     },
     error = function(e) {
       log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
-      write(log_text, file = file.path(output_directory_p4b_aggregated, "error_messages.txt"), append = TRUE)
+      write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
 }
@@ -447,7 +461,7 @@ company_aggregated_alignment_net_sda <- sda_result_for_aggregation %>%
   )
 
 company_aggregated_alignment_net_sda %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "company_aggregated_alignment_net_sda.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "company_aggregated_alignment_net_sda.csv"))
 
 
 ## calculate sector and loan book level aggregate alignment based on company exposures in loan book----
@@ -467,7 +481,7 @@ loanbook_exposure_aggregated_alignment_net <- company_aggregated_alignment_net %
   )
 
 loanbook_exposure_aggregated_alignment_net %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "loanbook_exposure_aggregated_alignment_net.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "loanbook_exposure_aggregated_alignment_net.csv"))
 
 # buildout / phaseout
 loanbook_exposure_aggregated_alignment_bo_po <- company_aggregated_alignment_bo_po_tms %>%
@@ -477,7 +491,7 @@ loanbook_exposure_aggregated_alignment_bo_po <- company_aggregated_alignment_bo_
   )
 
 loanbook_exposure_aggregated_alignment_bo_po %>%
-  readr::write_csv(file.path(output_directory_p4b_aggregated, "loanbook_exposure_aggregated_alignment_bo_po.csv"))
+  readr::write_csv(file.path(output_path_aggregated, "loanbook_exposure_aggregated_alignment_bo_po.csv"))
 
 # bespoke plots for supervisory analysis----
 
@@ -509,7 +523,7 @@ if (!is.null(company_aggregated_alignment_net_sda)) {
 
 data_sankey <- rbind(data_sankey_tms, data_sankey_sda)
 
-plot_sankey(data_sankey, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_sector.png")
+plot_sankey(data_sankey, save_png_to = output_path_aggregated, png_name = "sankey_sector.png")
 
 if (!is.null(company_aggregated_alignment_net_tms)) {
 data_sankey_tms2 <- prep_sankey(
@@ -539,7 +553,7 @@ if (!is.null(company_aggregated_alignment_net_sda)) {
 
 data_sankey2 <- rbind(data_sankey_tms2, data_sankey_sda2)
 
-plot_sankey(data_sankey2, save_png_to = output_directory_p4b_aggregated, png_name = "sankey_company_sector.png")
+plot_sankey(data_sankey2, save_png_to = output_path_aggregated, png_name = "sankey_company_sector.png")
 
 # Plot timeline of evolution of portfolio-weighted alignment over time - examples
 
@@ -560,7 +574,7 @@ plot_timeline(
   )
 ggsave(
   filename = "timeline_bopo_power.png",
-  path = output_directory_p4b_aggregated,
+  path = output_path_aggregated,
   width = 8,
   height = 5
   )
@@ -583,7 +597,7 @@ plot_timeline(
 
 ggsave(
   filename = "timeline_cement.png",
-  path = output_directory_p4b_aggregated,
+  path = output_path_aggregated,
   width = 7,
   height = 5
   )
