@@ -15,20 +15,25 @@ library(vroom)
 dotenv::load_dot_env()
 
 # set up project paths----
-input_path_scenario <- Sys.getenv("DIR_SCENARIO")
-input_dir_abcd <- Sys.getenv("DIR_ABCD")
-input_path_raw <- Sys.getenv("DIR_RAW")
-input_path_matched <- Sys.getenv("DIR_MATCHED")
+if (file.exists(here::here(".env"))) {
+  input_path_scenario <- Sys.getenv("DIR_SCENARIO")
+  input_dir_abcd <- Sys.getenv("DIR_ABCD")
+  input_path_raw <- Sys.getenv("DIR_RAW")
+  input_path_matched <- Sys.getenv("DIR_MATCHED")
 
-input_path_regions_geco_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_GECO_2022"))
-input_path_regions_weo_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_WEO_2022"))
-input_path_scenario_tms <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_TMS"))
-input_path_scenario_sda <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_SDA"))
-input_path_abcd <- file.path(input_dir_abcd, Sys.getenv("FILENAME_ABCD"))
+  input_path_regions_geco_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_GECO_2022"))
+  input_path_regions_weo_2022 <- file.path(input_path_scenario, Sys.getenv("FILENAME_REGIONS_WEO_2022"))
+  input_path_scenario_tms <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_TMS"))
+  input_path_scenario_sda <- file.path(input_path_scenario, Sys.getenv("FILENAME_SCENARIO_SDA"))
+  input_path_abcd <- file.path(input_dir_abcd, Sys.getenv("FILENAME_ABCD"))
 
-output_path <- Sys.getenv("DIR_OUTPUT")
-output_path_standard <- file.path(output_path, "standard")
-output_path_aggregated <- file.path(output_path, "aggregated")
+  output_path <- Sys.getenv("DIR_OUTPUT")
+  output_path_standard <- file.path(output_path, "standard")
+  output_path_aggregated <- file.path(output_path, "aggregated")
+} else {
+  stop("Please set up a configuration file at the root of the repository, as
+       explained in the README.md")
+}
 
 # set project parameters----
 scenario_source_input <- Sys.getenv("PARAM_SCENARIO_SOURCE")
