@@ -65,6 +65,10 @@ input files (prefixed `FILENAME_`) and project parameters (prefixed
 directories and file names that exist in your work environment and that
 the paramters are consistent with the input files available to you.
 
+This repository contains an `example.env` file, which you can use to
+adjust the paths, file names and parameters to your environment and then
+save as `.env` at the root level of the repository.
+
 ## Running the Analysis
 
 Once you have set up the .env file correctly, you can simply run the
