@@ -120,10 +120,10 @@ for the configuration of the analysis:
 
 ``` bash
 # parameters for company sector split
-DIR_SPLIT_COMPANY_ID="/Users/jacobkastl/Library/CloudStorage/OneDrive-RMI/Desktop/test_supervisor_script_p4b/split"
+DIR_SPLIT_COMPANY_ID="PATH/TO/SPLIT/FOLDER"
 FILENAME_SPLIT_COMPANY_ID="split_company_ids.csv"
-DIR_ADVANCED_COMPANY_INDICATORS="/Users/jacobkastl/Downloads"
-FILENAME_ADVANCED_COMPANY_INDICATORS="2023-02-15_AI_RMI_Advanced Company Indicators_2022Q4.xlsx"
+DIR_ADVANCED_COMPANY_INDICATORS="PATH/TO/ADVANCED_COMP_INDICATORS/FOLDER"
+FILENAME_ADVANCED_COMPANY_INDICATORS="advanced_company_indicators.xlsx"
 ```
 
 You can now get the company sector split by running the root level
