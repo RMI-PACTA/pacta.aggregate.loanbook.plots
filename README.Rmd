@@ -28,10 +28,20 @@ File paths for input and output files are set up in the `.env` file as explained
 
 Scripts will be found at root level.
 
+
+## Installation
+
+You can install the development version of pacta.supervisor.analysis from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("RMI-PACTA/pacta.supervisor.analysis")
+```
+
 ## dotenv
 
 A file called `.env` must be created in the root of this directory.
-The file should have the following variables:
+The file must have the following variables:
 
 ``` bash
 # I/O directories
@@ -59,12 +69,37 @@ PARAM_START_YEAR=2022
 PARAM_BENCHMARK_REGIONS="global,european union"
 ```
 
+These configurations set up required directories (prefixed `DIR_`), input files
+(prefixed `FILENAME_`) and project parameters (prefixed `PARAM_`) which will all
+be used in the work flow. Please ensure to set directories and file names that
+exist in your work environment and that the paramters are consistent with the
+input files available to you.
 
-## Installation
+## Running the Analysis
 
-You can install the development version of pacta.supervisor.analysis from [GitHub](https://github.com/) with:
+Once you have set up the .env file correctly, you can simply run the
+`workflow_supervisor_analysis.R` entirely to:
 
-``` r
-# install.packages("devtools")
-devtools::install_github("RMI-PACTA/pacta.supervisor.analysis")
-```
+- set up project configurations
+- load required input files
+- prepare raw loan book data for batch processing in supervisor analysis
+- run a simplified version of the matching (NOTE: in a real project, you will
+have to follow the matching guidance as provided in the general PACTA for Banks
+user guide. There is currently no way you can around some manual matching or at
+least manual validation for obtaining reasonable PACTA for Banks results!)
+- create a matched data set for calculations of benchmarks (no manual matching
+required)
+- batch run PACTA for Banks TMS and SDA calculations for all groups
+- generate all standard PACTA for Banks plots and ouput files for a given
+combination of `region` and `sector`
+- prepare unweighted PACTA for Banks results at the company level as a
+preparatory step for calculating the alignment metrics.
+- calculate alignment metrics both at the company level and the group level
+- tweak the plot code to output supervisor-focused plots based on the alignment
+metrics, including:
+  - Sankey plot of aligned/unaligned companies the groups are exposed to
+  - Timeline plot that shows the forward-looking trend of the aligment metric
+  over time (net, buildout and phaseout)
+  - Scatter plot that allows for peer comparison of alignment metric across
+  companies or groups (automotive and power sectors only)
+
