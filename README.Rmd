@@ -88,7 +88,14 @@ Once you have set up the .env file correctly, you can simply run the
 
 - set up project configurations
 - load required input files
-- prepare raw loan book data for batch processing in supervisor analysis
+- prepare raw loan book data for batch processing in supervisor analysis (NOTE:
+that every separate raw loan book file in the raw data input file will be read in
+as a separate `group_id` This means that preparing the loan books as one csv per
+bank will split the analysis on a bank level. Adding one csv per loan book will
+split it on the loan book level and grouping the raw loan books in any other
+form in the csv files will propagate the corresponding grouping through the
+analysis. This enables slicing and dicing the analysis as required for each
+given context.)
 - run a simplified version of the matching (NOTE: in a real project, you will
 have to follow the matching guidance as provided in the general PACTA for Banks
 user guide. There is currently no way you can around some manual matching or at
