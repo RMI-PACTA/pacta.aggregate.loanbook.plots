@@ -1,0 +1,43 @@
+---
+title: "Calculation of a company alignment metric"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculation of a company alignment metric}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+PACTA methodology note\
+**Calculation of a company alignment metric**
+
+Prepared by Jacob Kastl
+
+## 1. Background
+
+### 1.1 The use case for aggregated alignment metrics
+
+The company alignment metric described below is intended to help make sense of
+alignment patterns in large analyses, e.g. in the case of a supervisory analysis
+of the banking system, where many loan books are compared. In such situations,
+high level results are helpful in highlighting the most important patterns that
+warrant an in-depth analysis of the more granular standard PACTA metrics.
+
+Identifying such patterns means that we need to reduce the information to a more
+manageable quantity. While this inevitably leads to a loss of granularity, this
+is justifiable for summarizing main findings, as long as the outcomes are
+consistent with the main PACTA metrics.
+
+We choose an approach that first aggregates company alignment to a relative
+metric at the company/sector level for each of the PACTA sectors the company
+operates in. A methodology to calculating this metric is provided both for the
+market share approach and the sectoral decarbonization approach.
+
+
+## 2. The company alignment metric
+
+In this section, we derive the company alignment metric mathematically and
+provide interpretations of the relevant pieces.
+
