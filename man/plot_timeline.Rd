@@ -18,7 +18,7 @@ plot_timeline(
 \arguments{
 \item{data}{data.frame Should have the same format as output of
 \code{prep_timeline()} and contain columns: 'direction', 'year',
-'exposure_weighted_net_alignment', 'bank_id'.}
+'exposure_weighted_net_alignment', 'group_id'.}
 
 \item{sector}{Character. Sector name to be used in the plot title.}
 

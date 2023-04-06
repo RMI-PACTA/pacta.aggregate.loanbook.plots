@@ -21,10 +21,10 @@ aggregate_alignment_loanbook_exposure <- function(data,
 
   matched <- matched %>%
     dplyr::select(
-      c("bank_id", "id_loan", "loan_size_outstanding", "loan_size_outstanding_currency", "name_abcd", "sector")
+      c("group_id", "id_loan", "loan_size_outstanding", "loan_size_outstanding_currency", "name_abcd", "sector")
     ) %>%
     dplyr::group_by(
-      .data$bank_id, .data$loan_size_outstanding_currency, .data$name_abcd, .data$sector
+      .data$group_id, .data$loan_size_outstanding_currency, .data$name_abcd, .data$sector
     ) %>%
     dplyr::summarise(
       loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE),
@@ -32,7 +32,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
     ) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(
-      .data$bank_id, .data$loan_size_outstanding_currency
+      .data$group_id, .data$loan_size_outstanding_currency
     ) %>%
     dplyr::mutate(
       exposure_weight = .data$loan_size_outstanding / sum(.data$loan_size_outstanding, na.rm = TRUE)
@@ -42,7 +42,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
   aggregate_exposure_company <- data %>%
     dplyr::inner_join(
       matched,
-      by = c("bank_id", "name_abcd", "sector")
+      by = c("group_id", "name_abcd", "sector")
     )
 
   # if we aggregate to the buildout/phaseout level, we need to split the
@@ -56,7 +56,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
   }
 
   sector_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
-    dplyr::group_by(.data$bank_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
+    dplyr::group_by(.data$group_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
       sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)
@@ -67,7 +67,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
       exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
     ) %>%
     dplyr::group_by(
-      .data$bank_id, .data$n_companies, .data$sum_loan_size_outstanding,
+      .data$group_id, .data$n_companies, .data$sum_loan_size_outstanding,
       .data$scenario, .data$region, .data$sector, .data$year, .data$direction
     ) %>%
     dplyr::summarise(
@@ -85,13 +85,13 @@ aggregate_alignment_loanbook_exposure <- function(data,
   out <- sector_aggregate_exposure_loanbook %>%
     dplyr::relocate(
       c(
-        "bank_id", "scenario", "region", "sector", "year", "direction",
+        "group_id", "scenario", "region", "sector", "year", "direction",
         "n_companies", "n_companies_aligned", "share_companies_aligned",
         "sum_loan_size_outstanding", "sum_exposure_companies_aligned",
         "share_exposure_aligned", "exposure_weighted_net_alignment"
       )
     ) %>%
-    dplyr::arrange(.data$bank_id, .data$scenario, .data$region, .data$sector, .data$year)
+    dplyr::arrange(.data$group_id, .data$scenario, .data$region, .data$sector, .data$year)
 
   return(out)
 }
@@ -101,7 +101,7 @@ validate_input_data_aggregate_alignment_loanbook_exposure <- function(data,
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
-      "bank_id", "name_abcd", "sector", "activity_unit", "region",
+      "group_id", "name_abcd", "sector", "activity_unit", "region",
       "scenario_source", "scenario", "year", "direction", "alignment_metric"
     )
   )
@@ -109,7 +109,7 @@ validate_input_data_aggregate_alignment_loanbook_exposure <- function(data,
   validate_data_has_expected_cols(
     data = matched,
     expected_columns <- c(
-      "bank_id", "id_loan", "loan_size_outstanding",
+      "group_id", "id_loan", "loan_size_outstanding",
       "loan_size_outstanding_currency", "name_abcd", "sector"
     )
   )

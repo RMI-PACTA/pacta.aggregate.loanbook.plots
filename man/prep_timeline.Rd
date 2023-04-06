@@ -4,17 +4,17 @@
 \alias{prep_timeline}
 \title{Prepare data to plot timeline}
 \usage{
-prep_timeline(data, sector, region, bank_ids_to_plot)
+prep_timeline(data, sector, region, group_ids_to_plot)
 }
 \arguments{
 \item{data}{data.frame. Must contain columns: 'direction', 'year',
-'exposure_weighted_net_alignment', 'bank_id', 'sector'.}
+'exposure_weighted_net_alignment', 'group_id', 'sector'.}
 
 \item{sector}{Character. Sector to filter data on.}
 
 \item{region}{Character. Region to filter data on.}
 
-\item{bank_ids_to_plot}{Character vector. Bank ids to filter on.}
+\item{group_ids_to_plot}{Character vector. Group ids to filter on.}
 }
 \value{
 data.frame

@@ -15,11 +15,11 @@ prep_sankey(
 }
 \arguments{
 \item{data_alignment}{data.frame. Holds aggregated alignment metrics per
-company for tms sectors. Must contain columns: \code{bank_id}, \code{name_abcd},
+company for tms sectors. Must contain columns: \code{group_id}, \code{name_abcd},
 \code{sector}.}
 
 \item{matched_loanbook}{data.frame. Holds the matched loan books of a set of
-banks. Must include a column \code{bank_id} and \code{loan_size_outstanding}.}
+groups. Must include a column \code{group_id} and \code{loan_size_outstanding}.}
 
 \item{region}{Character. Region to filter \code{data_alignment} data frame on.}
 

@@ -96,7 +96,7 @@ create_benchmark_loanbook <- function(data,
     name_project = NA_character_,
     lei_direct_loantaker = benchmark_companies$lei,
     isin_direct_loantaker = NA_character_,
-    bank_id = paste0("benchmark_corporate_economy_", benchmark_region)
+    group_id = paste0("benchmark_corporate_economy_", benchmark_region)
   ) %>%
     tibble::rowid_to_column() %>%
     dplyr::mutate(id_loan = paste0("L", .data$rowid)) %>%

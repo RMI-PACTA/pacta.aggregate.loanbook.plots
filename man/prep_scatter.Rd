@@ -11,17 +11,17 @@ prep_scatter(
   year,
   sector,
   region,
-  bank_ids_to_plot = NULL
+  group_ids_to_plot = NULL
 )
 }
 \arguments{
 \item{data_bopo}{data.frame. Data containing buildout and phaseout alignment
-values. Must contain columns: 'bank_id', 'year', 'sector', 'region',
+values. Must contain columns: 'group_id', 'year', 'sector', 'region',
 'direction' and either 'name_abcd' and 'alignment_metric' or
 'exposure_weighted_net_alignment'.}
 
 \item{data_net}{data.frame. Data containing net alignment values. Must
-contain columns: 'bank_id', 'year', 'sector', 'region', 'direction' and
+contain columns: 'group_id', 'year', 'sector', 'region', 'direction' and
 either 'name_abcd' and 'alignment_metric' or
 'exposure_weighted_net_alignment'.}
 
@@ -34,7 +34,7 @@ either 'name_abcd' and 'alignment_metric' or
 
 \item{region}{Character. Region to filter data on.}
 
-\item{bank_ids_to_plot}{Character vector. Bank ids to filter on.}
+\item{group_ids_to_plot}{Character vector. Bank ids to filter on.}
 }
 \value{
 data.frame
