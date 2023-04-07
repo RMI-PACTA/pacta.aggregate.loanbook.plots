@@ -113,6 +113,8 @@ plot_scatter_animated <- function(
       showlegend = F,
       color = ~net,
       colors = colorRamp(c("#e10000", "#FFFFFF", "#3d8c40")),
+      symbol = ~datapoint,
+      symbols = c("circle", "circle-open"),
       width = 600,
       height = 800
     ) %>%

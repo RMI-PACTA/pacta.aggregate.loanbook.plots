@@ -56,11 +56,13 @@ prep_scatter_animated <- function(
     mutate(
       datapoint = case_when(
         grepl(".*[Bb]enchmark,*", .data$name) ~ "benchmark",
-        TRUE & (data_level == "bank") ~ "bank",
-        TRUE & (data_level == "company") ~ "company",
-        TRUE ~ "other"
+        TRUE ~ "not-benchmark"
       )
-    )
+    ) %>%
+    mutate(
+      datapoint = factor(datapoint, levels = c("not-benchmark", "benchmark"))
+    ) %>%
+  arrange(.data$datapoint)
   data_scatter
 }
 
