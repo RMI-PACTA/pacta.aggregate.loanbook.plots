@@ -62,7 +62,7 @@ prep_scatter_animated <- function(
       )
     ) %>%
     mutate(
-      datapoint = factor(datapoint, levels = c("Bank", "Company", "Portfolio", "Benchmark"))
+      datapoint = factor(.data$datapoint, levels = c("Bank", "Company", "Portfolio", "Benchmark"))
     ) %>%
   arrange(.data$datapoint)
   data_scatter
