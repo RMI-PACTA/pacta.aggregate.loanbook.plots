@@ -112,7 +112,9 @@ plot_scatter_animated <- function(
       frame = ~year,
       showlegend = F,
       color = ~net,
-      colors = colorRamp(c("#e10000", "#FFFFFF", "#3d8c40"))
+      colors = colorRamp(c("#e10000", "#FFFFFF", "#3d8c40")),
+      width = 600,
+      height = 800
     ) %>%
     plotly::add_markers(
       name = "company",
@@ -173,9 +175,22 @@ plot_scatter_animated <- function(
       xanchor = "right",
       align = "right",
       xref = "paper",
-      y = -0.63,
+      y = -0.6,
       yref = "paper",
       showarrow = F
+    ) %>%
+    plotly::add_annotations(
+      text = "0% net deviation from scenario",
+      x = 0.99,
+      xanchor = "right",
+      align = "right",
+      xref = "paper",
+      y = 0.43,
+      yanchor = "top",
+      yref = "paper",
+      showarrow = F,
+      font = list(color = "#ffffff"),
+      textangle = 45
     ) %>%
     plotly::colorbar(
       limits = c(-alignment_limit, alignment_limit),
@@ -214,6 +229,7 @@ plot_scatter_animated <- function(
         tickformat = ",.0%"
         ),
       plot_bgcolor = "#6c6c6c",
+      autosize = F,
       margin = list(l = 0, r = 0, t = 155, b = 250),
       shapes = list(
         list(
@@ -223,12 +239,7 @@ plot_scatter_animated <- function(
           x1 = alignment_limit,
           y1 = -alignment_limit,
           layer = "below",
-          line = list(color = "#ffffff", width = 1),
-          label = list(
-            text = "0% net deviation from scenario",
-            textposition = "middle",
-            font = list(color = "#ffffff")
-            )
+          line = list(color = "#ffffff", width = 1)
         )
       )
     )
