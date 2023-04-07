@@ -106,7 +106,21 @@ plot_scatter_animated <- function(
     alignment_limit <- max(abs(c(data$buildout, data$phaseout, data$net)), na.rm = TRUE)
   }
 
-  p <- plotly::plot_ly(
+  if ("Benchmark" %in% unique(data$datapoint)) {
+    p <- plotly::plot_ly(
+      x = ~buildout,
+      y = ~phaseout,
+      frame = ~year,
+      showlegend = T,
+      color = ~net,
+      colors = colorRamp(c("#e10000", "#FFFFFF", "#3d8c40")),
+      symbol = ~datapoint,
+      symbols = c("circle", "circle", "circle","circle-open"),
+      width = 600,
+      height = 800
+    )
+  } else {
+    p <- plotly::plot_ly(
       x = ~buildout,
       y = ~phaseout,
       frame = ~year,
@@ -114,14 +128,15 @@ plot_scatter_animated <- function(
       color = ~net,
       colors = colorRamp(c("#e10000", "#FFFFFF", "#3d8c40")),
       symbol = ~datapoint,
-      symbols = c("circle", "circle-open"),
+      symbols = c("circle", "circle", "circle","circle-open"),
       width = 600,
       height = 800
-    ) %>%
+    )
+  }
+
+  p <- p %>%
     plotly::add_markers(
-      name = "company",
       data = data,
-      text = ~name,
       marker = list(
         autocolorscale = F,
         cmin = -alignment_limit,

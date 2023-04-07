@@ -55,12 +55,14 @@ prep_scatter_animated <- function(
     tidyr::pivot_wider(names_from = "direction", values_from = "value") %>%
     mutate(
       datapoint = case_when(
-        grepl(".*[Bb]enchmark,*", .data$name) ~ "benchmark",
-        TRUE ~ "not-benchmark"
+        grepl(".*[Bb]enchmark,*", .data$name) ~ "Benchmark",
+        TRUE & data_level == "bank" ~ "Bank",
+        TRUE & data_level == "company" ~ "Company",
+        TRUE ~ "Portfolio"
       )
     ) %>%
     mutate(
-      datapoint = factor(datapoint, levels = c("not-benchmark", "benchmark"))
+      datapoint = factor(datapoint, levels = c("Bank", "Company", "Portfolio", "Benchmark"))
     ) %>%
   arrange(.data$datapoint)
   data_scatter
