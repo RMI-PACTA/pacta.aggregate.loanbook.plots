@@ -137,12 +137,17 @@ plot_scatter_animated <- function(
   p <- p %>%
     plotly::add_markers(
       data = data,
+      text = ~name,
       marker = list(
         autocolorscale = F,
         cmin = -alignment_limit,
         cmid = 0,
         cmax = alignment_limit
-      )
+      ),
+      hovertemplate = paste("<b>%{text}:</b>",
+                        "<br>Build-out: %{x}<br>",
+                        "Phase-out: %{y}<br>",
+                        "Net: %{marker.color:.0%}"),
     ) %>%
     plotly::add_annotations(
       text = "Aligned buildout,\nAligned phaseout",
