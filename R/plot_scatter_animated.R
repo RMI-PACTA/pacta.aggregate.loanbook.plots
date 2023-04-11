@@ -84,7 +84,11 @@ plot_scatter_animated <- function(
       mutate(
         buildout = if_else(.data$buildout <= .env$floor_outliers, .env$floor_outliers, .data$buildout),
         phaseout = if_else(.data$phaseout <= .env$floor_outliers, .env$floor_outliers, .data$phaseout),
-        net = if_else(.data$net <= 2 * .env$floor_outliers, 2 * .env$floor_outliers, .data$net) # net is a sum of buildout and phaseout
+        net = if_else(
+          .data$buildout <= .env$floor_outliers | .data$phaseout <= .env$floor_outliers,
+          .data$buildout + .data$phaseout,
+          .data$net
+          ) # net is a sum of buildout and phaseout
       )
     subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
   }
@@ -93,7 +97,11 @@ plot_scatter_animated <- function(
       mutate(
         buildout = if_else(.data$buildout >= .env$cap_outliers, .env$cap_outliers, .data$buildout),
         phaseout = if_else(.data$phaseout >= .env$cap_outliers, .env$cap_outliers, .data$phaseout),
-        net = if_else(.data$net >= 2 * .env$cap_outliers, 2 * .env$cap_outliers, .data$net) # net is a sum of buildout and phaseout
+        net = if_else(
+          .data$buildout >= .env$cap_outliers | .data$phaseout >= .env$cap_outliers,
+          .data$buildout + .data$phaseout,
+          .data$net
+          ) # net is a sum of buildout and phaseout
       )
     if (is.null(floor_outliers)) {
       subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
@@ -103,8 +111,10 @@ plot_scatter_animated <- function(
   title <- glue("<b>{title}</b>\n\n<sup>{subtitle}</sup>")
 
   if (is.null(alignment_limit)) {
-    alignment_limit <- max(abs(c(data$buildout, data$phaseout, data$net)), na.rm = TRUE)
+    alignment_limit <- max(abs(c(data$buildout, data$phaseout)), na.rm = TRUE)
   }
+
+  alignment_limit_net <- max(c(alignment_limit, abs(data$net)), na.rm = TRUE)
 
   if ("Benchmark" %in% unique(data$datapoint)) {
     p <- plotly::plot_ly(
@@ -140,9 +150,9 @@ plot_scatter_animated <- function(
       text = ~name,
       marker = list(
         autocolorscale = F,
-        cmin = -alignment_limit,
+        cmin = -alignment_limit_net,
         cmid = 0,
-        cmax = alignment_limit
+        cmax = alignment_limit_net
       ),
       hovertemplate = paste("<b>%{text}:</b>",
                         "<br>Build-out: %{x}<br>",
@@ -215,7 +225,7 @@ plot_scatter_animated <- function(
       textangle = 45
     ) %>%
     plotly::colorbar(
-      limits = c(-alignment_limit, alignment_limit),
+      limits = c(-alignment_limit_net, alignment_limit_net),
       title = "Net\ndeviation",
       tickformat = ",.0%"
       ) %>%
@@ -252,7 +262,7 @@ plot_scatter_animated <- function(
         ),
       plot_bgcolor = "#6c6c6c",
       autosize = F,
-      margin = list(l = 0, r = 0, t = 155, b = 250),
+      margin = list(l = 0, r = 0, t = 170, b = 250),
       shapes = list(
         list(
           type = "line",
