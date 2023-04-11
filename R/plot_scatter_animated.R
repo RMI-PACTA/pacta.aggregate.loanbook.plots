@@ -2,7 +2,7 @@
 #'
 #' @param data data.frame. Should have the same format as output of
 #'   `prep_scatter_animated()` and contain columns: 'name', 'buildout',
-#'   phaseout', 'net' and 'year'.
+#'   'phaseout', 'net' and 'year'.
 #' @param data_level Character. Level of the plotted data. Can be 'bank' or
 #'   'company'.
 #' @param sector Character. Sector name to be used in the plot title.
@@ -14,7 +14,7 @@
 #' @param subtitle Character. Custom subtitle if different than default.
 #' @param alignment_limit Numeric. Limit to be applied to the x- and y-axis
 #'   scales and to alignment values for colouring. By default the maximum
-#'   absolute alignment value of is used.
+#'   absolute alignment value from data is used.
 #' @param cap_outliers Numeric. Cap which should be applied to the alignment
 #'   values in the data. Values bigger than cap are plotted on the border of the
 #'   plot.
@@ -84,7 +84,7 @@ plot_scatter_animated <- function(
       mutate(
         buildout = if_else(.data$buildout <= .env$floor_outliers, .env$floor_outliers, .data$buildout),
         phaseout = if_else(.data$phaseout <= .env$floor_outliers, .env$floor_outliers, .data$phaseout),
-        net = if_else(.data$net <= .env$floor_outliers, .env$floor_outliers, .data$net)
+        net = if_else(.data$net <= 2 * .env$floor_outliers, 2 * .env$floor_outliers, .data$net) # net is a sum of buildout and phaseout
       )
     subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
   }
@@ -93,7 +93,7 @@ plot_scatter_animated <- function(
       mutate(
         buildout = if_else(.data$buildout >= .env$cap_outliers, .env$cap_outliers, .data$buildout),
         phaseout = if_else(.data$phaseout >= .env$cap_outliers, .env$cap_outliers, .data$phaseout),
-        net = if_else(.data$net >= .env$cap_outliers, .env$cap_outliers, .data$net)
+        net = if_else(.data$net >= 2 * .env$cap_outliers, 2 * .env$cap_outliers, .data$net) # net is a sum of buildout and phaseout
       )
     if (is.null(floor_outliers)) {
       subtitle <- glue("{subtitle}\nThe outliers are displayed on the borders of the plot.", .trim = FALSE)
