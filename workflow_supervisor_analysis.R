@@ -649,3 +649,42 @@ plot_scatter(
   scenario_source = scenario_source_input,
   scenario = scenario_select
   )
+
+# Animated scatter - company level
+data_scatter_a <- prep_scatter_animated(
+  company_aggregated_alignment_bo_po_tms,
+  company_aggregated_alignment_net_tms,
+  sector = sector_scatter,
+  region = region_scatter,
+  data_level = data_level1
+  )
+plot_scatter_animated(
+  data_scatter_a,
+  sector = sector_scatter,
+  data_level = data_level1,
+  region = region_scatter,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select,
+  floor_outliers = -1.5,
+  cap_outliers = 1.5
+  )
+
+# Animated scatter - bank level
+data_level2 <- "bank"
+data_scatter_a2 <- prep_scatter_animated(
+  loanbook_exposure_aggregated_alignment_bo_po,
+  loanbook_exposure_aggregated_alignment_net,
+  sector = sector_scatter,
+  region = region_scatter,
+  data_level = data_level2
+  )
+plot_scatter_animated(
+  data_scatter_a2,
+  sector = sector_scatter,
+  data_level = data_level2,
+  region = region_scatter,
+  scenario_source = scenario_source_input,
+  scenario = scenario_select,
+  alignment_limit = 1
+  )
+
