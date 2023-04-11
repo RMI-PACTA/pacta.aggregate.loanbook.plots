@@ -25,7 +25,7 @@ plot_sankey <- function(
   if (capitalise_node_labels) {
     data_links <- data %>%
       mutate(
-        bank_id = r2dii.plot::to_title(.data$bank_id),
+        group_id = r2dii.plot::to_title(.data$group_id),
         middle_node = r2dii.plot::to_title(.data$middle_node)
         )
   } else {
@@ -33,7 +33,7 @@ plot_sankey <- function(
   }
   links <- data_links %>%
     select(
-      source = "bank_id",
+      source = "group_id",
       target = "middle_node",
       value = "loan_size_outstanding",
       group = "is_aligned"
@@ -42,7 +42,7 @@ plot_sankey <- function(
   if ("middle_node2" %in% names(data_links)) {
     links <- data_links %>%
       select(
-        "bank_id",
+        "group_id",
         source = "middle_node",
         target = "middle_node2",
         value = "loan_size_outstanding",
@@ -52,7 +52,7 @@ plot_sankey <- function(
 
     links <- data_links %>%
       select(
-        "bank_id",
+        "group_id",
         source = "middle_node2",
         target = "is_aligned",
         value = "loan_size_outstanding",
@@ -63,7 +63,7 @@ plot_sankey <- function(
   } else {
    links <- data_links %>%
     select(
-      "bank_id",
+      "group_id",
       source = "middle_node",
       target = "is_aligned",
       value = "loan_size_outstanding",
@@ -120,7 +120,7 @@ plot_sankey <- function(
 }
 
 check_plot_sankey <- function(data, capitalise_node_labels) {
-  crucial_names <- c("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
+  crucial_names <- c("group_id", "middle_node", "is_aligned", "loan_size_outstanding")
   r2dii.plot:::abort_if_missing_names(data, crucial_names)
   if (!is.logical(capitalise_node_labels)) {
     abort(c("`capitalise_node_labels` must have a logical value.",

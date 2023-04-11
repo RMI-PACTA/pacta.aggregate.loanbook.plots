@@ -22,35 +22,51 @@
 # load packages----
 devtools::load_all()
 
+library(dotenv)
 library(janitor)
-library(tidyverse)
 library(r2dii.analysis)
 library(r2dii.data)
 library(r2dii.match)
 library(r2dii.plot)
+library(readr)
 library(readxl)
 library(rlang)
+library(tidyverse)
 library(vroom)
+
+dotenv::load_dot_env()
 
 # get sector split for energy companies----
 
+# TODO: add test files to read in case not all required inputs are provided correctly
+
+## set up paths----
+input_path_split <- file.path(Sys.getenv("DIR_SPLIT_COMPANY_ID"), Sys.getenv("FILENAME_SPLIT_COMPANY_ID"))
+input_path_advanced_company_indicators <- file.path(Sys.getenv("DIR_ADVANCED_COMPANY_INDICATORS"), Sys.getenv("FILENAME_ADVANCED_COMPANY_INDICATORS"))
+input_path_matched <- Sys.getenv("DIR_MATCHED")
+
 # start_year should match the year of the ABCD data release
-start_year <- 2022
+start_year <- as.numeric(Sys.getenv("PARAM_START_YEAR"))
 
-company_ids_included <- c(
-  38147, 41306, 14249, 11982, 18220, 18251, 7194, 36641, 27451, 15176, 291378,
-  6759, 36688, 9469, 39691, 507948, 42005, 1699, 3984, 4073, 499661, 516404,
-  23540, 18256, 1002, 25424, 1141, 14695, 7575, 40332, 519120, 15924, 6783, 20256
-)
-
-advanced_company_indicators_path <- "/path/to/advanced_indicators.xlsx"
+## load input data----
+# TODO: add to .env to allow for flexibility
 advanced_company_indicators_sheet <- "Company Activities"
 
 advanced_company_indicators_raw <- readxl::read_xlsx(
-  path = advanced_company_indicators_path,
+  path = input_path_advanced_company_indicators,
   sheet = advanced_company_indicators_sheet
 )
 
+company_ids_included <- readr::read_csv(
+  input_path_split,
+  col_types = readr::cols_only(
+    company_id = "d"
+  )
+) %>%
+  dplyr::pull(.data$company_id)
+
+
+## calculate sector split----
 advanced_company_indicators <- advanced_company_indicators_raw %>%
   janitor::clean_names() %>%
   dplyr::filter(
@@ -105,5 +121,6 @@ sector_split_energy_companies <- advanced_company_indicators %>%
     unit_conversion = unit_conversion
   )
 
-# sector_split_energy_companies %>%
-#   readr::write_csv(file.path("/path/to/companies_sector_split.csv"))
+## write output----
+sector_split_energy_companies %>%
+  readr::write_csv(file.path(input_path_matched, "companies_sector_split.csv"))

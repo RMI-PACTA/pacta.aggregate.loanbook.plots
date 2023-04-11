@@ -1,10 +1,10 @@
 #' Prepare data to plot using `plot_sankey()`
 #'
-#' @param data_alignment data.frame. Holds aggregated alignment scores per
-#'   company for tms sectors. Must contain columns: `bank_id`, `name_abcd`,
+#' @param data_alignment data.frame. Holds aggregated alignment metrics per
+#'   company for tms sectors. Must contain columns: `group_id`, `name_abcd`,
 #'   `sector`.
 #' @param matched_loanbook data.frame. Holds the matched loan books of a set of
-#'   banks. Must include a column `bank_id` and `loan_size_outstanding`.
+#'   groups. Must include a column `group_id` and `loan_size_outstanding`.
 #' @param region Character. Region to filter `data_alignment` data frame on.
 #' @param year Integer. Year on which `data_alignment` should be filtered.
 #' @param middle_node Character. Column specifying the middle nodes to be
@@ -41,33 +41,33 @@ prep_sankey <- function(
       )
 
   matched_loanbook <- matched_loanbook %>%
-    select("bank_id", "name_abcd", "sector", "loan_size_outstanding")
+    select("group_id", "name_abcd", "sector", "loan_size_outstanding")
 
   if (is.null(middle_node2)) {
     data_out <- data_alignment %>%
-    inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
+    inner_join(matched_loanbook, by = c("group_id", "name_abcd", "sector")) %>%
     mutate(
       is_aligned = case_when(
-        score >= 0 ~ "Aligned",
-        score <0 ~ "Not aligned",
+        alignment_metric >= 0 ~ "Aligned",
+        alignment_metric <0 ~ "Not aligned",
         TRUE ~ "Unknown"
       ),
       middle_node =!! sym(middle_node)
       ) %>%
-    select("bank_id", "middle_node", "is_aligned", "loan_size_outstanding")
+    select("group_id", "middle_node", "is_aligned", "loan_size_outstanding")
   } else {
     data_out <- data_alignment %>%
-    inner_join(matched_loanbook, by = c("bank_id", "name_abcd", "sector")) %>%
+    inner_join(matched_loanbook, by = c("group_id", "name_abcd", "sector")) %>%
     mutate(
       is_aligned = case_when(
-        score >= 0 ~ "Aligned",
-        score <0 ~ "Not aligned",
+        alignment_metric >= 0 ~ "Aligned",
+        alignment_metric <0 ~ "Not aligned",
         TRUE ~ "Unknown"
       ),
       middle_node =!! sym(middle_node),
       middle_node2 =!! sym(middle_node2)
       ) %>%
-    select("bank_id", "middle_node", "middle_node2", "is_aligned", "loan_size_outstanding")
+    select("group_id", "middle_node", "middle_node2", "is_aligned", "loan_size_outstanding")
   }
   data_out
 }
@@ -80,7 +80,7 @@ check_prep_sankey <- function(
     middle_node,
     middle_node2
 ) {
-  names_all <- c("bank_id", "name_abcd", "sector")
+  names_all <- c("group_id", "name_abcd", "sector")
   names_aggergate <- c("region", "year")
   r2dii.plot:::abort_if_missing_names(data_alignment, c(names_all, names_aggergate))
   r2dii.plot:::abort_if_missing_names(matched_loanbook, c(names_all, "loan_size_outstanding"))
