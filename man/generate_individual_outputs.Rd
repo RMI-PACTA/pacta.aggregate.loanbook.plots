@@ -9,7 +9,7 @@ generate_individual_outputs(
   matched_loanbook,
   output_directory,
   target_type = c("tms", "sda"),
-  bank_id,
+  group_id,
   scenario_source,
   target_scenario,
   region = "global",
@@ -17,13 +17,13 @@ generate_individual_outputs(
 )
 }
 \arguments{
-\item{data}{data.frame. Holds the PACTA for Banks results of a set of banks.
-Must include a column \code{bank_id} to select individual banks. Can be
+\item{data}{data.frame. Holds the PACTA for Banks results of a set of groups.
+Must include a column \code{group_id} to select individual groups. Can be
 either a target market share calculation or an SDA calculation.}
 
 \item{matched_loanbook}{data.frame. Holds the matched loan books of a
-set of banks. Must include a column \code{bank_id} to select individual
-banks.}
+set of groups. Must include a column \code{group_id} to select individual
+groups.}
 
 \item{output_directory}{Character. Path to directory where the ouput csv and png
 files should be stored.}
@@ -31,7 +31,7 @@ files should be stored.}
 \item{target_type}{Character. Must be either \code{tms} or
 \code{sda}.}
 
-\item{bank_id}{Character. Must be of length 1.}
+\item{group_id}{Character. Must be of length 1.}
 
 \item{scenario_source}{Character. Must be available in the scenario file used
 for the analysis.}

@@ -73,20 +73,20 @@ abcd <- readr::read_csv(file.path(input_path_abcd))
 abcd["production"][is.na(abcd["production"])] <- 0
 
 # loanbook <- loanbook_test_data
-loanbook <- purrr::map_dfr(list.files(input_path_raw, full.names = T), .f = vroom::vroom, id = "bank_id")
-# aggregation functions expect a bank_id to be able to distinguish banks/loan books in later analysis
+loanbook <- purrr::map_dfr(list.files(input_path_raw, full.names = T), .f = vroom::vroom, id = "group_id")
+# aggregation functions expect a group_id to be able to distinguish banks/loan books in later analysis
 loanbook <- loanbook %>%
-  dplyr::mutate(bank_id = gsub(pattern = paste0(input_path_raw, "/"), replacement = "", x = .data$bank_id)) %>%
-  dplyr::mutate(bank_id = gsub(pattern = ".csv", replacement = "", x = .data$bank_id))
+  dplyr::mutate(group_id = gsub(pattern = paste0(input_path_raw, "/"), replacement = "", x = .data$group_id)) %>%
+  dplyr::mutate(group_id = gsub(pattern = ".csv", replacement = "", x = .data$group_id))
 
 # match and prioritize loan book----
-unique_loanbooks_raw <- unique(loanbook$bank_id)
+unique_loanbooks_raw <- unique(loanbook$group_id)
 
 matched_loanbook <- NULL
 
 for (i in unique_loanbooks_raw) {
   loanbook_i <- loanbook %>%
-    dplyr::filter(.data$bank_id == i)
+    dplyr::filter(.data$group_id == i)
 
   matched_i <- match_name(loanbook_i, abcd) %>%
     prioritize()
@@ -96,7 +96,7 @@ for (i in unique_loanbooks_raw) {
 }
 
 # matched_loanbook %>%
-#   readr::write_csv(file.path(input_path_matched, "matched_prio_all_banks.csv"))
+#   readr::write_csv(file.path(input_path_matched, "matched_prio_all_groups.csv"))
 
 # add loan book with corporate economy benchmark----
 # benchmark_region can be selected based on r2dii.data::region_isos
@@ -125,15 +125,15 @@ for (i in benchmark_regions) {
 
 
 # generate all P4B outputs----
-unique_loanbooks_matched <- unique(matched_loanbook$bank_id)
+unique_loanbooks_matched <- unique(matched_loanbook$group_id)
 
 ## generate SDA outputs----
 results_sda_total <- NULL
 
 for (i in unique_loanbooks_matched) {
   matched_i <- matched_loanbook %>%
-    dplyr::filter(.data$bank_id == i) %>%
-    dplyr::select(-"bank_id")
+    dplyr::filter(.data$group_id == i) %>%
+    dplyr::select(-"group_id")
 
   results_sda_i <- matched_i %>%
     target_sda(
@@ -141,14 +141,14 @@ for (i in unique_loanbooks_matched) {
       co2_intensity_scenario = scenario_input_sda,
       region_isos = region_isos_select
     ) %>%
-    dplyr::mutate(bank_id = .env$i)
+    dplyr::mutate(group_id = .env$i)
 
   results_sda_total <- results_sda_total %>%
     dplyr::bind_rows(results_sda_i)
 }
 
 # results_sda_total %>%
-#   readr::write_csv(file.path(output_path_standard, "sda_results_all_banks.csv"))
+#   readr::write_csv(file.path(output_path_standard, "sda_results_all_groups.csv"))
 
 
 ## generate TMS outputs----
@@ -157,8 +157,8 @@ results_tms_total <- NULL
 
 for (i in unique_loanbooks_matched) {
   matched_i <- matched_loanbook %>%
-    dplyr::filter(.data$bank_id == i) %>%
-    dplyr::select(-"bank_id")
+    dplyr::filter(.data$group_id == i) %>%
+    dplyr::select(-"group_id")
 
   results_tms_i <- matched_i %>%
     target_market_share(
@@ -166,35 +166,35 @@ for (i in unique_loanbooks_matched) {
       scenario = scenario_input_tms,
       region_isos = region_isos_select
     ) %>%
-    dplyr::mutate(bank_id = .env$i)
+    dplyr::mutate(group_id = .env$i)
 
   results_tms_total <- results_tms_total %>%
     dplyr::bind_rows(results_tms_i)
 }
 
 # results_tms_total %>%
-#   readr::write_csv(file.path(output_path_standard, "tms_results_all_banks.csv"))
+#   readr::write_csv(file.path(output_path_standard, "tms_results_all_groups.csv"))
 
 # generate P4B plots----
 
-# results_tms_total <- readr::read_csv(file.path(output_path_standard, "tms_results_all_banks.csv"), col_types = readr::cols())
-# results_sda_total <- readr::read_csv(file.path(output_path_standard, "sda_results_all_banks.csv"), col_types = readr::cols())
-# matched_loanbook <- readr::read_csv("file.path(input_path_matched, "matched_prio_all_banks.csv"), col_types = readr::cols())
+# results_tms_total <- readr::read_csv(file.path(output_path_standard, "tms_results_all_groups.csv"), col_types = readr::cols())
+# results_sda_total <- readr::read_csv(file.path(output_path_standard, "sda_results_all_groups.csv"), col_types = readr::cols())
+# matched_loanbook <- readr::read_csv("file.path(input_path_matched, "matched_prio_all_groups.csv"), col_types = readr::cols())
 
-## retrieve set of unique banks to loop over----
-unique_banks_tms <- unique(results_tms_total$bank_id)
-unique_banks_sda <- unique(results_sda_total$bank_id)
+## retrieve set of unique groups to loop over----
+unique_groups_tms <- unique(results_tms_total$group_id)
+unique_groups_sda <- unique(results_sda_total$group_id)
 
 ## run automatic result generation ----------
 
 # TODO: get all available sectors and produce outputs for them all)
-for (tms_i in unique_banks_tms) {
+for (tms_i in unique_groups_tms) {
   generate_individual_outputs(
     data = results_tms_total,
     matched_loanbook = matched_loanbook,
     output_directory = output_path_standard,
     target_type = "tms",
-    bank_id = tms_i,
+    group_id = tms_i,
     scenario_source = scenario_source_input,
     target_scenario = glue::glue("target_{scenario_select}"),
     region = "global",
@@ -203,13 +203,13 @@ for (tms_i in unique_banks_tms) {
 }
 
 # TODO: get all available sectors and produce outputs for them all)
-for (sda_i in unique_banks_sda) {
+for (sda_i in unique_groups_sda) {
   generate_individual_outputs(
     data = results_sda_total,
     matched_loanbook = matched_loanbook,
     output_directory = output_path_standard,
     target_type = "sda",
-    bank_id = sda_i,
+    group_id = sda_i,
     scenario_source = scenario_source_input,
     target_scenario = glue::glue("target_{scenario_select}"),
     region = "global",
@@ -253,13 +253,13 @@ matched_total <- matched_loanbook %>%
 ## prepare TMS company level P4B results for aggregation----
 tms_result_for_aggregation <- NULL
 
-for (i in unique_banks_tms) {
+for (i in unique_groups_tms) {
   tryCatch(
     {
       tms_result_for_aggregation_i <- target_market_share(
         data = matched_loanbook %>%
-          dplyr::filter(.data$bank_id == i) %>%
-          dplyr::select(-"bank_id"),
+          dplyr::filter(.data$group_id == i) %>%
+          dplyr::select(-"group_id"),
         abcd = abcd,
         scenario = scenario_input_tms,
         region_isos = region_isos_select,
@@ -269,14 +269,14 @@ for (i in unique_banks_tms) {
       )
 
       tms_result_for_aggregation_i <- tms_result_for_aggregation_i %>%
-        dplyr::mutate(bank_id = .env$i)
+        dplyr::mutate(group_id = .env$i)
 
       tms_result_for_aggregation <- tms_result_for_aggregation %>%
         dplyr::bind_rows(tms_result_for_aggregation_i)
 
     },
     error = function(e) {
-      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for aggregation. Skipping! \n")
+      log_text <- glue::glue("{Sys.time()} - group: {i} Problem in preparing data for aggregation. Skipping! \n")
       write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
@@ -284,7 +284,7 @@ for (i in unique_banks_tms) {
 
 tms_result_for_aggregation_benchmark <- NULL
 
-unique_benchmarks_tms <- unique(matched_benchmark$bank_id)
+unique_benchmarks_tms <- unique(matched_benchmark$group_id)
 
 for (i in unique_benchmarks_tms) {
   tryCatch(
@@ -304,8 +304,8 @@ for (i in unique_benchmarks_tms) {
 
       tms_result_for_aggregation_benchmark_i <- target_market_share(
         data = matched_benchmark %>%
-          dplyr::filter(.data$bank_id == i) %>%
-          dplyr::select(-"bank_id"),
+          dplyr::filter(.data$group_id == i) %>%
+          dplyr::select(-"group_id"),
         abcd = abcd_benchmark_region_i,
         scenario = scenario_input_tms,
         region_isos = region_isos_select,
@@ -315,14 +315,14 @@ for (i in unique_benchmarks_tms) {
       )
 
       tms_result_for_aggregation_benchmark_i <- tms_result_for_aggregation_benchmark_i %>%
-        dplyr::mutate(bank_id = .env$i)
+        dplyr::mutate(group_id = .env$i)
 
       tms_result_for_aggregation_benchmark <- tms_result_for_aggregation_benchmark %>%
         dplyr::bind_rows(tms_result_for_aggregation_benchmark_i)
 
     },
     error = function(e) {
-      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
+      log_text <- glue::glue("{Sys.time()} - group: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
       write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
@@ -372,13 +372,13 @@ company_aggregated_alignment_bo_po_tms %>%
 ## prepare SDA company level P4B results for aggregation----
 sda_result_for_aggregation <- NULL
 
-for (i in unique_banks_sda) {
+for (i in unique_groups_sda) {
   tryCatch(
     {
       sda_result_for_aggregation_i <- target_sda(
         data = matched_loanbook %>%
-          dplyr::filter(.data$bank_id == i) %>%
-          dplyr::select(-"bank_id"),
+          dplyr::filter(.data$group_id == i) %>%
+          dplyr::select(-"group_id"),
         abcd = abcd,
         co2_intensity_scenario = scenario_input_sda,
         by_company = TRUE,
@@ -386,14 +386,14 @@ for (i in unique_banks_sda) {
       )
 
       sda_result_for_aggregation_i <- sda_result_for_aggregation_i %>%
-        dplyr::mutate(bank_id = .env$i)
+        dplyr::mutate(group_id = .env$i)
 
       sda_result_for_aggregation <- sda_result_for_aggregation %>%
         dplyr::bind_rows(sda_result_for_aggregation_i)
 
     },
     error = function(e) {
-      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for aggregation. Skipping! \n")
+      log_text <- glue::glue("{Sys.time()} - group: {i} Problem in preparing data for aggregation. Skipping! \n")
       write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
@@ -401,7 +401,7 @@ for (i in unique_banks_sda) {
 
 sda_result_for_aggregation_benchmark <- NULL
 
-unique_benchmarks_sda <- unique(matched_benchmark$bank_id)
+unique_benchmarks_sda <- unique(matched_benchmark$group_id)
 
 for (i in unique_benchmarks_sda) {
   tryCatch(
@@ -421,8 +421,8 @@ for (i in unique_benchmarks_sda) {
 
       sda_result_for_aggregation_benchmark_i <- target_sda(
         data = matched_benchmark %>%
-          dplyr::filter(.data$bank_id == i) %>%
-          dplyr::select(-"bank_id"),
+          dplyr::filter(.data$group_id == i) %>%
+          dplyr::select(-"group_id"),
         abcd = abcd_benchmark_region_i,
         co2_intensity_scenario = scenario_input_sda,
         by_company = TRUE,
@@ -430,14 +430,14 @@ for (i in unique_benchmarks_sda) {
       )
 
       sda_result_for_aggregation_benchmark_i <- sda_result_for_aggregation_benchmark_i %>%
-        dplyr::mutate(bank_id = .env$i)
+        dplyr::mutate(group_id = .env$i)
 
       sda_result_for_aggregation_benchmark <- sda_result_for_aggregation_benchmark %>%
         dplyr::bind_rows(sda_result_for_aggregation_benchmark_i)
 
     },
     error = function(e) {
-      log_text <- glue::glue("{Sys.time()} - bank: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
+      log_text <- glue::glue("{Sys.time()} - group: {i} Problem in preparing data for benchmark aggregation. Skipping! \n")
       write(log_text, file = file.path(output_path_aggregated, "error_messages.txt"), append = TRUE)
     }
   )
@@ -564,7 +564,7 @@ data_timeline <- prep_timeline(
   loanbook_exposure_aggregated_alignment_bo_po,
   sector = sector_timeline,
   region = region_timeline,
-  bank_ids_to_plot = "bank1")
+  group_ids_to_plot = "group1")
 plot_timeline(
   data_timeline,
   sector = sector_timeline,
@@ -586,7 +586,7 @@ data_timeline <- prep_timeline(
   loanbook_exposure_aggregated_alignment_net,
   sector = sector_timeline,
   region = region_timeline,
-  bank_ids_to_plot = "bank1")
+  group_ids_to_plot = "group1")
 plot_timeline(
   data_timeline,
   sector = sector_timeline,
@@ -615,7 +615,7 @@ data_scatter <- prep_scatter(
   year = year_scatter,
   sector = sector_scatter,
   region = region_scatter,
-  bank_ids_to_plot = "bank1",
+  group_ids_to_plot = "group1",
   data_level = data_level1
   )
 plot_scatter(
