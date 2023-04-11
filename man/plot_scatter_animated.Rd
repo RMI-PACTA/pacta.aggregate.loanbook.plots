@@ -21,7 +21,7 @@ plot_scatter_animated(
 \arguments{
 \item{data}{data.frame. Should have the same format as output of
 \code{prep_scatter_animated()} and contain columns: 'name', 'buildout',
-phaseout', 'net' and 'year'.}
+'phaseout', 'net' and 'year'.}
 
 \item{data_level}{Character. Level of the plotted data. Can be 'bank' or
 'company'.}
@@ -41,7 +41,7 @@ caption.}
 
 \item{alignment_limit}{Numeric. Limit to be applied to the x- and y-axis
 scales and to alignment values for colouring. By default the maximum
-absolute alignment value of is used.}
+absolute alignment value from data is used.}
 
 \item{cap_outliers}{Numeric. Cap which should be applied to the alignment
 values in the data. Values bigger than cap are plotted on the border of the

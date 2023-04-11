@@ -10,18 +10,18 @@ prep_scatter_animated(
   data_level = c("bank", "company"),
   sector,
   region,
-  bank_ids_to_plot = NULL
+  group_ids_to_plot = NULL
 )
 }
 \arguments{
 \item{data_bopo}{data.frame. Data containing buildout and phaseout alignment
-values. Must contain columns: 'bank_id', 'year', 'sector', 'region',
-'direction' and either 'name_abcd' and 'score' or
+values. Must contain columns: 'group_id', 'year', 'sector', 'region',
+'direction' and either 'name_abcd' and 'alignment_metric' or
 'exposure_weighted_net_alignment'.}
 
 \item{data_net}{data.frame. Data containing net alignment values. Must
-contain columns: 'bank_id', 'year', 'sector', 'region', 'direction' and
-either 'name_abcd' and 'score' or 'exposure_weighted_net_alignment'.}
+contain columns: 'group_id', 'year', 'sector', 'region', 'direction' and
+either 'name_abcd' and 'alignment_metric' or 'exposure_weighted_net_alignment'.}
 
 \item{data_level}{Character. Level of the plotted data. Can be 'bank' or
 'company'.}
@@ -30,7 +30,7 @@ either 'name_abcd' and 'score' or 'exposure_weighted_net_alignment'.}
 
 \item{region}{Character. Region to filter data on.}
 
-\item{bank_ids_to_plot}{Character vector. Bank ids to filter on.}
+\item{group_ids_to_plot}{Character vector. Group ids to filter on.}
 }
 \value{
 data.frame
