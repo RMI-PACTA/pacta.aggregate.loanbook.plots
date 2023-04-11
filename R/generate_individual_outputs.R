@@ -1,16 +1,16 @@
 #' Return data and plots
 #'
-#' @param data data.frame. Holds the PACTA for Banks results of a set of banks.
-#'   Must include a column `bank_id` to select individual banks. Can be
+#' @param data data.frame. Holds the PACTA for Banks results of a set of groups.
+#'   Must include a column `group_id` to select individual groups. Can be
 #'   either a target market share calculation or an SDA calculation.
 #' @param matched_loanbook data.frame. Holds the matched loan books of a
-#'   set of banks. Must include a column `bank_id` to select individual
-#'   banks.
+#'   set of groups. Must include a column `group_id` to select individual
+#'   groups.
 #' @param output_directory Character. Path to directory where the ouput csv and png
 #'   files should be stored.
 #' @param target_type Character. Must be either `tms` or
 #'   `sda`.
-#' @param bank_id Character. Must be of length 1.
+#' @param group_id Character. Must be of length 1.
 #' @param scenario_source Character. Must be available in the scenario file used
 #'   for the analysis.
 #' @param target_scenario Character. Must be of length 1.
@@ -23,7 +23,7 @@ generate_individual_outputs <- function(data,
                                         matched_loanbook,
                                         output_directory,
                                         target_type = c("tms", "sda"),
-                                        bank_id,
+                                        group_id,
                                         scenario_source,
                                         target_scenario,
                                         region = "global",
@@ -35,7 +35,7 @@ generate_individual_outputs <- function(data,
   # validate input values
   validate_input_args_generate_individual_outputs(
     output_directory = output_directory,
-    bank_id = bank_id,
+    group_id = group_id,
     scenario_source = scenario_source,
     target_scenario = target_scenario,
     region = region,
@@ -52,7 +52,7 @@ generate_individual_outputs <- function(data,
   tryCatch(
     {
       # create sub directory for the selected institute
-      dir.create(file.path(output_directory, bank_id), showWarnings = FALSE)
+      dir.create(file.path(output_directory, group_id), showWarnings = FALSE)
 
       # set and derive some parameters
       start_year <- min(data$year, na.rm = TRUE)
@@ -60,7 +60,7 @@ generate_individual_outputs <- function(data,
 
       data <- data %>%
         dplyr::filter(
-          bank_id == .env$bank_id,
+          group_id == .env$group_id,
           scenario_source == .env$scenario_source,
           region == .env$region,
           sector %in% .env$sector
@@ -68,7 +68,7 @@ generate_individual_outputs <- function(data,
 
       matched_loanbook <- matched_loanbook %>%
         dplyr::filter(
-          bank_id == .env$bank_id,
+          group_id == .env$group_id,
           sector %in% .env$sector
         )
 
@@ -88,7 +88,7 @@ generate_individual_outputs <- function(data,
           ) +
           ggplot2::labs(
             title = glue::glue("Technology Mix: {tools::toTitleCase(sector)}"),
-            subtitle = glue::glue("Institution ID: {bank_id}")
+            subtitle = glue::glue("Institution ID: {group_id}")
           )
 
         # export tech mix
@@ -96,7 +96,7 @@ generate_individual_outputs <- function(data,
           readr::write_csv(
             file = file.path(
               output_directory,
-              bank_id,
+              group_id,
               glue::glue("data_tech_mix_{sector}.csv")
             )
           )
@@ -105,7 +105,7 @@ generate_individual_outputs <- function(data,
           filename = glue::glue("plot_tech_mix_{sector}.png"),
           plot = plot_techmix,
           device = "png",
-          path = file.path(output_directory, bank_id)
+          path = file.path(output_directory, group_id)
         )
 
         # plot trajectory charts for all available techs in given sector
@@ -141,7 +141,7 @@ generate_individual_outputs <- function(data,
                 ) +
                 ggplot2::labs(
                   title = glue::glue("Valume Trajectory: {tools::toTitleCase(technologies_to_plot[i])}"),
-                  subtitle = glue::glue("Institution ID: {bank_id}")
+                  subtitle = glue::glue("Institution ID: {group_id}")
                 ) +
                 ggplot2::xlab("Year") +
                 ggplot2::ylab("Value")
@@ -151,7 +151,7 @@ generate_individual_outputs <- function(data,
                 readr::write_csv(
                   file = file.path(
                     output_directory,
-                    bank_id,
+                    group_id,
                     glue::glue("data_trajectory_{sector}_{technologies_to_plot[i]}.csv")
                   )
                 )
@@ -160,11 +160,11 @@ generate_individual_outputs <- function(data,
                 filename = glue::glue("plot_trajectory_{sector}_{technologies_to_plot[i]}.png"),
                 plot = plot_trajectory,
                 device = "png",
-                path = file.path(output_directory, bank_id)
+                path = file.path(output_directory, group_id)
               )
             },
             error = function(e) {
-              log_text <- glue::glue("{Sys.time()} - bank: {bank_id} Problem in plotting trajectory chart for: {sector} {i} \n")
+              log_text <- glue::glue("{Sys.time()} - group: {group_id} Problem in plotting trajectory chart for: {sector} {i} \n")
               write(log_text, file = file.path(output_directory, "error_messages.txt"), append = TRUE)
             }
           )
@@ -178,7 +178,7 @@ generate_individual_outputs <- function(data,
           ) +
           ggplot2::labs(
             title = glue::glue("Emission Intensity - Convergence Approach: {tools::toTitleCase(sector)}"),
-            subtitle = glue::glue("Institution ID: {bank_id}")
+            subtitle = glue::glue("Institution ID: {group_id}")
           ) +
           ggplot2::xlab("Year") +
           ggplot2::ylab("Emission Factor Value")
@@ -188,7 +188,7 @@ generate_individual_outputs <- function(data,
           readr::write_csv(
             file = file.path(
               output_directory,
-              bank_id,
+              group_id,
               glue::glue("data_emission_intensity_{sector}.csv")
             )
           )
@@ -197,12 +197,12 @@ generate_individual_outputs <- function(data,
           filename = glue::glue("plot_emission_intensity_{sector}.png"),
           plot = plot_emission_intensity,
           device = "png",
-          path = file.path(output_directory, bank_id)
+          path = file.path(output_directory, group_id)
         )
       }
       companies_included <- matched_loanbook %>%
         dplyr::select(
-          "bank_id", "name_abcd", "sector_abcd", "loan_size_outstanding",
+          "group_id", "name_abcd", "sector_abcd", "loan_size_outstanding",
           "loan_size_outstanding_currency", "loan_size_credit_limit",
           "loan_size_credit_limit_currency"
         )
@@ -211,15 +211,15 @@ generate_individual_outputs <- function(data,
         readr::write_csv(
           file = file.path(
             output_directory,
-            bank_id,
+            group_id,
             glue::glue("companies_included_{sector}.csv")
           )
         )
     },
     error = function(e) {
       log_text <- glue::glue(
-        "{Sys.time()} Problem in generating SDA related outputs for bank:
-        {bank_id}, sector: {sector}, region: {region}, scenario_source:
+        "{Sys.time()} Problem in generating SDA related outputs for group:
+        {group_id}, sector: {sector}, region: {region}, scenario_source:
         {scenario_source}, target_scenario: {target_scenario}. \n"
       )
       write(log_text, file = file.path(output_directory, "error_messages.txt"), append = TRUE)
@@ -229,7 +229,7 @@ generate_individual_outputs <- function(data,
 }
 
 validate_input_args_generate_individual_outputs <- function(output_directory,
-                                                            bank_id,
+                                                            group_id,
                                                             scenario_source,
                                                             target_scenario,
                                                             region,
@@ -240,8 +240,8 @@ validate_input_args_generate_individual_outputs <- function(output_directory,
   if (!inherits(output_directory, "character")) {
     stop("Argument output_directory must be of class character. Please check your input.")
   }
-  if (!length(bank_id) == 1) {
-    stop("Argument bank_id must be of length 1. Please check your input.")
+  if (!length(group_id) == 1) {
+    stop("Argument group_id must be of length 1. Please check your input.")
   }
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
@@ -279,7 +279,7 @@ validate_input_data_generate_individual_outputs <- function(data,
       data = data,
       expected_columns = c(
         "sector", "year", "region", "scenario_source", "emission_factor_metric",
-        "emission_factor_value", "bank_id"
+        "emission_factor_value", "group_id"
       )
     )
   } else if (target_type == "tms") {
@@ -288,7 +288,7 @@ validate_input_data_generate_individual_outputs <- function(data,
       expected_columns = c(
         "sector", "technology", "year", "region", "scenario_source", "metric",
         "production", "technology_share", "scope",
-        "percentage_of_initial_production_by_scope", "bank_id"
+        "percentage_of_initial_production_by_scope", "group_id"
       )
     )
   }
@@ -296,7 +296,7 @@ validate_input_data_generate_individual_outputs <- function(data,
   validate_data_has_expected_cols(
     data = matched_loanbook,
     expected_columns = c(
-      "bank_id", "name_abcd", "sector", "sector_abcd", "loan_size_outstanding",
+      "group_id", "name_abcd", "sector", "sector_abcd", "loan_size_outstanding",
       "loan_size_outstanding_currency", "loan_size_credit_limit",
       "loan_size_credit_limit_currency"
     )

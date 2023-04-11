@@ -2,7 +2,7 @@
 #'
 #' @param data data.frame Should have the same format as output of
 #'   `prep_timeline()` and contain columns: 'direction', 'year',
-#'   'exposure_weighted_net_alignment', 'bank_id'.
+#'   'exposure_weighted_net_alignment', 'group_id'.
 #' @param sector Character. Sector name to be used in the plot title.
 #' @param scenario_source Character. Scenario source to be used in the plot
 #'   caption.
@@ -92,7 +92,7 @@ plot_timeline <- function(
       limits = alignment_limits,
       labels = scales::percent
     ) +
-    facet_grid(bank_id~direction, labeller = as_labeller(format_facet_labels)) +
+    facet_grid(group_id~direction, labeller = as_labeller(format_facet_labels)) +
     r2dii.plot::theme_2dii() +
     theme(
       panel.background = element_rect(fill = "#6c6c6c")
@@ -107,7 +107,7 @@ plot_timeline <- function(
 
 check_timeline <- function(data, alignment_limits) {
   r2dii.plot:::abort_if_missing_names(data, c("direction", "year",
-   "exposure_weighted_net_alignment", "bank_id"))
+   "exposure_weighted_net_alignment", "group_id"))
   if ((length(alignment_limits) != 2) | (!is.numeric(alignment_limits))){
     rlang::abort("'alignment_limits' must be a numeric vector of size 2.")
   }

@@ -28,7 +28,8 @@ Imports:
     rlang,
     tidyr,
     tibble,
-    webshot
+    webshot,
+    plotly
 Depends: 
     R (>= 2.10)
 LazyData: true
