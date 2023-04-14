@@ -1,4 +1,4 @@
-Package: pacta.supervisor.analysis
+Package: pacta.aggregate.loanbook.plots
 Title: Functions to Help Interpret PACTA for Banks Results for Many Institutions
 Version: 0.0.0.9000
 Authors@R: 
