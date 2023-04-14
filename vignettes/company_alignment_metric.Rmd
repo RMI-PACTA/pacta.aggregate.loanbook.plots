@@ -1,0 +1,151 @@
+---
+title: "Calculation of a company alignment metric"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculation of a company alignment metric}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+PACTA methodology note\
+**Calculation of a company alignment metric**
+
+Prepared by Jacob Kastl
+
+## 1. Background
+
+### 1.1 The use case for aggregated alignment metrics
+
+The company alignment metric described below is intended to help make sense of alignment patterns in large analyses, e.g. in the case of a supervisory analysis of the banking system, where many loan books are compared. In such situations, high level results are helpful in highlighting the most important patterns that warrant an in-depth analysis of the more granular standard PACTA metrics.
+
+Identifying such patterns means that we need to reduce the information to a more manageable quantity. While this inevitably leads to a loss of granularity, this is justifiable for summarizing main findings, as long as the outcomes are consistent with the main PACTA metrics.
+
+We choose an approach that first aggregates company alignment to a relative metric at the company/sector level for each of the PACTA sectors the company operates in. A methodology to calculating this metric is provided both for the market share approach and the sectoral decarbonization approach.
+
+
+## 2. The company alignment metric
+
+#### 2.1 Basic concepts of the company alignment metric
+
+In this section, we derive the company alignment metric mathematically and provide interpretations of the relevant pieces. While in practice, this metric will most often be calculate at time $t = 5$, it can be calculated for any point in time, which is why we generalise.
+
+For companies operating in sectors where clear technology transitions should take place, certain technologies need to be built out ($BO$) whilst others need to be phased out ($PO$). We define the direction $d$ of technology $a$ in sector $b$ as:
+
+\[ d_{a,b} =
+  \begin{cases}
+    BO       & \quad \text{if } a \text{ is a low-carbon technology}\\
+    PO  & \quad \text{if } a \text{ is a high-carbon technology}
+  \end{cases},
+\]
+
+where low-carbon technology and high-carbon technology are mutually exclusive categories.
+
+The forward-looking production plan $p$ of company $c$ for technology $a$ in sector $b$ at time $t$ is:
+
+$$p_{a,b,c,d,t}$$
+
+Which means that at the sector level, we get a _net_ production plan of:
+
+$$p_{b,c,t} = \sum_{\forall a \in b} p_{a,b,c,d,t}$$
+Correspondingly, the scenario-based production value $s$ of company $c$ for technology $a$ in sector $b$ at time $t$ is:
+
+$$s_{a,b,c,d,t}$$
+
+and at the sector level, we therefore get a _net_ scenario-based production value of:
+
+$$s_{b,c,t} = \sum_{\forall a \in b} s_{a,b,c,d,t}$$
+We define a directional dummy variable $D$ for technology $a$, given its direction $d$ in sector $b$ as:
+
+\[ D_{a,b,d} =
+  \begin{cases}
+    1       & \quad \text{if } d_{a,b} = BO\\
+    -1  & \quad \text{if } d_{a,b} = PO
+  \end{cases}
+\]
+
+With these definitions, we calculate the total technology deviation ($\Delta total$) of company $c$ for technology $a$ in sector $b$ at time $t$ as:
+
+$$\Delta total_{a,b,c,d,t} = (p_{a,b,c,d,t} - s_{a,b,c,d,t}) \times D_{a,b,d}$$
+Note that the total technology deviation will be considered aligned when >= 0 and misaligned when < 0. The Directional dummy ensures this is the case both for build out and phase out technologies.
+
+#### 2.1.1 Addressing scenarios with bridge technologies
+
+In case a technology trajectory in a transition scenario cannot be clearly classified as a build out or phase out technology over the near to medium term, we treat such a technology as a bridge technology. More specifically, this is the case, when the production trajectory for a technology remains stagnant or the changes vary in direction over a time frame needed to carry out new investments. Usually, a bridge technology will be a high-carbon technology that is less emissions intensive than other high-carbon technologies which need to be phased out first. Whether or not a technology is considered a bridge technology therefore depends largely on scenario assumptions and will sometimes differ between regions even within a scenario.
+
+As a bridge technology is considered high-carbon in principle, but should not yet be phased out, we need to apply a calculation that incentivises production planning as close to the scenario-based value as possible. This ensures that both an overshoot and an undershoot will lead to deteriorating alignment metrics.
+
+We therefore use a two-sided misalignment logic, which adjusts the total technology deviation for bridge technology $a$ at time $t$ as:
+
+$$\Delta total_{a,b,c,d,t}^{bridge} = -|p_{a,b,c,d,t} - s_{a,b,c,d,t}|$$
+Contrary to the standard formulation of the technology alignment deviation, the technology deviation for a bridge technology has a maximum at 0, on the basis that the production forecast exactly meets the scenario-based value at time $t$. Any deviation from that is considered misalignment. The remainder of the calculation remains unchanged.
+
+
+### 2.2 Net aggregate company alignment metric
+
+Based on the total technology deviations calculated above, we can now derive the net aggregate company alignment metric $y$. To derive the net aggregate company alignment metric, we first define calculate the total deviation of company $c$ for sector $b$ at time $t$ as:
+
+$$\Delta total_{b,c,t} = \sum_{\forall a \in b} \Delta total_{a,b,c,d,t}$$
+We then note that the total scenario-based value for company $c$ in sector $b$ at time $t$ is:
+
+$$total_{b,c,t}^{scen} = s_{b,c,t} = \sum_{\forall a \in b} s_{a,b,c,d,t}$$
+With these definitions, we derive the net aggregate company alignment metric $y$ for company $c$ in sector $b$ at time $t$ as:
+
+$$y_{b,c,t} = \dfrac{\Delta total_{b,c,t}}{total_{b,c,t}^{scen}}$$
+
+#### Interpretation:
+
+**TODO**
+
+
+### 2.3 Build out and phase out company alignment metric
+
+One particular strength of the PACTA metrics for sectors with technology pathways is that it will surface misalignment on the technology level, which matters particularly in sectors that include both build out and phase out technologies. Transition scenarios often assume that particular technologies must be phased out in order to remain within a carbon budget. Therefore, alignment metrics should not obscure the need to phase out or build out technologies by simply adding up bidirectional technology deviations. To account for this, we define a disaggregation of the net aggregate company alignment metric into its build out and phase out drivers. While this falls short of the maximum granularity by design, it ensures that opposite trends in build out and phase out are not obscured by the analysis.
+
+The disaggregation of the net aggregate company alignment metric into its $BO$ and $PO$ drivers is designed such that the resulting sum of the disaggregated metrics equals the net metric, because build out and phase out technologies are mutually exclusive sets. To calculate the $BO$ and $PO$ company alignment metrics, we need to derive the total deviation of company $c$ by technology direction $d$ in sector $b$ at time $t$ as:
+
+$$\Delta total_{b,c,d,t} = \sum_{\forall a \in b,d} \Delta total_{a,b,c,d,t}$$
+The $BO$($PO$) company alignment metric $y$ of company $c$ by technology direction $d$ in sector $b$ at time $t$ is then defined as:
+
+$$y_{b,c,d,t} = \dfrac{\Delta total_{b,c,d,t}}{total_{b,c,t}^{scen}}$$
+Note that the denominator remains at the net level so that the sum of the disaggregated metrics is the net metric:
+
+$$y_{b,c,d=BO,t} + y_{b,c,d=PO,t} = \dfrac{\Delta total_{b,c,d=BO,t} + \Delta total_{b,c,d=PO,t}}{total_{b,c,t}^{scen}} = \dfrac{\Delta total_{b,c,t}}{total_{b,c,t}^{scen}} = y_{b,c,t}$$
+This must be true because every technology $a$ must have one and only one direction $d \in \left\{BO,PO\right\}$.
+
+#### Interpretation:
+
+**TODO**
+
+### 2.4 Net aggregate company alignment metric in emissions intensity sectors
+
+For sectors where alignment is calculated using emissions intensity metrics there is no distinction between build out and phase out technologies. This means there is only a net aggregate company alignment metric in emissions intensity sectors $y^*$ and the calculation of that metric is much more straight forward.
+
+Let emissions intensity based on forward-looking production plan $p^*$ of company $c$ for sector $b$ at time $t$:
+
+$$p_{b,c,t}^*$$
+We also define scenario-based emissions intensity value $s^*$ of company $c$ for sector $b$ at time $t$ as:
+
+$$s_{b,c,t}^*$$
+We then derive the total emissions intensity deviation ($\Delta total^*$) of company $c$ in sector $b$ at time $t$:
+
+$$\Delta total_{b,c,t}^* = p_{b,c,t}^* - s_{b,c,t}^*$$
+It follows that the alignment measure $y^*$ of company $c$ based on emissions intensities in sector $b$ at time $t$ is:
+
+$$y_{b,c,t}^* = \dfrac{\Delta total_{b,c,t}^*}{s_{b,c,t}}$$
+
+
+#### Interpretation:
+
+**TODO**
+
+### 2.5 The technology share for weighting of build out and phase out
+
+In a later chapter, we discuss how to aggregate company level alignment metrics to the portfolio level. Given the need to calculate aggregations by build out and phase out technologies, we will need to be able to split company weights into
+$BO$ and $PO$ components. For that, we will need the company level information of the technology share of company $c$ for direction $d$ in sector $b$ at time $t$, which we calculate as:
+
+$$technology \: share_{b,c,d,t} = \dfrac{\sum_{\forall a \in b,d} p_{a,b,c,d,t}}{p_{b,c,t}}$$
+The technology share by direction is only used later when disaggregating the net alignment metric into the build out and phase out components as described in the section on **portfolio aggregated alignment metrics**.
+
