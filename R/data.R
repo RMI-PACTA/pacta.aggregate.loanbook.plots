@@ -6,9 +6,3 @@
 
 #' Units for economic activities per sector and technology
 "activity_units"
-
-#' Units for economic activities per sector and technology
-"unit_conversion"
-
-#' Primary energy efficiency factors by power technology
-"primary_energy_efficiency"
