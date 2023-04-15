@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# pacta.supervisor.analysis
+# pacta.aggregate.loanbook.plots
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
