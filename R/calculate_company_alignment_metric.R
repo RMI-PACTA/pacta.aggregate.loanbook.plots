@@ -34,19 +34,15 @@ calculate_company_tech_deviation <- function(data,
                                              bridge_tech = c("none", "gascap")) {
   bridge_tech <- rlang::arg_match(bridge_tech)
 
-  # validate input values
-  validate_input_args_calculate_company_tech_deviation(
-    scenario_source = scenario_source,
-    scenario = scenario,
-    bridge_tech = bridge_tech
-  )
-
-  # validate input data sets
-  validate_input_data_calculate_company_tech_deviation(
+  # validate inputs
+  validate_input_calculate_company_tech_deviation(
     data = data,
     technology_direction = technology_direction,
     scenario_trajectory = scenario_trajectory,
-    green_or_brown = green_or_brown
+    green_or_brown = green_or_brown,
+    scenario_source = scenario_source,
+    scenario = scenario,
+    bridge_tech = bridge_tech
   )
 
   start_year <- min(data$year, na.rm = TRUE)
@@ -350,6 +346,75 @@ calculate_company_aggregate_alignment_sda <- function(data,
     dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
+}
+
+validate_input_calculate_company_tech_deviation <- function(data,
+                                                            technology_direction,
+                                                            scenario_trajectory,
+                                                            green_or_brown,
+                                                            scenario_source,
+                                                            scenario,
+                                                            bridge_tech) {
+  # validate input values
+  validate_input_args_calculate_company_tech_deviation(
+    scenario_source = scenario_source,
+    scenario = scenario,
+    bridge_tech = bridge_tech
+  )
+
+  # validate input data sets
+  validate_input_data_calculate_company_tech_deviation(
+    data = data,
+    technology_direction = technology_direction,
+    scenario_trajectory = scenario_trajectory,
+    green_or_brown = green_or_brown
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data`. You provided ",
+        scenario_source,". Available values are: ",
+        toString(unique(data$scenario_source))
+      )
+    )
+  }
+  if (!any(grepl(pattern = scenario, x = unique(data$metric)))) {
+    stop(
+      paste0(
+        "input value of `scenario` not matched to any sub string in
+        `data$metric`. You provided ", scenario_source,". Available values are: ",
+        data %>%
+          dplyr::filter(grepl("target_", .data$metric)) %>%
+          dplyr::pull(.data$metric) %>%
+          unique() %>%
+          gsub(pattern = "target_", replacement = "") %>%
+          toString()
+      )
+    )
+  }
+
+  if (!scenario_source %in% unique(technology_direction$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `technology_direction`
+        dataset. You provided ", scenario_source,". Available values are: ",
+        toString(unique(technology_direction$scenario_source))
+      )
+    )
+  }
+  if (!scenario %in% unique(technology_direction$scenario)) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `technology_direction`
+        dataset. You provided ", scenario_source,". Available values are: ",
+        toString(unique(technology_direction$scenario))
+      )
+    )
+  }
+
+  invisible()
 }
 
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
