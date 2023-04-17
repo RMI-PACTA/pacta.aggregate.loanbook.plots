@@ -160,12 +160,14 @@ apply_bridge_technology_cap <- function(data,
   data_cap <- data %>%
     dplyr::filter(.data$technology == .env$bridge_tech)
 
+  # any positive alignment for a bridge technology should be considered negative
+  # under the 2-sided cap
   data_cap <- data_cap %>%
     dplyr::mutate(
-      total_tech_deviation = dplyr::case_when(
-        .data$projected < !!rlang::sym(target_scenario) ~ .data$projected - !!rlang::sym(target_scenario),
-        .data$projected > !!rlang::sym(target_scenario) ~ (.data$projected - !!rlang::sym(target_scenario)) * -1,
-        TRUE ~ 0
+      total_tech_deviation = dplyr::if_else(
+        .data$projected > !!rlang::sym(target_scenario),
+        .data$total_tech_deviation * -1,
+        .data$total_tech_deviation
       )
     )
 
