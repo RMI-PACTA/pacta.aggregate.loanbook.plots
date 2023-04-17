@@ -23,14 +23,10 @@ create_benchmark_loanbook <- function(data,
                                       region_isos,
                                       benchmark_region) {
 
-  # check input data
-  validate_data_has_expected_cols(
+  # validate input data sets
+  validate_input_data_create_benchmark_loanbook(
     data = data,
-    expected_columns <- c(
-      "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
-      "technology", "plant_location", "year", "production", "production_unit",
-      "emission_factor", "emission_factor_unit", "ald_timestamp"
-    )
+    region_isos = region_isos
   )
 
   # get NACE sector codes to use in raw loan book of corporate benchmark
@@ -103,4 +99,50 @@ create_benchmark_loanbook <- function(data,
     dplyr::select(-"rowid")
 
   return(loanbook_benchmark)
+}
+
+validate_input_args_create_benchmark_loanbook <- function(scenario_source,
+                                                          start_year,
+                                                          benchmark_region) {
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of class character. Please check your input.")
+  }
+  if (!length(start_year) == 1) {
+    stop("Argument start_year must be of length 1. Please check your input.")
+  }
+  if (!inherits(start_year, "numeric")) {
+    stop("Argument start_year must be of class character. Please check your input.")
+  }
+  if (!length(benchmark_region) > 0) {
+    stop("Argument benchmark_region must have at least one entry, you provided 0. Please check your input.")
+  }
+  if (!inherits(benchmark_region, "character")) {
+    stop("Argument benchmark_region must be of class character. Please check your input.")
+  }
+
+  invisible()
+}
+
+validate_input_data_create_benchmark_loanbook <- function(data,
+                                                          region_isos) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns <- c(
+      "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
+      "technology", "plant_location", "year", "production", "production_unit",
+      "emission_factor", "emission_factor_unit", "ald_timestamp"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = region_isos,
+    expected_columns = c(
+      "region", "isos", "source"
+    )
+  )
+
+  invisible()
 }
