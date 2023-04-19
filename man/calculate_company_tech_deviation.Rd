@@ -9,8 +9,6 @@ production trajectory sectors.}
 calculate_company_tech_deviation(
   data,
   technology_direction,
-  scenario_trajectory,
-  green_or_brown,
   scenario_source = "geco_2021",
   scenario = "1.5c",
   bridge_tech = c("none", "gascap")
@@ -23,12 +21,6 @@ and must return unweighted company level TMSR results.}
 
 \item{technology_direction}{data frame that indicates which technologies are
 to be considered phase down technologies versus build out technologies}
-
-\item{scenario_trajectory}{data frame containing the scenario file with
-information on yearly tmsr and smsp changes by scenario and region.}
-
-\item{green_or_brown}{data frame. Indicates which technologies are to use
-tmsr versus smsp}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
 to use for reference in the calculation of the alignment metrics. Currently,
