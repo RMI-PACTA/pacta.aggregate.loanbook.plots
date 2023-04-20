@@ -7,10 +7,6 @@
 #'   and must return unweighted company level TMSR results.
 #' @param technology_direction data frame that indicates which technologies are
 #'   to be considered phase down technologies versus build out technologies
-#' @param scenario_trajectory data frame containing the scenario file with
-#'   information on yearly tmsr and smsp changes by scenario and region.
-#' @param green_or_brown data frame. Indicates which technologies are to use
-#'   tmsr versus smsp
 #' @param scenario_source Character. Vector that indicates which scenario_source
 #'   to use for reference in the calculation of the alignment metrics. Currently,
 #'   the only supported value is `"geco_2021"`.
@@ -27,8 +23,6 @@
 #' @export
 calculate_company_tech_deviation <- function(data,
                                              technology_direction,
-                                             scenario_trajectory,
-                                             green_or_brown,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
                                              bridge_tech = c("none", "gascap")) {
@@ -441,9 +435,7 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
 }
 
 validate_input_data_calculate_company_tech_deviation <- function(data,
-                                                                 technology_direction,
-                                                                 scenario_trajectory,
-                                                                 green_or_brown) {
+                                                                 technology_direction) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns = c(
@@ -458,21 +450,6 @@ validate_input_data_calculate_company_tech_deviation <- function(data,
     expected_columns = c(
       "scenario_source", "scenario", "sector", "technology", "region",
       "directional_dummy"
-    )
-  )
-
-  validate_data_has_expected_cols(
-    data = scenario_trajectory,
-    expected_columns = c(
-      "scenario_source", "scenario", "sector", "technology", "region", "year",
-      "tmsr", "smsp"
-    )
-  )
-
-  validate_data_has_expected_cols(
-    data = green_or_brown,
-    expected_columns = c(
-      "sector", "technology", "green_or_brown"
     )
   )
 
