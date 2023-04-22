@@ -28,7 +28,7 @@ We choose an approach that first aggregates company alignment to a relative metr
 
 ## 2. The company alignment metric
 
-#### 2.1 Basic concepts of the company alignment metric
+### 2.1 Basic concepts of the company alignment metric
 
 In this section, we derive the company alignment metric mathematically and provide interpretations of the relevant pieces. While in practice, this metric will most often be calculate at time $t = 5$, it can be calculated for any point in time, which is why we generalise.
 
