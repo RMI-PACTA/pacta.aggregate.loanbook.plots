@@ -1,0 +1,52 @@
+---
+title: "Calculation of exposure-weighted aggregated alignment metric"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculation of exposure-weighted aggregated alignment metric}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+PACTA methodology note\
+**Calculation of exposure-weighted aggregated alignment metric**
+
+Prepared by Jacob Kastl
+
+## 1. Background
+
+### 1.1 The use case for exposure-weighted aggregated alignment metrics
+
+The company alignment metric described in the previous chapter is the first building block needed to help make sense of alignment patterns in large analyses. This vignette describes how such copany/sector level metrics can be aggregated to the loan book level to facilitate the identification of systemic patterns.
+
+
+## 2. Exposure-weighted aggregated alignment metric
+
+### 2.1 Defining exposure weights at the company/sector level
+
+The exposure-weighted net (or buildout/phaseout) alignment for a given loan book is calculated as follows:
+
+Loan exposure $l$ (debt outstanding) of bank $n$ to company $c$ in sector $b$, at time $t = 0$:
+
+$$l_{n,b,c,t = 0}$$
+In aggregating the buildout/phaseout values, an approximation of how the loan exposure is split between the buildout/phaseout technologies within a sector is made based on the technology share and is calculated as follows:
+
+$$l_{n,b,c,d,t = 0} = l_{n,b,c,t = 0} \times technology \: share_{b,c,d,t = 5}$$
+
+The technology share is calculated based on the company’s production plan values 5 years forward looking. This reflects splitting the loan by the company's planned future technology mix in $t=5$. This is preferred over taking the technology share at the start year as this may lead to loans not being split if a company has no technology capacity in the start year but ambitious buildout plans for year 5. Moreover, for a company that plans to build out capacity for a given technology beyond the start year to appear in the asset based company-level data set they will have committed capital towards it in the start year.
+
+### 2.2 Aggregating the company/sector level metric to the loan book/sector level
+
+Giving the exposure-weighted net alignment metric $Y$ at the loan book/sector level, as follows:
+
+$$Y_{n,b,t} = \dfrac{l_{n,b,c,t=0}}{\sum_{c} l_{n,b,c,t=0}} \times y_{b,c,t}$$
+
+Where applicable the exposure-weighted buildout/phaseout-alignment metric can be calculated as:
+
+$$Y_{n,b,d,t} = \dfrac{l_{n,b,c,d,t=0}}{\sum_{c} l_{n,b,c,d,t=0}} \times y_{b,c,d,t}$$
+
+#### Interpretation:
+
+**TODO**
