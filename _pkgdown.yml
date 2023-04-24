@@ -5,7 +5,7 @@ template:
   bootstrap: 5
   params:
     bootswatch: flatly
-url: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/
+url: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots
 navbar:
   type: default
   left:
