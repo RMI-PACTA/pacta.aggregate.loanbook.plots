@@ -186,16 +186,10 @@ calculate_company_aggregate_alignment_tms <- function(data,
                                                       scenario_source = "geco_2021",
                                                       scenario = "1.5c",
                                                       level = c("net", "bo_po")) {
-
-  # validate input values
-  validate_input_args_calculate_company_aggregate_alignment_tms(
-    scenario_source = scenario_source,
-    scenario = scenario
-  )
-
-  # validate input data set
-  validate_input_data_calculate_company_aggregate_alignment_tms(
+  # validate inputs
+  validate_input_calculate_company_aggregate_alignment_tms(
     data = data,
+    scenario_source = scenario_source,
     scenario = scenario
   )
 
@@ -272,16 +266,12 @@ calculate_company_aggregate_alignment_sda <- function(data,
                                                       scenario_emission_intensities,
                                                       scenario_source = "geco_2021",
                                                       scenario = "1.5c") {
-  # validate input values
-  validate_input_args_calculate_company_aggregate_alignment_sda(
+  # validate inputs
+  validate_input_calculate_company_aggregate_alignment_sda(
+    data = data,
+    scenario_emission_intensities = scenario_emission_intensities,
     scenario_source = scenario_source,
     scenario = scenario
-  )
-
-  # validate input data set
-  validate_input_data_calculate_company_aggregate_alignment_sda(
-    data = data,
-    scenario_emission_intensities = scenario_emission_intensities
   )
 
   start_year <- min(data$year, na.rm = TRUE)
@@ -392,7 +382,7 @@ validate_input_calculate_company_tech_deviation <- function(data,
     stop(
       paste0(
         "input value of `scenario` not found in `technology_direction`
-        dataset. You provided ", scenario_source,". Available values are: ",
+        dataset. You provided ", scenario,". Available values are: ",
         toString(unique(technology_direction$scenario))
       )
     )
@@ -448,6 +438,34 @@ validate_input_data_calculate_company_tech_deviation <- function(data,
   invisible()
 }
 
+validate_input_calculate_company_aggregate_alignment_tms <- function(data,
+                                                                     scenario_source,
+                                                                     scenario) {
+  # validate input values
+  validate_input_args_calculate_company_aggregate_alignment_tms(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_alignment_tms(
+    data = data,
+    scenario = scenario
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
+
+  invisible()
+}
+
 validate_input_args_calculate_company_aggregate_alignment_tms <- function(scenario_source,
                                                                           scenario) {
   if (!length(scenario_source) == 1) {
@@ -476,6 +494,49 @@ validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
       "total_tech_deviation", "activity_unit", "technology_share_by_direction"
     )
   )
+
+  invisible()
+}
+
+validate_input_calculate_company_aggregate_alignment_sda <- function(data,
+                                                                     scenario_emission_intensities,
+                                                                     scenario_source,
+                                                                     scenario) {
+  # validate input values
+  validate_input_args_calculate_company_aggregate_alignment_sda(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_alignment_sda(
+    data = data,
+    scenario_emission_intensities = scenario_emission_intensities
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
+  available_scenarios <- data %>%
+    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
+    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
+    dplyr::pull(.data$emission_factor_metric) %>%
+    unique() %>%
+    toString()
+  if (!scenario %in% available_scenarios) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
+        scenario,". Available values are: ", available_scenarios
+      )
+    )
+  }
 
   invisible()
 }
