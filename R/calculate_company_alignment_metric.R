@@ -32,8 +32,6 @@ calculate_company_tech_deviation <- function(data,
   validate_input_calculate_company_tech_deviation(
     data = data,
     technology_direction = technology_direction,
-    scenario_trajectory = scenario_trajectory,
-    green_or_brown = green_or_brown,
     scenario_source = scenario_source,
     scenario = scenario,
     bridge_tech = bridge_tech
@@ -340,8 +338,6 @@ calculate_company_aggregate_alignment_sda <- function(data,
 
 validate_input_calculate_company_tech_deviation <- function(data,
                                                             technology_direction,
-                                                            scenario_trajectory,
-                                                            green_or_brown,
                                                             scenario_source,
                                                             scenario,
                                                             bridge_tech) {
@@ -355,9 +351,7 @@ validate_input_calculate_company_tech_deviation <- function(data,
   # validate input data sets
   validate_input_data_calculate_company_tech_deviation(
     data = data,
-    technology_direction = technology_direction,
-    scenario_trajectory = scenario_trajectory,
-    green_or_brown = green_or_brown
+    technology_direction = technology_direction
   )
 
   # consistency checks
@@ -428,8 +422,6 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
   if (!inherits(bridge_tech, "character")) {
     stop("Argument bridge_tech must be of class character. Please check your input.")
   }
-
-
 
   invisible()
 }
