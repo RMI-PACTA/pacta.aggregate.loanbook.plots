@@ -14,6 +14,6 @@ navbar:
   - text: Articles
     menu:
     - text: Company alignment metric
-      href: articles/company-alignment-metric.html
+      href: articles/company_alignment_metric.html
     - text: Exposure-weighted aggregated alignment metric
-      href: articles/loanbook-aggregated-alignment-metric.html
+      href: articles/loanbook_aggregated_alignment_metric.html
