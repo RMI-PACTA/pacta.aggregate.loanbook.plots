@@ -19,10 +19,19 @@ Prepared by Jacob Kastl
 
 ### 1.1 The use case for exposure-weighted aggregated alignment metrics
 
-The company alignment metric described in the previous chapter is the first building block needed to help make sense of alignment patterns in large analyses. This vignette describes how such copany/sector level metrics can be aggregated to the loan book level to facilitate the identification of systemic patterns.
+The company alignment metric described in the previous chapter is the first building block needed to help make sense of alignment patterns in large analyses. This vignette describes how such company/sector level metrics can be aggregated to the loan book level to facilitate the identification of systemic patterns.
+
+The aggregations described below can be made at any defined level of a loan book. More precisely, a loan book can be defined as anything between a sub selection of loans from one bank's loan book to the aggregated loan book of an entire PACTA sector across banks. Common levels of analysis will be:
+
+(1) aggregations to the bank level, to facilitate bank-by-bank comparison and 
+(2) aggregations to the bank group level, to understand patterns common to different types of financial institutions.
+
+Any other level of anylsis can be investigated too, using this same approach.
 
 
 ## 2. Exposure-weighted aggregated alignment metric
+
+To obtain a loan book level aggregation of the company alignment metric, the portfolio weight approach is applied. The exposure weights for each company are derived by dividing the total drawn amount (debt outstanding) loan value as a proportion of the loans to the sector. This assumes the drawn loan amount goes fully towards activity in the given sector.^[Company activity across multiple PACTA sectors can be taken into account using the following approach for [splitting loans in general](https://github.com/RMI-PACTA/workflow.aggregate.loanbooks#optional-calculate-sector-splits-for-multi-sector-energy-companies) and [production based splits for energy companies](https://github.com/RMI-PACTA/workflow.aggregate.loanbooks#methodological-note-sector-split-for-energy-companies).]
 
 ### 2.1 Defining exposure weights at the company/sector level
 
