@@ -23,10 +23,13 @@ create_benchmark_loanbook <- function(data,
                                       region_isos,
                                       benchmark_region) {
 
-  # validate input data sets
-  validate_input_data_create_benchmark_loanbook(
+  # validate inputs
+  validate_input_create_benchmark_loanbook(
     data = data,
-    region_isos = region_isos
+    scenario_source = scenario_source,
+    start_year = start_year,
+    region_isos = region_isos,
+    benchmark_region = benchmark_region
   )
 
   # get NACE sector codes to use in raw loan book of corporate benchmark
@@ -101,6 +104,27 @@ create_benchmark_loanbook <- function(data,
   return(loanbook_benchmark)
 }
 
+validate_input_create_benchmark_loanbook <- function(data,
+                                                     scenario_source,
+                                                     start_year,
+                                                     region_isos,
+                                                     benchmark_region) {
+  # validate input arguments
+  validate_input_args_create_benchmark_loanbook(
+    scenario_source = scenario_source,
+    start_year = start_year,
+    benchmark_region = benchmark_region
+  )
+
+  # validate input data sets
+  validate_input_data_create_benchmark_loanbook(
+    data = data,
+    region_isos = region_isos
+  )
+
+  invisible()
+}
+
 validate_input_args_create_benchmark_loanbook <- function(scenario_source,
                                                           start_year,
                                                           benchmark_region) {
@@ -146,3 +170,4 @@ validate_input_data_create_benchmark_loanbook <- function(data,
 
   invisible()
 }
+
