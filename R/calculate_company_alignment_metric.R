@@ -252,8 +252,6 @@ calculate_company_aggregate_alignment_tms <- function(data,
 #' Return company level sector alignment metric for each company
 #'
 #' @param data data.frame. Holds the PACTA for Banks SDA results on company level.
-#' @param scenario_emission_intensities data frame containing the scenario file with
-#'   information on yearly emission intensity levels.
 #' @param scenario_source Character. Vector that indicates which scenario_source
 #'   to use for reference in the calculation of the alignment metrics. Currently,
 #'   the only supported value is `"geco_2021"`.
@@ -263,13 +261,11 @@ calculate_company_aggregate_alignment_tms <- function(data,
 #' @return NULL
 #' @export
 calculate_company_aggregate_alignment_sda <- function(data,
-                                                      scenario_emission_intensities,
                                                       scenario_source = "geco_2021",
                                                       scenario = "1.5c") {
   # validate inputs
   validate_input_calculate_company_aggregate_alignment_sda(
     data = data,
-    scenario_emission_intensities = scenario_emission_intensities,
     scenario_source = scenario_source,
     scenario = scenario
   )
@@ -499,7 +495,6 @@ validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
 }
 
 validate_input_calculate_company_aggregate_alignment_sda <- function(data,
-                                                                     scenario_emission_intensities,
                                                                      scenario_source,
                                                                      scenario) {
   # validate input values
@@ -510,8 +505,7 @@ validate_input_calculate_company_aggregate_alignment_sda <- function(data,
 
   # validate input data set
   validate_input_data_calculate_company_aggregate_alignment_sda(
-    data = data,
-    scenario_emission_intensities = scenario_emission_intensities
+    data = data
   )
 
   # consistency checks
@@ -560,21 +554,12 @@ validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenar
 }
 
 
-validate_input_data_calculate_company_aggregate_alignment_sda <- function(data,
-                                                                          scenario_emission_intensities) {
+validate_input_data_calculate_company_aggregate_alignment_sda <- function(data) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
       "sector", "year", "region", "scenario_source", "name_abcd",
       "emission_factor_metric", "emission_factor_value", "group_id"
-    )
-  )
-
-  validate_data_has_expected_cols(
-    data = scenario_emission_intensities,
-    expected_columns <- c(
-      "scenario_source", "scenario", "sector", "region", "year",
-      "emission_factor", "emission_factor_unit"
     )
   )
 
