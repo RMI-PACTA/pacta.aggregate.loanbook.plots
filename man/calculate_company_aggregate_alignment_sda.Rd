@@ -6,16 +6,12 @@
 \usage{
 calculate_company_aggregate_alignment_sda(
   data,
-  scenario_emission_intensities,
   scenario_source = "geco_2021",
   scenario = "1.5c"
 )
 }
 \arguments{
 \item{data}{data.frame. Holds the PACTA for Banks SDA results on company level.}
-
-\item{scenario_emission_intensities}{data frame containing the scenario file with
-information on yearly emission intensity levels.}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
 to use for reference in the calculation of the alignment metrics. Currently,
