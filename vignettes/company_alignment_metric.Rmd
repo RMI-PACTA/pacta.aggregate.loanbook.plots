@@ -97,7 +97,9 @@ $$y_{b,c,t} = \dfrac{\Delta total_{b,c,t}}{total_{b,c,t}^{scen}}$$
 
 #### Interpretation:
 
-**TODO**
+The Net Aggregate Company Alignment Metric is a summary of the alignment of a company in a sector across all relevant technologies within that sector. It is intended as an overall summary metric that shows if a company is aligned with a climate scenario on aggregate. As such, the metric is meant to be a starting point for further analysis. It can be used as a basis to aggregate alignments of individual companies in a loan book to get a high level overview of the alignment in that loan book. It can also be used to further disaggregate the company alignment metric to obtain more granular insights about its underlying drivers.
+
+In general, $y_{b,c,t} >= 0$ means that a company is - on aggregate - aligned with a climate scenario, whereas $y_{b,c,t} < 0$ means that it is misaligned. For each of the technologies in the sector that a company operates in, we measure the directional deviation from its corresponding scenario-based value at time $t$. A positive value of this deviation indicates alignment and a negative value indicates misalignment, regardless of the direction of the technology in the given scenario. The sum of those deviations across all technologies is then divided by the company's sector level scenario value at time $t$. This returns a percent deviation of the company production from its scenario value at $t$, where $y = 0$ means that there is no deviation, $y = 1$ means that the company is doing one hundred percent more in terms of buildout and phaseout than it needs to and $y = -0.5$ means that it is doing fifty percent less than it needs to according to the scenario values. Note that this metric does not show exactly where a (mis)alignment comes from. Hence, following up this analysis on a more granular level is always a good idea.
 
 
 ### 2.3 Build out and phase out company alignment metric
@@ -117,7 +119,7 @@ This must be true because every technology $a$ must have one and only one direct
 
 #### Interpretation:
 
-**TODO**
+Previously, it was mentioned that the aggregated value of $y_{b,c,t}$ does not indicate where the sources of (mis)alignment can be found. The disaggregation into $BO$ and $PO$ drivers of the company aggregate alignment metric aims to provide a high level overview of just that. In essence, $y_{b,c,d,t}$ only adds up the technology deviations for either buildout or phaseout technologies, while still dividing by the sector level scenario value of the company (including all technologies). This means that we get a simple disaggregation of the overall alignment metric into its sum parts. Hence, it should not be read as an indicator in isolation. However, the disaggregation can be very helpful in determining if the overall alignment is driven by a lack of buildout or by slow phaseout. Additionally, what may look like overall alignment near the target with $y_{b,c,t}$ close to zero may in theory be composed of significantly overaligned buildout and significantly misaligned phaseout or vice versa. This goes to show that, companies active in sectors with both buidlout and phaseout technologies, it is important to understnad the drivers behind that overall alignment metric.
 
 ### 2.4 Net aggregate company alignment metric in emissions intensity sectors
 
@@ -139,7 +141,7 @@ $$y_{b,c,t}^* = \dfrac{\Delta total_{b,c,t}^*}{s_{b,c,t}}$$
 
 #### Interpretation:
 
-**TODO**
+The company alignment metric for emissions intensity sectors $y_{b,c,t}^*$ follows a similar logic as the one for sectors with technology pathways, in that it measures the percent deviation of the emissions intensity in time $t$ for a company from its scenario-based emissions intensity at time $t$. Again, this means that $y_{b,c,t}^* = 0$ describes a company that is right on track with with its emissions intensity relative to the scenario-based value, whereas $y_{b,c,t}^* = 1$ means the emissions intensity is one hundred percent better (lower) than required by the scenario value and $y_{b,c,t}^* = -0.5$ means that the emissions intensity is fifty percent worse (higher) than implied by the scenario value. There is no disaggregation of emissions intensity based metrics, as these are calculated on the sector level to begin with.
 
 ### 2.5 The technology share for weighting of build out and phase out
 
