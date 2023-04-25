@@ -147,5 +147,5 @@ In a later chapter, we discuss how to aggregate company level alignment metrics 
 $BO$ and $PO$ components. For that, we will need the company level information of the technology share of company $c$ for direction $d$ in sector $b$ at time $t$, which we calculate as:
 
 $$technology \: share_{b,c,d,t} = \dfrac{\sum_{\forall a \in b,d} p_{a,b,c,d,t}}{p_{b,c,t}}$$
-The technology share by direction is only used later when disaggregating the net alignment metric into the build out and phase out components as described in the section on **portfolio aggregated alignment metrics**.
+The technology share by direction is only used later when disaggregating the net alignment metric into the build out and phase out components as described in the section on [portfolio aggregated alignment metrics](https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/articles/loanbook_aggregated_alignment_metric.html).
 
