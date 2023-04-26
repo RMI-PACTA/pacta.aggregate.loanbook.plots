@@ -1,0 +1,19 @@
+destination: docs
+development:
+  mode: auto
+template:
+  bootstrap: 5
+  params:
+    bootswatch: flatly
+url: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots
+navbar:
+  type: default
+  left:
+  - text: Reference
+    href: reference/index.html
+  - text: Articles
+    menu:
+    - text: Company alignment metric
+      href: articles/company_alignment_metric.html
+    - text: Exposure-weighted aggregated alignment metric
+      href: articles/loanbook_aggregated_alignment_metric.html

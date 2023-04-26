@@ -37,3 +37,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/
