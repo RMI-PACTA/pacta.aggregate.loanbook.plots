@@ -23,14 +23,13 @@ create_benchmark_loanbook <- function(data,
                                       region_isos,
                                       benchmark_region) {
 
-  # check input data
-  validate_data_has_expected_cols(
+  # validate inputs
+  validate_input_create_benchmark_loanbook(
     data = data,
-    expected_columns <- c(
-      "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
-      "technology", "plant_location", "year", "production", "production_unit",
-      "emission_factor", "emission_factor_unit", "ald_timestamp"
-    )
+    scenario_source = scenario_source,
+    start_year = start_year,
+    region_isos = region_isos,
+    benchmark_region = benchmark_region
   )
 
   # get NACE sector codes to use in raw loan book of corporate benchmark
@@ -104,3 +103,105 @@ create_benchmark_loanbook <- function(data,
 
   return(loanbook_benchmark)
 }
+
+validate_input_create_benchmark_loanbook <- function(data,
+                                                     scenario_source,
+                                                     start_year,
+                                                     region_isos,
+                                                     benchmark_region) {
+  # validate input arguments
+  validate_input_args_create_benchmark_loanbook(
+    scenario_source = scenario_source,
+    start_year = start_year,
+    benchmark_region = benchmark_region
+  )
+
+  # validate input data sets
+  validate_input_data_create_benchmark_loanbook(
+    data = data,
+    region_isos = region_isos
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(region_isos$source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `region_isos$source`. You provided ",
+        scenario_source,". Available values are: ",
+        toString(unique(region_isos$source))
+      )
+    )
+  }
+  available_regions <- region_isos %>%
+    dplyr::filter(.data$source == .env$scenario_source)
+
+  if (!benchmark_region %in% unique(available_regions$region)) {
+    stop(
+      paste0(
+        "input value of `benchmark_region` not found in `region_isos$region` for the given `scenario_source`. You provided ",
+        benchmark_region,". Available values are: ",
+        toString(unique(available_regions$region)), ". For the selected scenario_source: ",
+        scenario_source, ", the following input region cannot be found: ",
+        setdiff(benchmark_region, unique(available_regions$region)),
+        ". Please check the regions data for updates or select another benchmark region."
+      )
+    )
+  }
+  if (!start_year %in% unique(data$year)) {
+    stop(
+      paste0(
+        "input value of `start_year` not found in `data$year`. You provided ",
+        start_year,". Available values are: ", toString(unique(data$year))
+      )
+    )
+  }
+
+  invisible()
+}
+
+validate_input_args_create_benchmark_loanbook <- function(scenario_source,
+                                                          start_year,
+                                                          benchmark_region) {
+  if (!length(scenario_source) == 1) {
+    stop("Argument scenario_source must be of length 1. Please check your input.")
+  }
+  if (!inherits(scenario_source, "character")) {
+    stop("Argument scenario_source must be of class character. Please check your input.")
+  }
+  if (!length(start_year) == 1) {
+    stop("Argument start_year must be of length 1. Please check your input.")
+  }
+  if (!inherits(start_year, "numeric")) {
+    stop("Argument start_year must be of class character. Please check your input.")
+  }
+  if (!length(benchmark_region) > 0) {
+    stop("Argument benchmark_region must have at least one entry, you provided 0. Please check your input.")
+  }
+  if (!inherits(benchmark_region, "character")) {
+    stop("Argument benchmark_region must be of class character. Please check your input.")
+  }
+
+  invisible()
+}
+
+validate_input_data_create_benchmark_loanbook <- function(data,
+                                                          region_isos) {
+  validate_data_has_expected_cols(
+    data = data,
+    expected_columns <- c(
+      "company_id", "name_company", "lei", "is_ultimate_owner", "sector",
+      "technology", "plant_location", "year", "production", "production_unit",
+      "emission_factor", "emission_factor_unit", "ald_timestamp"
+    )
+  )
+
+  validate_data_has_expected_cols(
+    data = region_isos,
+    expected_columns = c(
+      "region", "isos", "source"
+    )
+  )
+
+  invisible()
+}
+

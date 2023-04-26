@@ -28,17 +28,13 @@ calculate_company_tech_deviation <- function(data,
                                              bridge_tech = c("none", "gascap")) {
   bridge_tech <- rlang::arg_match(bridge_tech)
 
-  # validate input values
-  validate_input_args_calculate_company_tech_deviation(
+  # validate inputs
+  validate_input_calculate_company_tech_deviation(
+    data = data,
+    technology_direction = technology_direction,
     scenario_source = scenario_source,
     scenario = scenario,
     bridge_tech = bridge_tech
-  )
-
-  # validate input data sets
-  validate_input_data_calculate_company_tech_deviation(
-    data = data,
-    technology_direction = technology_direction
   )
 
   start_year <- min(data$year, na.rm = TRUE)
@@ -139,7 +135,7 @@ calculate_company_tech_deviation <- function(data,
     dplyr::select(-"prod_sector")
 
   # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
-  if (bridge_tech == "gascap") {
+  if (identical(bridge_tech, "gascap")) {
     data <- data %>%
       apply_bridge_technology_cap(
         bridge_tech = bridge_tech,
@@ -156,14 +152,10 @@ apply_bridge_technology_cap <- function(data,
   data_cap <- data %>%
     dplyr::filter(.data$technology == .env$bridge_tech)
 
+  # any deviation from the scenario-based value is considered misaligned under
+  # the 2-sided cap
   data_cap <- data_cap %>%
-    dplyr::mutate(
-      total_tech_deviation = dplyr::case_when(
-        .data$projected < !!rlang::sym(target_scenario) ~ .data$projected - !!rlang::sym(target_scenario),
-        .data$projected > !!rlang::sym(target_scenario) ~ (.data$projected - !!rlang::sym(target_scenario)) * -1,
-        TRUE ~ 0
-      )
-    )
+    dplyr::mutate(total_tech_deviation = abs(.data$total_tech_deviation) * -1)
 
   data <- data %>%
     dplyr::filter(.data$technology != .env$bridge_tech) %>%
@@ -194,16 +186,10 @@ calculate_company_aggregate_alignment_tms <- function(data,
                                                       scenario_source = "geco_2021",
                                                       scenario = "1.5c",
                                                       level = c("net", "bo_po")) {
-
-  # validate input values
-  validate_input_args_calculate_company_aggregate_alignment_tms(
-    scenario_source = scenario_source,
-    scenario = scenario
-  )
-
-  # validate input data set
-  validate_input_data_calculate_company_aggregate_alignment_tms(
+  # validate inputs
+  validate_input_calculate_company_aggregate_alignment_tms(
     data = data,
+    scenario_source = scenario_source,
     scenario = scenario
   )
 
@@ -277,14 +263,12 @@ calculate_company_aggregate_alignment_tms <- function(data,
 calculate_company_aggregate_alignment_sda <- function(data,
                                                       scenario_source = "geco_2021",
                                                       scenario = "1.5c") {
-  # validate input values
-  validate_input_args_calculate_company_aggregate_alignment_sda(
+  # validate inputs
+  validate_input_calculate_company_aggregate_alignment_sda(
+    data = data,
     scenario_source = scenario_source,
     scenario = scenario
   )
-
-  # validate input data set
-  validate_input_data_calculate_company_aggregate_alignment_sda(data = data)
 
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
@@ -338,6 +322,71 @@ calculate_company_aggregate_alignment_sda <- function(data,
   return(data)
 }
 
+validate_input_calculate_company_tech_deviation <- function(data,
+                                                            technology_direction,
+                                                            scenario_source,
+                                                            scenario,
+                                                            bridge_tech) {
+  # validate input values
+  validate_input_args_calculate_company_tech_deviation(
+    scenario_source = scenario_source,
+    scenario = scenario,
+    bridge_tech = bridge_tech
+  )
+
+  # validate input data sets
+  validate_input_data_calculate_company_tech_deviation(
+    data = data,
+    technology_direction = technology_direction
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data`. You provided ",
+        scenario_source,". Available values are: ",
+        toString(unique(data$scenario_source))
+      )
+    )
+  }
+  if (!any(grepl(pattern = scenario, x = unique(data$metric)))) {
+    stop(
+      paste0(
+        "input value of `scenario` not matched to any sub string in
+        `data$metric`. You provided ", scenario_source,". Available values are: ",
+        data %>%
+          dplyr::filter(grepl("target_", .data$metric)) %>%
+          dplyr::pull(.data$metric) %>%
+          unique() %>%
+          gsub(pattern = "target_", replacement = "") %>%
+          toString()
+      )
+    )
+  }
+
+  if (!scenario_source %in% unique(technology_direction$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `technology_direction`
+        dataset. You provided ", scenario_source,". Available values are: ",
+        toString(unique(technology_direction$scenario_source))
+      )
+    )
+  }
+  if (!scenario %in% unique(technology_direction$scenario)) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `technology_direction`
+        dataset. You provided ", scenario,". Available values are: ",
+        toString(unique(technology_direction$scenario))
+      )
+    )
+  }
+
+  invisible()
+}
+
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
                                                                  scenario,
                                                                  bridge_tech) {
@@ -360,8 +409,6 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
     stop("Argument bridge_tech must be of class character. Please check your input.")
   }
 
-
-
   invisible()
 }
 
@@ -383,6 +430,34 @@ validate_input_data_calculate_company_tech_deviation <- function(data,
       "directional_dummy"
     )
   )
+
+  invisible()
+}
+
+validate_input_calculate_company_aggregate_alignment_tms <- function(data,
+                                                                     scenario_source,
+                                                                     scenario) {
+  # validate input values
+  validate_input_args_calculate_company_aggregate_alignment_tms(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_alignment_tms(
+    data = data,
+    scenario = scenario
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
 
   invisible()
 }
@@ -415,6 +490,47 @@ validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
       "total_tech_deviation", "activity_unit", "technology_share_by_direction"
     )
   )
+
+  invisible()
+}
+
+validate_input_calculate_company_aggregate_alignment_sda <- function(data,
+                                                                     scenario_source,
+                                                                     scenario) {
+  # validate input values
+  validate_input_args_calculate_company_aggregate_alignment_sda(
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
+
+  # validate input data set
+  validate_input_data_calculate_company_aggregate_alignment_sda(
+    data = data
+  )
+
+  # consistency checks
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
+  available_scenarios <- data %>%
+    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
+    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
+    dplyr::pull(.data$emission_factor_metric) %>%
+    unique() %>%
+    toString()
+  if (!scenario %in% available_scenarios) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
+        scenario,". Available values are: ", available_scenarios
+      )
+    )
+  }
 
   invisible()
 }
