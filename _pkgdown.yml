@@ -1,11 +1,5 @@
-destination: docs
-development:
-  mode: auto
-template:
-  bootstrap: 5
-  params:
-    bootswatch: flatly
 url: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots
+package: pacta.pkgdown.template
 navbar:
   type: default
   left:
