@@ -1,5 +1,6 @@
 url: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots
-package: pacta.pkgdown.template
+template:
+  package: pacta.pkgdown.template
 navbar:
   type: default
   left:
