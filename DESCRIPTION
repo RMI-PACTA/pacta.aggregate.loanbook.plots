@@ -6,7 +6,7 @@ Authors@R:
              family = "Kastl",
              role = c("aut", "cre"),
              email = "jacob.kastl@gmail.com"),
-      person(given = "Rocky Mountain Institute",
+      person(given = "RMI",
              role = c("cph", "fnd"),
              email = "PACTA4banks@rmi.org"))
 Description: This is an experimental package that contains functions to help
