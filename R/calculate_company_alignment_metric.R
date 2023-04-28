@@ -37,31 +37,15 @@ calculate_company_tech_deviation <- function(data,
     bridge_tech = bridge_tech
   )
 
-  start_year <- min(data$year, na.rm = TRUE)
+  # prep and wrangle data for calculation of company tech deviations
   target_scenario <- paste0("target_", scenario)
 
-  technology_direction <- technology_direction %>%
-    dplyr::filter(
-      .data$scenario_source == .env$scenario_source,
-      grepl(pattern = .env$scenario, x = .data$scenario)
-    ) %>%
-    dplyr::select(c("sector", "technology", "region", "directional_dummy"))
-
   data <- data %>%
-    dplyr::filter(.data$scenario_source == .env$scenario_source)
-
-  data <- data %>%
-    dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
-    dplyr::filter(.data$metric %in% c("projected", target_scenario)) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
-    tidyr::pivot_wider(
-      names_from = "metric",
-      values_from = "production"
+    prep_company_alignment_aggregation(
+      technology_direction = technology_direction,
+      scenario_source = scenario_source,
+      scenario = scenario
     )
-
-  # add directional dummy
-  data <- data %>%
-    dplyr::inner_join(technology_direction, by = c("sector", "technology", "region"))
 
   # remove rows if both projected and target values are 0
   data_to_remove_no_plans_no_target_tech <- data %>%
@@ -105,14 +89,11 @@ calculate_company_tech_deviation <- function(data,
 
   # calculate total deviation per technology
   data <- data %>%
-    dplyr::mutate(
-      total_tech_deviation = (.data$projected - !!rlang::sym(target_scenario)) * .data$directional_dummy
-    )
+    add_total_tech_deviation(target_scenario = target_scenario)
 
-  # add direction
+  # add technology direction
   data <- data %>%
-    dplyr::mutate(direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")) %>%
-    dplyr::select(-"directional_dummy")
+    add_tech_direction()
 
   # add activity unit
   data <- data %>%
@@ -121,8 +102,74 @@ calculate_company_tech_deviation <- function(data,
       by = c("sector", "technology")
     )
 
-  # TODO: functionise and possibly run outside of this function
+  # TODO: possibly run outside of this function
   # add technology share by direction
+  data <- data %>%
+    add_technology_share_by_direction()
+
+  # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
+  if (identical(bridge_tech, "gascap")) {
+    data <- data %>%
+      apply_bridge_technology_cap(
+        bridge_tech = bridge_tech,
+        target_scenario = target_scenario
+      )
+  }
+
+  return(data)
+}
+
+prep_company_alignment_aggregation <- function(data,
+                                               technology_direction,
+                                               scenario_source,
+                                               scenario) {
+  start_year <- min(data$year, na.rm = TRUE)
+
+  technology_direction <- technology_direction %>%
+    dplyr::filter(
+      .data$scenario_source == .env$scenario_source,
+      grepl(pattern = .env$scenario, x = .data$scenario)
+    ) %>%
+    dplyr::select(c("sector", "technology", "region", "directional_dummy"))
+
+  data <- data %>%
+    dplyr::filter(.data$scenario_source == .env$scenario_source)
+
+  data <- data %>%
+    dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
+    dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
+    tidyr::pivot_wider(
+      names_from = "metric",
+      values_from = "production"
+    )
+
+  # add directional dummy
+  data <- data %>%
+    dplyr::inner_join(technology_direction, by = c("sector", "technology", "region"))
+
+  return(data)
+}
+
+add_total_tech_deviation <- function(data,
+                                     target_scenario) {
+  data <- data %>%
+    dplyr::mutate(
+      total_tech_deviation = (.data$projected - !!rlang::sym(target_scenario)) * .data$directional_dummy
+    )
+
+  return(data)
+}
+
+add_tech_direction <- function(data) {
+  data <- data %>%
+    dplyr::mutate(direction = dplyr::if_else(.data$directional_dummy == 1, "buildout", "phaseout")) %>%
+    dplyr::select(-"directional_dummy")
+
+  return(data)
+}
+
+add_technology_share_by_direction <- function(data) {
   data <- data %>%
     dplyr::mutate(
       prod_sector = sum(.data$projected, na.rm = TRUE),
@@ -133,15 +180,6 @@ calculate_company_tech_deviation <- function(data,
       .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "direction", "activity_unit")
     ) %>%
     dplyr::select(-"prod_sector")
-
-  # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
-  if (identical(bridge_tech, "gascap")) {
-    data <- data %>%
-      apply_bridge_technology_cap(
-        bridge_tech = bridge_tech,
-        target_scenario = target_scenario
-      )
-  }
 
   return(data)
 }
