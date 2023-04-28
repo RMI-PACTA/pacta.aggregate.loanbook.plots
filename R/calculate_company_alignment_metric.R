@@ -47,45 +47,9 @@ calculate_company_tech_deviation <- function(data,
       scenario = scenario
     )
 
-  # remove rows if both projected and target values are 0
-  data_to_remove_no_plans_no_target_tech <- data %>%
-    dplyr::group_by(
-      .data$group_id, .data$name_abcd, .data$region, .data$scenario_source,
-      .data$sector, .data$technology, .data$year
-    ) %>%
-    dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
-    dplyr::summarise(
-      projected = sum(.data$projected, na.rm = TRUE),
-      target = sum(.data$target, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(
-      .data$projected == 0,
-      .data$target == 0
-    )
-
-  data_to_remove_no_target_in_sector <- data %>%
-    dplyr::group_by(.data$group_id, .data$name_abcd, .data$region, .data$scenario_source, .data$sector, .data$year) %>%
-    dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
-    dplyr::summarise(
-      target = sum(.data$target, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(.data$target == 0)
-
+  # remove rows with inadequate values
   data <- data %>%
-    dplyr::anti_join(
-      data_to_remove_no_plans_no_target_tech,
-      by = c("group_id", "name_abcd", "region", "scenario_source", "sector", "technology", "year")
-    )
-
-  data <- data %>%
-    dplyr::anti_join(
-      data_to_remove_no_target_in_sector,
-      by = c("group_id", "name_abcd", "region", "scenario_source", "sector", "year")
-    )
+    remove_rows_with_inadequate_values(target_scenario = target_scenario)
 
   # calculate total deviation per technology
   data <- data %>%
@@ -147,6 +111,69 @@ prep_company_alignment_aggregation <- function(data,
   # add directional dummy
   data <- data %>%
     dplyr::inner_join(technology_direction, by = c("sector", "technology", "region"))
+
+  return(data)
+}
+
+remove_rows_with_inadequate_values <- function(data,
+                                               target_scenario) {
+  data <- data %>%
+    # remove rows if both projected and target values are 0 for a technology
+    remove_tech_no_plans_no_target(target_scenario = target_scenario) %>%
+    # remove rows if target values are 0 for a sector
+    remove_sector_no_target(target_scenario = target_scenario)
+
+  return(data)
+}
+
+remove_tech_no_plans_no_target <- function(data,
+                                           target_scenario) {
+  data_to_remove <- data %>%
+    dplyr::group_by(
+      .data$group_id, .data$name_abcd, .data$region, .data$scenario_source,
+      .data$sector, .data$technology, .data$year
+    ) %>%
+    dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
+    dplyr::summarise(
+      projected = sum(.data$projected, na.rm = TRUE),
+      target = sum(.data$target, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(
+      .data$projected == 0,
+      .data$target == 0
+    )
+
+  data <- data %>%
+    dplyr::anti_join(
+      data_to_remove,
+      by = c("group_id", "name_abcd", "region", "scenario_source", "sector", "technology", "year")
+    )
+
+  return(data)
+}
+
+remove_sector_no_target <- function(data,
+                                    target_scenario) {
+  data_to_remove_no_target_in_sector <- data %>%
+    dplyr::group_by(
+      .data$group_id, .data$name_abcd, .data$region, .data$scenario_source,
+      .data$sector, .data$year
+    ) %>%
+    dplyr::rename(target = !!rlang::sym(target_scenario)) %>%
+    dplyr::summarise(
+      target = sum(.data$target, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(.data$target == 0)
+
+  data <- data %>%
+    dplyr::anti_join(
+      data_to_remove_no_target_in_sector,
+      by = c("group_id", "name_abcd", "region", "scenario_source", "sector", "year")
+    )
 
   return(data)
 }
