@@ -52,7 +52,7 @@ calculate_company_tech_deviation <- function(data,
 
   data <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
-    dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
+    dplyr::filter(.data$metric %in% c("projected", target_scenario)) %>%
     dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
     tidyr::pivot_wider(
       names_from = "metric",
