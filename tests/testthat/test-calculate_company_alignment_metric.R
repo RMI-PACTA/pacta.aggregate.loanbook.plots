@@ -210,3 +210,51 @@ test_that("technology shares by direction within a sector are calculated correct
   expect_equal(test_output_add_technology_share_by_direction$technology_share_by_direction, c(0.6, 0.6, 0.4, 0.5, 0.5))
 })
 
+# apply_bridge_technology_cap
+test_bridge_tech <- "bridge_technology"
+
+test_data_apply_bridge_technology_cap_1 <- tibble::tribble(
+          ~technology, ~total_tech_deviation,
+  "bridge_technology",                    10,
+  "bridge_technology",                   -10
+)
+test_data_apply_bridge_technology_cap_2 <- tibble::tribble(
+  ~technology, ~total_tech_deviation,
+  "bridge_technology",                    10,
+  "bridge_technology",                     0
+)
+test_data_apply_bridge_technology_cap_3 <- tibble::tribble(
+         ~technology, ~total_tech_deviation,
+  "other_technology",                    10,
+  "other_technology",                   -10
+)
+test_data_apply_bridge_technology_cap_4 <- tibble::tribble(
+         ~technology, ~total_tech_deviation,
+  "other_technology",                    10,
+  "other_technology",                     0
+)
+
+
+test_output_apply_bridge_technology_cap_1 <- apply_bridge_technology_cap(
+  data = test_data_apply_bridge_technology_cap_1,
+  bridge_tech = test_bridge_tech
+)
+test_output_apply_bridge_technology_cap_2 <- apply_bridge_technology_cap(
+  data = test_data_apply_bridge_technology_cap_2,
+  bridge_tech = test_bridge_tech
+)
+test_output_apply_bridge_technology_cap_3 <- apply_bridge_technology_cap(
+  data = test_data_apply_bridge_technology_cap_3,
+  bridge_tech = test_bridge_tech
+)
+test_output_apply_bridge_technology_cap_4 <- apply_bridge_technology_cap(
+  data = test_data_apply_bridge_technology_cap_4,
+  bridge_tech = test_bridge_tech
+)
+
+test_that("total_tech_deviation is less or equal 0 for all technologies in bridge tech, but unchanged else", {
+  expect_true(all(sign(test_output_apply_bridge_technology_cap_1$total_tech_deviation) == -1))
+  expect_true(all(sign(test_output_apply_bridge_technology_cap_2$total_tech_deviation) %in% c(-1, 0)))
+  expect_equal(sign(test_output_apply_bridge_technology_cap_3$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_3$total_tech_deviation))
+  expect_equal(sign(test_output_apply_bridge_technology_cap_4$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_4$total_tech_deviation))
+})
