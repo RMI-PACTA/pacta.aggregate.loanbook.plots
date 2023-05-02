@@ -212,8 +212,7 @@ add_technology_share_by_direction <- function(data) {
 }
 
 apply_bridge_technology_cap <- function(data,
-                                        bridge_tech,
-                                        target_scenario) {
+                                        bridge_tech) {
   data_cap <- data %>%
     dplyr::filter(.data$technology == .env$bridge_tech)
 
