@@ -74,10 +74,7 @@ calculate_company_tech_deviation <- function(data,
   # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
   if (identical(bridge_tech, "gascap")) {
     data <- data %>%
-      apply_bridge_technology_cap(
-        bridge_tech = bridge_tech,
-        target_scenario = target_scenario
-      )
+      apply_bridge_technology_cap(bridge_tech = bridge_tech)
   }
 
   return(data)
