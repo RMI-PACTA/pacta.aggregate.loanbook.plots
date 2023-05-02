@@ -30,6 +30,135 @@ test_that("calculate_company_tech_deviation returns deviations and directions as
   expect_equal(test_output_calculate_company_tech_deviation$direction, c("buildout", "phaseout"))
 })
 
+# remove_tech_no_plans_no_target
+test_target_scenario <- paste0("target_", test_scenario)
+
+# 1) zero projected and target values
+test_data_remove_tech_no_plans_no_target_1 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,               20, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",          0,                0, "test_group"
+)
+# 2) zero projected value, positive target
+test_data_remove_tech_no_plans_no_target_2 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,               20, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",          0,               10, "test_group"
+)
+# 3) positive projected value, zero target
+test_data_remove_tech_no_plans_no_target_3 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,               20, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         10,                0, "test_group"
+)
+# 4) positive projected and target values
+test_data_remove_tech_no_plans_no_target_4 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,               20, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         75,               60, "test_group"
+)
+# 5) NAs in projected and target values
+# TODO: reconsider if this needs to be handled somewhere else, effectively NAs are treated like zero
+test_data_remove_tech_no_plans_no_target_5 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",   NA_real_,         NA_real_, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",   NA_real_,         NA_real_, "test_group"
+)
+# 6) NA in one of projected and target values
+# TODO: reconsider if this needs to be handled somewhere else, effectively NAs are treated like zero
+test_data_remove_tech_no_plans_no_target_6 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",   NA_real_,         NA_real_, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         40,               20, "test_group"
+)
+
+test_output_remove_tech_no_plans_no_target_1 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_1,
+  target_scenario = test_target_scenario
+)
+test_output_remove_tech_no_plans_no_target_2 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_2,
+  target_scenario = test_target_scenario
+)
+test_output_remove_tech_no_plans_no_target_3 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_3,
+  target_scenario = test_target_scenario
+)
+test_output_remove_tech_no_plans_no_target_4 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_4,
+  target_scenario = test_target_scenario
+)
+test_output_remove_tech_no_plans_no_target_5 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_5,
+  target_scenario = test_target_scenario
+)
+test_output_remove_tech_no_plans_no_target_6 <- remove_tech_no_plans_no_target(
+  data = test_data_remove_tech_no_plans_no_target_6,
+  target_scenario = test_target_scenario
+)
+
+test_that("only rows with zero values in both projected and target values are removed", {
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_1), 1)
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_2), 2)
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_3), 2)
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_4), 2)
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_5), 0)
+  expect_equal(nrow(test_output_remove_tech_no_plans_no_target_6), 1)
+})
+
+# remove_sector_no_target
+test_target_scenario <- paste0("target_", test_scenario)
+
+# 1) zero values in all target values of sector
+test_data_remove_sector_no_target_1 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,                0, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         10,                0, "test_group"
+)
+# 2) zero values in some target values of sector
+test_data_remove_sector_no_target_2 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,                0, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         10,                5, "test_group"
+)
+# 3) zero values in all projected values of sector, but not target
+test_data_remove_sector_no_target_3 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",          0,                0, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",          0,                5, "test_group"
+)
+# 4) NA values in all target values of sector
+# TODO: reconsider if this needs to be handled somewhere else, effectively NAs are treated like zero
+test_data_remove_sector_no_target_4 <- tibble::tribble(
+       ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
+  "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,         NA_real_, "test_group",
+  "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         10,         NA_real_, "test_group"
+)
+
+test_output_remove_sector_no_target_1 <- remove_sector_no_target(
+  data = test_data_remove_sector_no_target_1,
+  target_scenario = test_target_scenario
+)
+test_output_remove_sector_no_target_2 <- remove_sector_no_target(
+  data = test_data_remove_sector_no_target_2,
+  target_scenario = test_target_scenario
+)
+test_output_remove_sector_no_target_3 <- remove_sector_no_target(
+  data = test_data_remove_sector_no_target_3,
+  target_scenario = test_target_scenario
+)
+test_output_remove_sector_no_target_4 <- remove_sector_no_target(
+  data = test_data_remove_sector_no_target_4,
+  target_scenario = test_target_scenario
+)
+
+test_that("only company sector combinations with zero values in all target rows are removed", {
+  expect_equal(nrow(test_output_remove_sector_no_target_1), 0)
+  expect_equal(nrow(test_output_remove_sector_no_target_2), 2)
+  expect_equal(nrow(test_output_remove_sector_no_target_3), 2)
+  expect_equal(nrow(test_output_remove_sector_no_target_4), 0)
+})
+
 # add_total_tech_deviation
 test_data_add_total_tech_deviation <- tibble::tribble(
   ~projected,~target_scenario, ~directional_dummy,
