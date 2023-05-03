@@ -240,48 +240,33 @@ calculate_company_aggregate_alignment_tms <- function(data,
   data <- data %>%
     add_technology_share_by_direction(level = level)
 
-  if (level == "bo_po") {
-    # calculate buildout and phaseout sector alignment_metric
-    data <- data %>%
-      dplyr::mutate(
-        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-        .by = c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year")
-      ) %>%
-      dplyr::summarise(
-        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-        .by = c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year", "net_absolute_scenario_value", "direction", "technology_share_by_direction")
-      ) %>%
-      dplyr::mutate(
-        alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
-        scenario = .env$scenario
-      ) %>%
-      dplyr::select(
-        c(
-          "group_id", "name_abcd", "sector", "activity_unit", "region",
-          "scenario_source", "scenario", "year", "direction", "total_deviation",
-          "technology_share_by_direction", "alignment_metric"
-        )
+  data <- data %>%
+    dplyr::mutate(
+      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year"
       )
-  } else if (level == "net") {
-    # calculate net sector alignment_metric
-    data <- data %>%
-      dplyr::summarise(
-        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-        .by = c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year", "direction", "technology_share_by_direction")
-      ) %>%
-      dplyr::mutate(
-        alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
-        scenario = .env$scenario
-      ) %>%
-      dplyr::select(
-        c(
-          "group_id", "name_abcd", "sector", "activity_unit", "region",
-          "scenario_source", "scenario", "year", "direction", "total_deviation",
-          "alignment_metric"
-        )
+    ) %>%
+    dplyr::summarise(
+      total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year", "net_absolute_scenario_value", "direction",
+        "technology_share_by_direction"
       )
-  }
+    ) %>%
+    dplyr::mutate(
+      alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
+      scenario = .env$scenario
+    ) %>%
+    dplyr::select(
+      c(
+        "group_id", "name_abcd", "sector", "activity_unit", "region",
+        "scenario_source", "scenario", "year", "direction", "total_deviation",
+        "technology_share_by_direction", "alignment_metric"
+      )
+    )
 
   data <- data %>%
     dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
