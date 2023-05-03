@@ -258,3 +258,39 @@ test_that("total_tech_deviation is less or equal 0 for all technologies in bridg
   expect_equal(sign(test_output_apply_bridge_technology_cap_3$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_3$total_tech_deviation))
   expect_equal(sign(test_output_apply_bridge_technology_cap_4$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_4$total_tech_deviation))
 })
+
+# calculate_company_aggregate_alignment_tms
+
+test_data_calculate_company_aggregate_alignment_tms <- tibble::tribble(
+  ~sector,     ~technology, ~year,  ~region, ~scenario_source,     ~name_abcd,    ~group_id, ~projected, ~target_scenario, ~direction, ~total_tech_deviation, ~activity_unit, ~technology_share_by_direction,
+  "power",        "gascap",  2027, "global",    "test_source", "test_company", "test_group",        100,               80, "phaseout",                   -20,           "MW",                              1,
+  "power", "renewablescap",  2027, "global",    "test_source", "test_company", "test_group",         32,               40, "buildout",                    -8,           "MW",                              1
+)
+
+test_scenario_source <- "test_source"
+test_scenario <- "scenario"
+test_level_net <- "net"
+test_level_bo_po <- "bo_po"
+
+test_output_calculate_company_aggregate_alignment_tms_1 <- calculate_company_aggregate_alignment_tms(
+  data = test_data_calculate_company_aggregate_alignment_tms,
+  scenario_source = test_scenario_source,
+  scenario = test_scenario,
+  level = test_level_net
+)
+test_output_calculate_company_aggregate_alignment_tms_2 <- calculate_company_aggregate_alignment_tms(
+  data = test_data_calculate_company_aggregate_alignment_tms,
+  scenario_source = test_scenario_source,
+  scenario = test_scenario,
+  level = test_level_bo_po
+)
+
+# TODO: add expectations for the actual output values
+test_that("calculate_company_aggregate_alignment_tms returns expected outputs", {
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$direction, c("net"))
+  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_1), length(unique(test_data_calculate_company_aggregate_alignment_tms$name_abcd)))
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$total_deviation, sum(test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation))
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$direction, test_data_calculate_company_aggregate_alignment_tms$direction)
+  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_2), 2 * length(unique(test_data_calculate_company_aggregate_alignment_tms$name_abcd)))
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$total_deviation, test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation)
+})
