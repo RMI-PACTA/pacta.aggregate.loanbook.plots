@@ -192,29 +192,11 @@ test_that("tech direction is mapped correctly based on directional dummy", {
   expect_equal(test_output_add_tech_direction$direction, c("phaseout", "buildout"))
 })
 
-# add_technology_share_by_direction
-test_data_add_technology_share_by_direction <- tibble::tribble(
-     ~sector, ~technology,   ~year,  ~region, ~scenario_source,     ~name_abcd, ~projected,    ~group_id, ~direction, ~activity_unit,
-  "sector_A", "technology_A", 2027, "global",    "test_source", "test_company",         10, "test_group", "buildout",    "test_unit",
-  "sector_A", "technology_B", 2027, "global",    "test_source", "test_company",         20, "test_group", "buildout",    "test_unit",
-  "sector_A", "technology_C", 2027, "global",    "test_source", "test_company",         20, "test_group", "phaseout",    "test_unit",
-  "sector_B", "technology_D", 2027, "global",    "test_source", "test_company",         20, "test_group", "buildout",    "test_unit",
-  "sector_B", "technology_E", 2027, "global",    "test_source", "test_company",         20, "test_group", "phaseout",    "test_unit"
-)
-
-test_output_add_technology_share_by_direction <- add_technology_share_by_direction(
-  data = test_data_add_technology_share_by_direction
-)
-
-test_that("technology shares by direction within a sector are calculated correctly", {
-  expect_equal(test_output_add_technology_share_by_direction$technology_share_by_direction, c(0.6, 0.6, 0.4, 0.5, 0.5))
-})
-
 # apply_bridge_technology_cap
 test_bridge_tech <- "bridge_technology"
 
 test_data_apply_bridge_technology_cap_1 <- tibble::tribble(
-          ~technology, ~total_tech_deviation,
+  ~technology, ~total_tech_deviation,
   "bridge_technology",                    10,
   "bridge_technology",                   -10
 )
@@ -224,12 +206,12 @@ test_data_apply_bridge_technology_cap_2 <- tibble::tribble(
   "bridge_technology",                     0
 )
 test_data_apply_bridge_technology_cap_3 <- tibble::tribble(
-         ~technology, ~total_tech_deviation,
+  ~technology, ~total_tech_deviation,
   "other_technology",                    10,
   "other_technology",                   -10
 )
 test_data_apply_bridge_technology_cap_4 <- tibble::tribble(
-         ~technology, ~total_tech_deviation,
+  ~technology, ~total_tech_deviation,
   "other_technology",                    10,
   "other_technology",                     0
 )
@@ -257,4 +239,49 @@ test_that("total_tech_deviation is less or equal 0 for all technologies in bridg
   expect_true(all(sign(test_output_apply_bridge_technology_cap_2$total_tech_deviation) %in% c(-1, 0)))
   expect_equal(sign(test_output_apply_bridge_technology_cap_3$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_3$total_tech_deviation))
   expect_equal(sign(test_output_apply_bridge_technology_cap_4$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_4$total_tech_deviation))
+})
+
+# add_technology_share_by_direction
+test_data_add_technology_share_by_direction <- tibble::tribble(
+     ~sector, ~technology,   ~year,  ~region, ~scenario_source,     ~name_abcd, ~projected,    ~group_id, ~direction, ~activity_unit,
+  "sector_A", "technology_A", 2027, "global",    "test_source", "test_company",         10, "test_group", "buildout",    "test_unit",
+  "sector_A", "technology_B", 2027, "global",    "test_source", "test_company",         20, "test_group", "buildout",    "test_unit",
+  "sector_A", "technology_C", 2027, "global",    "test_source", "test_company",         20, "test_group", "phaseout",    "test_unit",
+  "sector_B", "technology_D", 2027, "global",    "test_source", "test_company",         20, "test_group", "buildout",    "test_unit",
+  "sector_B", "technology_E", 2027, "global",    "test_source", "test_company",         20, "test_group", "phaseout",    "test_unit"
+)
+
+test_level_net <- "net"
+test_level_bo_po <- "bo_po"
+test_level_false <- "foo"
+
+test_output_add_technology_share_by_direction_bo_po <- add_technology_share_by_direction(
+  data = test_data_add_technology_share_by_direction,
+  level = test_level_bo_po
+)
+
+test_that("technology shares by direction within a sector are calculated correctly", {
+  expect_equal(test_output_add_technology_share_by_direction_bo_po$direction, test_data_add_technology_share_by_direction$direction)
+  expect_equal(test_output_add_technology_share_by_direction_bo_po$technology_share_by_direction, c(0.6, 0.6, 0.4, 0.5, 0.5))
+})
+
+test_output_add_technology_share_by_direction_net <- add_technology_share_by_direction(
+  data = test_data_add_technology_share_by_direction,
+  level = test_level_net
+)
+
+test_that("technology shares by direction within a sector are calculated correctly", {
+  expect_equal(test_output_add_technology_share_by_direction_net$direction, rep.int("net", times = nrow(test_data_add_technology_share_by_direction)))
+  expect_equal(test_output_add_technology_share_by_direction_net$technology_share_by_direction, rep.int(1, times = nrow(test_data_add_technology_share_by_direction)))
+})
+
+test_that("technology shares by direction error gracefully with wrong input level", {
+  expect_error(
+    {
+      add_technology_share_by_direction(
+        data = test_data_add_technology_share_by_direction,
+        level = test_level_false
+      )
+    }, "Invalid input provided for argument: level."
+  )
 })
