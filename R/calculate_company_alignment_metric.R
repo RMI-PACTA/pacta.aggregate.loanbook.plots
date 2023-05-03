@@ -314,7 +314,7 @@ add_technology_share_by_direction <- function(data,
         technology_share_by_direction = 1
       )
   } else {
-    stop("Invalid input provided for argument `level`.")
+    stop("Invalid input provided for argument: level.")
   }
 
   return(data)
