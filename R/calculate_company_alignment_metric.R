@@ -570,28 +570,11 @@ validate_input_calculate_company_aggregate_alignment_sda <- function(data,
   )
 
   # consistency checks
-  if (!scenario_source %in% unique(data$scenario_source)) {
-    stop(
-      paste0(
-        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
-        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
-      )
-    )
-  }
-  available_scenarios <- data %>%
-    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
-    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
-    dplyr::pull(.data$emission_factor_metric) %>%
-    unique() %>%
-    toString()
-  if (!scenario %in% available_scenarios) {
-    stop(
-      paste0(
-        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
-        scenario,". Available values are: ", available_scenarios
-      )
-    )
-  }
+  check_consistency_calculate_company_aggregate_alignment_sda(
+    data = data,
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
 
   invisible()
 }
@@ -623,6 +606,34 @@ validate_input_data_calculate_company_aggregate_alignment_sda <- function(data) 
       "emission_factor_metric", "emission_factor_value", "group_id"
     )
   )
+
+  invisible()
+}
+
+check_consistency_calculate_company_aggregate_alignment_sda <- function(data,
+                                                                        scenario_source,
+                                                                        scenario) {
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided: ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
+  available_scenarios <- data %>%
+    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
+    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
+    dplyr::pull(.data$emission_factor_metric) %>%
+    unique()
+  if (!scenario %in% available_scenarios) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
+        scenario,". Available values are: ", toString(available_scenarios)
+      )
+    )
+  }
 
   invisible()
 }
