@@ -1,4 +1,5 @@
 # calculate_company_tech_deviation----
+# styler: off
 test_data_calculate_company_tech_deviation <- tibble::tribble(
        ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd,           ~metric, ~production, ~technology_share,       ~scope, ~percentage_of_initial_production_by_scope,    ~group_id,
   "automotive",  "electric",  2027, "global", "scenario_source", "test_company",       "projected",          25,              0.25,     "sector",                                      0.005, "test_group",
@@ -12,6 +13,7 @@ test_technology_direction <- tibble::tribble(
   "scenario_source", "scenario", "automotive", "electric",  "global",                 1,
   "scenario_source", "scenario", "automotive",      "ice",  "global",                -1
 )
+# styler: on
 
 test_scenario_source <- "scenario_source"
 test_scenario <- "scenario"
@@ -34,6 +36,7 @@ test_that("calculate_company_tech_deviation returns deviations and directions as
 test_target_scenario <- paste0("target_", test_scenario)
 
 # 1) zero projected and target values
+# styler: off
 test_data_remove_tech_no_plans_no_target_1 <- tibble::tribble(
        ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
   "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,               20, "test_group",
@@ -71,6 +74,7 @@ test_data_remove_tech_no_plans_no_target_6 <- tibble::tribble(
   "automotive",  "electric",  2027, "global", "scenario_source", "test_company",   NA_real_,         NA_real_, "test_group",
   "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         40,               20, "test_group"
 )
+# styler: on
 
 test_output_remove_tech_no_plans_no_target_1 <- remove_tech_no_plans_no_target(
   data = test_data_remove_tech_no_plans_no_target_1,
@@ -107,8 +111,7 @@ test_that("only rows with zero values in both projected and target values are re
 })
 
 ## remove_sector_no_target----
-test_target_scenario <- paste0("target_", test_scenario)
-
+# styler: off
 # 1) zero values in all target values of sector
 test_data_remove_sector_no_target_1 <- tibble::tribble(
        ~sector, ~technology, ~year,  ~region,  ~scenario_source,     ~name_abcd, ~projected, ~target_scenario,    ~group_id,
@@ -134,6 +137,9 @@ test_data_remove_sector_no_target_4 <- tibble::tribble(
   "automotive",  "electric",  2027, "global", "scenario_source", "test_company",         25,         NA_real_, "test_group",
   "automotive",       "ice",  2027, "global", "scenario_source", "test_company",         10,         NA_real_, "test_group"
 )
+# styler: on
+
+test_target_scenario <- paste0("target_", test_scenario)
 
 test_output_remove_sector_no_target_1 <- remove_sector_no_target(
   data = test_data_remove_sector_no_target_1,
@@ -160,11 +166,13 @@ test_that("only company sector combinations with zero values in all target rows 
 })
 
 ## add_total_tech_deviation----
+# styler: off
 test_data_add_total_tech_deviation <- tibble::tribble(
   ~projected,~target_scenario, ~directional_dummy,
           25,              20,                  1,
           25,              20,                 -1
 )
+# styler: on
 
 test_target_scenario <- paste0("target_", test_scenario)
 
@@ -178,11 +186,13 @@ test_that("total tech deviation is difference of projected and target times dire
 })
 
 ## add_tech_direction----
+# styler: off
 test_data_add_tech_direction <- tibble::tribble(
   ~directional_dummy,
                   -1,
                    1
 )
+# styler: on
 
 test_output_add_tech_direction <- add_tech_direction(
   data = test_data_add_tech_direction
@@ -195,6 +205,7 @@ test_that("tech direction is mapped correctly based on directional dummy", {
 ## apply_bridge_technology_cap----
 test_bridge_tech <- "bridge_technology"
 
+# styler: off
 test_data_apply_bridge_technology_cap_1 <- tibble::tribble(
   ~technology, ~total_tech_deviation,
   "bridge_technology",                    10,
@@ -215,7 +226,7 @@ test_data_apply_bridge_technology_cap_4 <- tibble::tribble(
   "other_technology",                    10,
   "other_technology",                     0
 )
-
+# styler: on
 
 test_output_apply_bridge_technology_cap_1 <- apply_bridge_technology_cap(
   data = test_data_apply_bridge_technology_cap_1,
@@ -242,12 +253,13 @@ test_that("total_tech_deviation is less or equal 0 for all technologies in bridg
 })
 
 # calculate_company_aggregate_alignment_tms----
-
+# styler: off
 test_data_calculate_company_aggregate_alignment_tms <- tibble::tribble(
   ~sector,     ~technology, ~year,  ~region, ~scenario_source,     ~name_abcd,    ~group_id, ~projected, ~target_scenario, ~direction, ~total_tech_deviation, ~activity_unit, ~technology_share_by_direction,
   "power",        "gascap",  2027, "global",    "test_source", "test_company", "test_group",        100,               80, "phaseout",                   -20,           "MW",                              1,
   "power", "renewablescap",  2027, "global",    "test_source", "test_company", "test_group",         32,               40, "buildout",                    -8,           "MW",                              1
 )
+# styler: on
 
 test_scenario_source <- "test_source"
 test_scenario <- "scenario"
@@ -278,23 +290,23 @@ test_that("calculate_company_aggregate_alignment_tms returns expected outputs", 
 })
 
 ## check_consistency_calculate_company_aggregate_alignment_tms----
+# styler: off
 test_data_consistency_tms <- tibble::tribble(
   ~scenario_source,
   "scenario_source"
 )
+# styler: on
 
 test_scenario_source <- "scenario_source"
 test_bad_source <- "bad_source"
 
 test_that("consistency checks of calculate_company_aggregate_alignment_tms() pass and fail as expected", {
-  expect_no_error(
-    {
-      check_consistency_calculate_company_aggregate_alignment_tms(
-        data = test_data_consistency_tms,
-        scenario_source = test_scenario_source
-      )
-    }
-  )
+  expect_no_error({
+    check_consistency_calculate_company_aggregate_alignment_tms(
+      data = test_data_consistency_tms,
+      scenario_source = test_scenario_source
+    )
+  })
   expect_error(
     {
       check_consistency_calculate_company_aggregate_alignment_tms(
@@ -307,6 +319,7 @@ test_that("consistency checks of calculate_company_aggregate_alignment_tms() pas
 })
 
 ## add_technology_share_by_direction----
+# styler: off
 test_data_add_technology_share_by_direction <- tibble::tribble(
      ~sector, ~technology,   ~year,  ~region, ~scenario_source,     ~name_abcd, ~projected,    ~group_id, ~direction, ~activity_unit,
   "sector_A", "technology_A", 2027, "global",    "test_source", "test_company",         10, "test_group", "buildout",    "test_unit",
@@ -315,6 +328,7 @@ test_data_add_technology_share_by_direction <- tibble::tribble(
   "sector_B", "technology_D", 2027, "global",    "test_source", "test_company",         20, "test_group", "buildout",    "test_unit",
   "sector_B", "technology_E", 2027, "global",    "test_source", "test_company",         20, "test_group", "phaseout",    "test_unit"
 )
+# styler: on
 
 test_level_net <- "net"
 test_level_bo_po <- "bo_po"
@@ -359,11 +373,13 @@ test_that("technology shares by direction error gracefully with wrong input leve
         data = test_data_add_technology_share_by_direction,
         level = test_level_false
       )
-    }, "Invalid input provided for argument: level."
+    },
+    "Invalid input provided for argument: level."
   )
 })
 
 ## add_net_absolute_scenario_value----
+# styler: off
 test_data_add_net_absolute_scenario_value <- tibble::tribble(
      ~group_id,     ~name_abcd, ~scenario_source,     ~region,        ~sector, ~technology, ~activity_unit, ~year, ~target_scenario, ~direction, ~total_tech_deviation,
   "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_A",  "output unit",  2027,               20, "buildout",                    -5,
@@ -372,6 +388,7 @@ test_data_add_net_absolute_scenario_value <- tibble::tribble(
   "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_X",  "output unit",  2027,               30, "buildout",                   -20,
   "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_Y",  "output unit",  2027,         NA_real_, "phaseout",              NA_real_
 )
+# styler: on
 
 test_target_scenario <- "target_scenario"
 
@@ -388,6 +405,7 @@ test_that("add_net_absolute_scenario_value adds sum of scenario values as expect
 })
 
 ## add_total_deviation----
+# styler: off
 test_data_add_total_deviation_bo_po <- tibble::tribble(
      ~group_id,     ~name_abcd, ~scenario_source,     ~region,        ~sector, ~technology, ~activity_unit, ~year, ~net_absolute_scenario_value, ~direction, ~total_tech_deviation, ~technology_share_by_direction,
   "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_A",  "output unit",  2027,                          100, "buildout",                    -5,                            0.1,
@@ -396,6 +414,7 @@ test_data_add_total_deviation_bo_po <- tibble::tribble(
   "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_X",  "output unit",  2027,                           30, "buildout",                   -20,                            0.8,
   "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_Y",  "output unit",  2027,                           30, "phaseout",                     5,                            0.2
 )
+# styler: on
 test_data_add_total_deviation_net <- test_data_add_total_deviation_bo_po %>%
   dplyr::mutate(
     direction = "net",
@@ -421,13 +440,14 @@ test_that("add_total_deviation adds deviation by sector and direction as expecte
 })
 
 ## calculate_company_alignment_metric----
+# styler: off
 test_data_calculate_company_alignment_metric <- tibble::tribble(
      ~group_id,     ~name_abcd,    ~sector, ~activity_unit,     ~region, ~scenario_source, ~year, ~direction, ~total_deviation, ~technology_share_by_direction, ~net_absolute_scenario_value,
   "test_group", "test_company", "sector_a",  "output_unit", "somewhere",    "that_source",  2027,      "net",               20,                              1,                           40,
   "test_group", "test_company", "sector_b",  "output_unit", "somewhere",    "that_source",  2027,      "net",               50,                              1,                           40,
   "test_group", "some_company", "sector_a",  "output_unit", "somewhere",    "that_source",  2027,      "net",               30,                              1,                           30
-
 )
+# styler: on
 test_scenario <- "some_scenario"
 
 test_output_calculate_company_alignment_metric <- calculate_company_alignment_metric(
@@ -444,6 +464,7 @@ test_that("calculate_company_alignment_metric calculates company alignment metri
 
 # calculate_company_aggregate_alignment_sda----
 ## check_consistency_calculate_company_aggregate_alignment_sda----
+# styler: off
 test_data_consistency_sda_1 <- tibble::tribble(
    ~scenario_source, ~emission_factor_metric,
   "scenario_source",         "target_scen_1",
@@ -454,21 +475,20 @@ test_data_consistency_sda_2 <- tibble::tribble(
   "scenario_source",         "target_scen_2",
   "scenario_source",         "target_scen_3"
 )
+# styler: on
 
 test_scenario_source <- "scenario_source"
 test_bad_source <- "bad_source"
 test_scenario <- "scen_1"
 
 test_that("consistency checks of calculate_company_aggregate_alignment_sda() pass and fail as expected", {
-  expect_no_error(
-    {
-      check_consistency_calculate_company_aggregate_alignment_sda(
-        data = test_data_consistency_sda_1,
-        scenario_source = test_scenario_source,
-        scenario = test_scenario
-      )
-    }
-  )
+  expect_no_error({
+    check_consistency_calculate_company_aggregate_alignment_sda(
+      data = test_data_consistency_sda_1,
+      scenario_source = test_scenario_source,
+      scenario = test_scenario
+    )
+  })
   expect_error(
     {
       check_consistency_calculate_company_aggregate_alignment_sda(
