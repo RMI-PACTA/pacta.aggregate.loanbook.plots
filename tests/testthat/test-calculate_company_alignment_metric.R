@@ -261,8 +261,14 @@ test_output_add_technology_share_by_direction_bo_po <- add_technology_share_by_d
 )
 
 test_that("technology shares by direction within a sector are calculated correctly", {
-  expect_equal(test_output_add_technology_share_by_direction_bo_po$direction, test_data_add_technology_share_by_direction$direction)
-  expect_equal(test_output_add_technology_share_by_direction_bo_po$technology_share_by_direction, c(0.6, 0.6, 0.4, 0.5, 0.5))
+  expect_equal(
+    test_output_add_technology_share_by_direction_bo_po$direction,
+    test_data_add_technology_share_by_direction$direction
+  )
+  expect_equal(
+    test_output_add_technology_share_by_direction_bo_po$technology_share_by_direction,
+    c(0.6, 0.6, 0.4, 0.5, 0.5)
+  )
 })
 
 test_output_add_technology_share_by_direction_net <- add_technology_share_by_direction(
@@ -271,8 +277,14 @@ test_output_add_technology_share_by_direction_net <- add_technology_share_by_dir
 )
 
 test_that("technology shares by direction within a sector are calculated correctly", {
-  expect_equal(test_output_add_technology_share_by_direction_net$direction, rep.int("net", times = nrow(test_data_add_technology_share_by_direction)))
-  expect_equal(test_output_add_technology_share_by_direction_net$technology_share_by_direction, rep.int(1, times = nrow(test_data_add_technology_share_by_direction)))
+  expect_equal(
+    test_output_add_technology_share_by_direction_net$direction,
+    rep.int("net", times = nrow(test_data_add_technology_share_by_direction))
+  )
+  expect_equal(
+    test_output_add_technology_share_by_direction_net$technology_share_by_direction,
+    rep.int(1, times = nrow(test_data_add_technology_share_by_direction))
+  )
 })
 
 test_that("technology shares by direction error gracefully with wrong input level", {
@@ -283,5 +295,54 @@ test_that("technology shares by direction error gracefully with wrong input leve
         level = test_level_false
       )
     }, "Invalid input provided for argument: level."
+  )
+})
+
+# check_consistency_calculate_company_aggregate_alignment_sda
+
+test_data_consistency_sda_1 <- tibble::tribble(
+   ~scenario_source, ~emission_factor_metric,
+  "scenario_source",         "target_scen_1",
+  "scenario_source",         "target_scen_2"
+)
+test_data_consistency_sda_2 <- tibble::tribble(
+   ~scenario_source, ~emission_factor_metric,
+  "scenario_source",         "target_scen_2",
+  "scenario_source",         "target_scen_3"
+)
+
+test_scenario_source <- "scenario_source"
+test_bad_source <- "bad_source"
+test_scenario <- "scen_1"
+
+test_that("consistency checks of calculate_company_aggregate_alignment_sda() pass and fail as expected", {
+  expect_no_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_1,
+        scenario_source = test_scenario_source,
+        scenario = test_scenario
+      )
+    }
+  )
+  expect_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_1,
+        scenario_source = test_bad_source,
+        scenario = test_scenario
+      )
+    },
+    regexp = "input value of `scenario_source` not found"
+  )
+  expect_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_2,
+        scenario_source = test_scenario_source,
+        scenario = test_scenario
+      )
+    },
+    regexp = "input value of `scenario` not found"
   )
 })
