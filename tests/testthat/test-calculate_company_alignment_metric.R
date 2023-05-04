@@ -258,3 +258,54 @@ test_that("total_tech_deviation is less or equal 0 for all technologies in bridg
   expect_equal(sign(test_output_apply_bridge_technology_cap_3$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_3$total_tech_deviation))
   expect_equal(sign(test_output_apply_bridge_technology_cap_4$total_tech_deviation), sign(test_data_apply_bridge_technology_cap_4$total_tech_deviation))
 })
+
+# check_consistency_calculate_company_aggregate_alignment_sda
+
+test_data_consistency_sda_1 <- tibble::tribble(
+  ~scenario_source, ~emission_factor_metric,
+  "scenario_source",         "target_scen_1",
+  "scenario_source",         "target_scen_2"
+)
+test_data_consistency_sda_2 <- tibble::tribble(
+   ~scenario_source, ~emission_factor_metric,
+  "scenario_source",         "target_scen_2",
+  "scenario_source",         "target_scen_3"
+)
+
+test_scenario_source <- "scenario_source"
+test_bad_source <- "bad_source"
+test_scenario <- "scen_1"
+
+
+
+test_that("consistency checks of calculate_company_aggregate_alignment_sda() pass and fail as expected", {
+  expect_no_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_1,
+        scenario_source = test_scenario_source,
+        scenario = test_scenario
+      )
+    }
+  )
+  expect_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_1,
+        scenario_source = test_bad_source,
+        scenario = test_scenario
+      )
+    },
+    regexp = "input value of `scenario_source` not found"
+  )
+  expect_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_sda(
+        data = test_data_consistency_sda_2,
+        scenario_source = test_scenario_source,
+        scenario = test_scenario
+      )
+    },
+    regexp = "input value of `scenario` not found"
+  )
+})
