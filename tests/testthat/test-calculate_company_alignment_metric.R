@@ -277,6 +277,35 @@ test_that("calculate_company_aggregate_alignment_tms returns expected outputs", 
   expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$total_deviation, test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation)
 })
 
+## check_consistency_calculate_company_aggregate_alignment_tms----
+test_data_consistency_tms <- tibble::tribble(
+  ~scenario_source,
+  "scenario_source"
+)
+
+test_scenario_source <- "scenario_source"
+test_bad_source <- "bad_source"
+
+test_that("consistency checks of calculate_company_aggregate_alignment_tms() pass and fail as expected", {
+  expect_no_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_tms(
+        data = test_data_consistency_tms,
+        scenario_source = test_scenario_source
+      )
+    }
+  )
+  expect_error(
+    {
+      check_consistency_calculate_company_aggregate_alignment_tms(
+        data = test_data_consistency_tms,
+        scenario_source = test_bad_source
+      )
+    },
+    regexp = "input value of `scenario_source` not found"
+  )
+})
+
 ## add_technology_share_by_direction----
 test_data_add_technology_share_by_direction <- tibble::tribble(
      ~sector, ~technology,   ~year,  ~region, ~scenario_source,     ~name_abcd, ~projected,    ~group_id, ~direction, ~activity_unit,
@@ -331,6 +360,85 @@ test_that("technology shares by direction error gracefully with wrong input leve
         level = test_level_false
       )
     }, "Invalid input provided for argument: level."
+  )
+})
+
+## add_net_absolute_scenario_value----
+test_data_add_net_absolute_scenario_value <- tibble::tribble(
+     ~group_id,     ~name_abcd, ~scenario_source,     ~region,        ~sector, ~technology, ~activity_unit, ~year, ~target_scenario, ~direction, ~total_tech_deviation,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_A",  "output unit",  2027,               20, "buildout",                    -5,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_B",  "output unit",  2027,               50, "phaseout",                    10,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_C",  "output unit",  2027,               30, "phaseout",                   -10,
+  "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_X",  "output unit",  2027,               30, "buildout",                   -20,
+  "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_Y",  "output unit",  2027,         NA_real_, "phaseout",              NA_real_
+)
+
+test_target_scenario <- "target_scenario"
+
+test_output_add_net_absolute_scenario_value <- add_net_absolute_scenario_value(
+  data = test_data_add_net_absolute_scenario_value,
+  target_scenario = test_target_scenario
+)
+
+test_that("add_net_absolute_scenario_value adds sum of scenario values as expected", {
+  expect_equal(
+    test_output_add_net_absolute_scenario_value$net_absolute_scenario_value,
+    c(rep.int(100, times = 3), rep.int(30, times = 2))
+  )
+})
+
+## add_total_deviation----
+test_data_add_total_deviation_bo_po <- tibble::tribble(
+     ~group_id,     ~name_abcd, ~scenario_source,     ~region,        ~sector, ~technology, ~activity_unit, ~year, ~net_absolute_scenario_value, ~direction, ~total_tech_deviation, ~technology_share_by_direction,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_A",  "output unit",  2027,                          100, "buildout",                    -5,                            0.1,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_B",  "output unit",  2027,                          100, "phaseout",                    10,                            0.9,
+  "test_group", "test_company",    "test_source", "somewhere",  "test_sector",    "tech_C",  "output unit",  2027,                          100, "phaseout",                   -10,                            0.9,
+  "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_X",  "output unit",  2027,                           30, "buildout",                   -20,                            0.8,
+  "test_group", "test_company",    "test_source", "somewhere", "other_sector",    "tech_Y",  "output unit",  2027,                           30, "phaseout",                     5,                            0.2
+)
+test_data_add_total_deviation_net <- test_data_add_total_deviation_bo_po %>%
+  dplyr::mutate(
+    direction = "net",
+    technology_share_by_direction = 1
+  )
+
+test_output_add_total_deviation_bo_po <- add_total_deviation(
+  data = test_data_add_total_deviation_bo_po
+)
+test_output_add_total_deviation_net <- add_total_deviation(
+  data = test_data_add_total_deviation_net
+)
+
+test_that("add_total_deviation adds deviation by sector and direction as expected", {
+  expect_equal(
+    test_output_add_total_deviation_bo_po$total_deviation,
+    c(-5, 0, -20, 5)
+  )
+  expect_equal(
+    test_output_add_total_deviation_net$total_deviation,
+    c(-5, -15)
+  )
+})
+
+## calculate_company_alignment_metric----
+test_data_calculate_company_alignment_metric <- tibble::tribble(
+     ~group_id,     ~name_abcd,    ~sector, ~activity_unit,     ~region, ~scenario_source, ~year, ~direction, ~total_deviation, ~technology_share_by_direction, ~net_absolute_scenario_value,
+  "test_group", "test_company", "sector_a",  "output_unit", "somewhere",    "that_source",  2027,      "net",               20,                              1,                           40,
+  "test_group", "test_company", "sector_b",  "output_unit", "somewhere",    "that_source",  2027,      "net",               50,                              1,                           40,
+  "test_group", "some_company", "sector_a",  "output_unit", "somewhere",    "that_source",  2027,      "net",               30,                              1,                           30
+
+)
+test_scenario <- "some_scenario"
+
+test_output_calculate_company_alignment_metric <- calculate_company_alignment_metric(
+  data = test_data_calculate_company_alignment_metric,
+  scenario = test_scenario
+)
+
+test_that("calculate_company_alignment_metric calculates company alignment metrics correctly", {
+  expect_equal(
+    test_output_calculate_company_alignment_metric$alignment_metric,
+    c(0.5, 1.25, 1)
   )
 })
 
