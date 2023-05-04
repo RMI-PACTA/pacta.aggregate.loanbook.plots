@@ -66,11 +66,6 @@ calculate_company_tech_deviation <- function(data,
       by = c("sector", "technology")
     )
 
-  # TODO: possibly run outside of this function
-  # add technology share by direction
-  data <- data %>%
-    add_technology_share_by_direction()
-
   # if gas_cap is a bridge tech, both sides of the scenario are treated as misaligned
   if (identical(bridge_tech, "gascap")) {
     data <- data %>%
@@ -193,21 +188,6 @@ add_tech_direction <- function(data) {
   return(data)
 }
 
-add_technology_share_by_direction <- function(data) {
-  data <- data %>%
-    dplyr::mutate(
-      prod_sector = sum(.data$projected, na.rm = TRUE),
-      .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "activity_unit")
-    ) %>%
-    dplyr::mutate(
-      technology_share_by_direction = sum(.data$projected, na.rm = TRUE) / .data$prod_sector,
-      .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "direction", "activity_unit")
-    ) %>%
-    dplyr::select(-"prod_sector")
-
-  return(data)
-}
-
 apply_bridge_technology_cap <- function(data,
                                         bridge_tech) {
   data_cap <- data %>%
@@ -224,7 +204,6 @@ apply_bridge_technology_cap <- function(data,
 
   return(data)
 }
-
 
 #' Return company level sector alignment metric for each company with
 #' option to disaggregate by buildout / phaseout.
@@ -258,55 +237,36 @@ calculate_company_aggregate_alignment_tms <- function(data,
   target_scenario <- paste0("target_", scenario)
   level <- match.arg(level)
 
+  data <- data %>%
+    add_technology_share_by_direction(level = level)
 
-  if (level == "bo_po") {
-    # calculate buildout and phaseout sector alignment_metric
-    group_net_absolute_scenario_value <- c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year")
-    group_total_deviation <- c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year", "net_absolute_scenario_value", "direction", "technology_share_by_direction")
-    data <- data %>%
-      dplyr::mutate(
-        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-        .by = group_net_absolute_scenario_value
-      ) %>%
-      dplyr::summarise(
-        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-        .by = group_total_deviation
-      ) %>%
-      dplyr::mutate(
-        alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
-        scenario = .env$scenario
-      ) %>%
-      dplyr::select(
-        c(
-          "group_id", "name_abcd", "sector", "activity_unit", "region",
-          "scenario_source", "scenario", "year", "direction", "total_deviation",
-          "technology_share_by_direction", "alignment_metric"
-        )
+  data <- data %>%
+    dplyr::mutate(
+      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year"
       )
-  } else if (level == "net") {
-    # calculate net sector alignment_metric
-    group_company_aggregation <- c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year")
-    # group_net_absolute_scenario_value <- c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year")
-    # group_total_deviation <- c("group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year")
-    data <- data %>%
-      dplyr::summarise(
-        total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-        net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-        .by = group_company_aggregation
-      ) %>%
-      dplyr::mutate(
-        alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
-        scenario = .env$scenario
-      ) %>%
-      dplyr::mutate(direction = .env$level) %>%
-      dplyr::select(
-        c(
-          "group_id", "name_abcd", "sector", "activity_unit", "region",
-          "scenario_source", "scenario", "year", "direction", "total_deviation",
-          "alignment_metric"
-        )
+    ) %>%
+    dplyr::summarise(
+      total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year", "net_absolute_scenario_value", "direction",
+        "technology_share_by_direction"
       )
-  }
+    ) %>%
+    dplyr::mutate(
+      alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
+      scenario = .env$scenario
+    ) %>%
+    dplyr::select(
+      c(
+        "group_id", "name_abcd", "sector", "activity_unit", "region",
+        "scenario_source", "scenario", "year", "direction", "total_deviation",
+        "technology_share_by_direction", "alignment_metric"
+      )
+    )
 
   data <- data %>%
     dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
@@ -314,6 +274,36 @@ calculate_company_aggregate_alignment_tms <- function(data,
   return(data)
 }
 
+add_technology_share_by_direction <- function(data,
+                                              level = c("net", "bo_po")) {
+  if (level == "bo_po") {
+    # when applying the buildout/phaseout calculation, the technology share is
+    # split within a sector, based on the production share in buildout and
+    # phaseout technologies
+    data <- data %>%
+      dplyr::mutate(
+        prod_sector = sum(.data$projected, na.rm = TRUE),
+        .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "activity_unit")
+      ) %>%
+      dplyr::mutate(
+        technology_share_by_direction = sum(.data$projected, na.rm = TRUE) / .data$prod_sector,
+        .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "direction", "activity_unit")
+      ) %>%
+      dplyr::select(-"prod_sector")
+  } else if (level == "net") {
+    # when applying the net calculation, there is only one direction, hence the
+    # share includes all technologies and is always 1.
+    data <- data %>%
+      dplyr::mutate(
+        direction = .env$level,
+        technology_share_by_direction = 1
+      )
+  } else {
+    stop("Invalid input provided for argument: level.")
+  }
+
+  return(data)
+}
 
 #' Return company level sector alignment metric for each company
 #'
@@ -553,7 +543,7 @@ validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
     expected_columns = c(
       "sector", "technology", "year", "region", "scenario_source", "name_abcd",
       "group_id", "projected", paste0("target_", scenario), "direction",
-      "total_tech_deviation", "activity_unit", "technology_share_by_direction"
+      "total_tech_deviation", "activity_unit"
     )
   )
 
@@ -575,28 +565,11 @@ validate_input_calculate_company_aggregate_alignment_sda <- function(data,
   )
 
   # consistency checks
-  if (!scenario_source %in% unique(data$scenario_source)) {
-    stop(
-      paste0(
-        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
-        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
-      )
-    )
-  }
-  available_scenarios <- data %>%
-    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
-    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
-    dplyr::pull(.data$emission_factor_metric) %>%
-    unique() %>%
-    toString()
-  if (!scenario %in% available_scenarios) {
-    stop(
-      paste0(
-        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
-        scenario,". Available values are: ", available_scenarios
-      )
-    )
-  }
+  check_consistency_calculate_company_aggregate_alignment_sda(
+    data = data,
+    scenario_source = scenario_source,
+    scenario = scenario
+  )
 
   invisible()
 }
@@ -628,6 +601,34 @@ validate_input_data_calculate_company_aggregate_alignment_sda <- function(data) 
       "emission_factor_metric", "emission_factor_value", "group_id"
     )
   )
+
+  invisible()
+}
+
+check_consistency_calculate_company_aggregate_alignment_sda <- function(data,
+                                                                        scenario_source,
+                                                                        scenario) {
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided: ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
+  available_scenarios <- data %>%
+    dplyr::filter(grepl("target_", .data$emission_factor_metric)) %>%
+    dplyr::mutate(emission_factor_metric = gsub("target_", "", .data$emission_factor_metric)) %>%
+    dplyr::pull(.data$emission_factor_metric) %>%
+    unique()
+  if (!scenario %in% available_scenarios) {
+    stop(
+      paste0(
+        "input value of `scenario` not found in `data$emission_factor_metric`. You provided ",
+        scenario,". Available values are: ", toString(available_scenarios)
+      )
+    )
+  }
 
   invisible()
 }
