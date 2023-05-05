@@ -237,9 +237,11 @@ calculate_company_aggregate_alignment_tms <- function(data,
   target_scenario <- paste0("target_", scenario)
   level <- match.arg(level)
 
+  # add tech share by direction
   data <- data %>%
     add_technology_share_by_direction(level = level)
 
+  # calculate alignment metric
   data <- data %>%
     add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
     add_total_deviation() %>%
@@ -356,52 +358,68 @@ calculate_company_aggregate_alignment_sda <- function(data,
 
   start_year <- min(data$year, na.rm = TRUE)
   target_scenario <- paste0("target_", scenario)
+  # since sda sectors are not split into technologies, the level is always: "net"
+  level <- "net"
 
+  # prep and wrangle
   data <- data %>%
-    dplyr::filter(.data$scenario_source == .env$scenario_source)
-
-  data <- data %>%
-    group_by(
-      .data$group_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
-      .data$scenario_source
-    ) %>%
-    dplyr::filter(.data$name_abcd != "market") %>%
-    dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
-    tidyr::pivot_wider(
-      names_from = "emission_factor_metric",
-      values_from = "emission_factor_value"
-    ) %>%
-    dplyr::ungroup()
-
-  # calculate sector alignment metric
-  data <- data %>%
-    dplyr::group_by(
-      .data$group_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
-    ) %>%
-    dplyr::mutate(
-      total_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      direction = "net",
-      alignment_metric = .data$total_deviation / !!rlang::sym(target_scenario)
+    prep_and_wrangle_aggregate_alignment_sda(
+      scenario_source = scenario_source,
+      target_scenario = target_scenario
     )
 
+  # add activity units to data
   activity_units_sector <- activity_units %>%
     dplyr::distinct(.data$sector, .data$activity_unit)
 
   data <- data %>%
-    dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::inner_join(activity_units_sector, by = "sector") %>%
-    dplyr::select(
-      c(
-        "group_id", "name_abcd", "sector", "activity_unit", "region",
-        "scenario_source", "scenario", "year", "direction", "total_deviation",
-        "alignment_metric"
+    dplyr::inner_join(activity_units_sector, by = "sector")
+
+  # add tech share by direction
+  data <- data %>%
+    add_technology_share_by_direction(level = level)
+
+  # calculate alignment metric
+  data <- data %>%
+    add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
+    add_total_deviation_sda() %>%
+    calculate_company_alignment_metric(scenario = scenario)  %>%
+    dplyr::arrange(
+      .data$group_id,
+      .data$sector,
+      .data$name_abcd,
+      .data$region,
+      .data$year
+    )
+
+  return(data)
+}
+
+prep_and_wrangle_aggregate_alignment_sda <- function(data,
+                                                     scenario_source,
+                                                     target_scenario,
+                                                     start_year) {
+  data <- data %>%
+    dplyr::filter(.data$scenario_source == .env$scenario_source) %>%
+    dplyr::filter(.data$name_abcd != "market") %>%
+    dplyr::filter(.data$emission_factor_metric %in% c("projected", .env$target_scenario)) %>%
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
+    tidyr::pivot_wider(
+      names_from = "emission_factor_metric",
+      values_from = "emission_factor_value"
+    )
+
+  return(data)
+}
+
+add_total_deviation_sda <- function(data) {
+  data <- data %>%
+    dplyr::mutate(
+      total_deviation = (.data$projected - .data$net_absolute_scenario_value) * -1,
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year"
       )
-    ) %>%
-    dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
+    )
 
   return(data)
 }
