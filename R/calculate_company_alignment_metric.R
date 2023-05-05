@@ -241,35 +241,16 @@ calculate_company_aggregate_alignment_tms <- function(data,
     add_technology_share_by_direction(level = level)
 
   data <- data %>%
-    dplyr::mutate(
-      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
-      .by = c(
-        "group_id", "name_abcd", "scenario_source", "region", "sector",
-        "activity_unit", "year"
-      )
-    ) %>%
-    dplyr::summarise(
-      total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
-      .by = c(
-        "group_id", "name_abcd", "scenario_source", "region", "sector",
-        "activity_unit", "year", "net_absolute_scenario_value", "direction",
-        "technology_share_by_direction"
-      )
-    ) %>%
-    dplyr::mutate(
-      alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
-      scenario = .env$scenario
-    ) %>%
-    dplyr::select(
-      c(
-        "group_id", "name_abcd", "sector", "activity_unit", "region",
-        "scenario_source", "scenario", "year", "direction", "total_deviation",
-        "technology_share_by_direction", "alignment_metric"
-      )
+    add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
+    add_total_deviation() %>%
+    calculate_company_alignment_metric(scenario = scenario)  %>%
+    dplyr::arrange(
+      .data$group_id,
+      .data$sector,
+      .data$name_abcd,
+      .data$region,
+      .data$year
     )
-
-  data <- data %>%
-    dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
 
   return(data)
 }
@@ -304,6 +285,53 @@ add_technology_share_by_direction <- function(data,
 
   return(data)
 }
+
+add_net_absolute_scenario_value <- function(data,
+                                            target_scenario) {
+  data <- data %>%
+    dplyr::mutate(
+      net_absolute_scenario_value = sum(!!rlang::sym(target_scenario), na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year"
+      )
+    )
+
+  return(data)
+}
+
+add_total_deviation <- function(data) {
+  data <- data %>%
+    dplyr::summarise(
+      total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector",
+        "activity_unit", "year", "net_absolute_scenario_value", "direction",
+        "technology_share_by_direction"
+      )
+    )
+
+  return(data)
+}
+
+calculate_company_alignment_metric <- function(data,
+                                               scenario) {
+  data <- data %>%
+    dplyr::mutate(
+      alignment_metric = .data$total_deviation / .data$net_absolute_scenario_value,
+      scenario = .env$scenario
+    ) %>%
+    dplyr::select(
+      c(
+        "group_id", "name_abcd", "sector", "activity_unit", "region",
+        "scenario_source", "scenario", "year", "direction", "total_deviation",
+        "technology_share_by_direction", "alignment_metric"
+      )
+    )
+
+  return(data)
+}
+
 
 #' Return company level sector alignment metric for each company
 #'
@@ -506,14 +534,10 @@ validate_input_calculate_company_aggregate_alignment_tms <- function(data,
   )
 
   # consistency checks
-  if (!scenario_source %in% unique(data$scenario_source)) {
-    stop(
-      paste0(
-        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
-        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
-      )
-    )
-  }
+  check_consistency_calculate_company_aggregate_alignment_tms(
+    data = data,
+    scenario_source = scenario_source
+  )
 
   invisible()
 }
@@ -546,6 +570,20 @@ validate_input_data_calculate_company_aggregate_alignment_tms <- function(data,
       "total_tech_deviation", "activity_unit"
     )
   )
+
+  invisible()
+}
+
+check_consistency_calculate_company_aggregate_alignment_tms <- function(data,
+                                                                        scenario_source) {
+  if (!scenario_source %in% unique(data$scenario_source)) {
+    stop(
+      paste0(
+        "input value of `scenario_source` not found in `data$scenario_source`. You provided ",
+        scenario_source,". Available values are: ", toString(unique(data$scenario_source))
+      )
+    )
+  }
 
   invisible()
 }
