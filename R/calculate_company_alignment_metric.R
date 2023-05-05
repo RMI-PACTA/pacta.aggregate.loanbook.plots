@@ -80,6 +80,8 @@ prep_company_alignment_aggregation <- function(data,
                                                scenario_source,
                                                scenario) {
   start_year <- min(data$year, na.rm = TRUE)
+  # standard forward looking PACTA time frame
+  time_frame <- 5
 
   technology_direction <- technology_direction %>%
     dplyr::filter(
@@ -94,7 +96,7 @@ prep_company_alignment_aggregation <- function(data,
   data <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + .env$time_frame)) %>%
     tidyr::pivot_wider(
       names_from = "metric",
       values_from = "production"
@@ -356,7 +358,10 @@ calculate_company_aggregate_alignment_sda <- function(data,
     scenario = scenario
   )
 
+  # params
   start_year <- min(data$year, na.rm = TRUE)
+  # standard forward looking PACTA time frame
+  time_frame <- 5
   target_scenario <- paste0("target_", scenario)
   # since sda sectors are not split into technologies, the level is always: "net"
   level <- "net"
@@ -365,7 +370,9 @@ calculate_company_aggregate_alignment_sda <- function(data,
   data <- data %>%
     prep_and_wrangle_aggregate_alignment_sda(
       scenario_source = scenario_source,
-      target_scenario = target_scenario
+      target_scenario = target_scenario,
+      start_year = start_year,
+      time_frame = time_frame
     )
 
   # add activity units to data
@@ -398,12 +405,18 @@ calculate_company_aggregate_alignment_sda <- function(data,
 prep_and_wrangle_aggregate_alignment_sda <- function(data,
                                                      scenario_source,
                                                      target_scenario,
-                                                     start_year) {
+                                                     start_year,
+                                                     time_frame) {
   data <- data %>%
     dplyr::filter(.data$scenario_source == .env$scenario_source) %>%
     dplyr::filter(.data$name_abcd != "market") %>%
     dplyr::filter(.data$emission_factor_metric %in% c("projected", .env$target_scenario)) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
+    dplyr::filter(
+      dplyr::between(
+        .data$year,
+        left = .env$start_year,
+        right = .env$start_year + .env$time_frame)
+    ) %>%
     tidyr::pivot_wider(
       names_from = "emission_factor_metric",
       values_from = "emission_factor_value"
