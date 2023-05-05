@@ -245,7 +245,11 @@ calculate_company_aggregate_alignment_tms <- function(data,
     add_total_deviation() %>%
     calculate_company_alignment_metric(scenario = scenario)  %>%
     dplyr::arrange(
-      .data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year
+      .data$group_id,
+      .data$sector,
+      .data$name_abcd,
+      .data$region,
+      .data$year
     )
 
   return(data)
