@@ -510,3 +510,104 @@ test_that("consistency checks of calculate_company_aggregate_alignment_sda() pas
     regexp = "input value of `scenario` not found"
   )
 })
+
+## prep_and_wrangle_aggregate_alignment_sda----
+# styler: off
+test_data_prep_and_wrangle_aggregate_alignment_sda_1 <- tibble::tribble(
+   ~scenario_source,     ~name_abcd, ~year, ~emission_factor_metric, ~emission_factor_value,
+  "scenario_source", "test_company",  2022,             "projected",                    0.9,
+  "scenario_source", "test_company",  2022,       "target_scenario",                    0.9,
+  "scenario_source", "test_company",  2027,             "projected",                    0.8,
+  "scenario_source", "test_company",  2027,       "target_scenario",                    0.7
+)
+# styler: on
+
+test_scenario_source <- "scenario_source"
+test_target_scenario <- "target_scenario"
+test_start_year <- 2022
+test_time_frame <- 5
+
+test_output_prep_and_wrangle_aggregate_alignment_sda_1 <- prep_and_wrangle_aggregate_alignment_sda(
+  data = test_data_prep_and_wrangle_aggregate_alignment_sda_1,
+  scenario_source = test_scenario_source,
+  target_scenario = test_target_scenario,
+  start_year = test_start_year,
+  time_frame = test_time_frame
+)
+
+test_output_cols <- names(test_output_prep_and_wrangle_aggregate_alignment_sda_1)
+expected_output_cols <- c(names(test_data_prep_and_wrangle_aggregate_alignment_sda_1), "projected", test_target_scenario)
+expected_output_cols <- expected_output_cols[!expected_output_cols %in% c("emission_factor_metric", "emission_factor_value")]
+
+test_that("output columns replace emission_factor_* cols with projected and target_scenario", {
+  expect_equal(
+    test_output_cols,
+    expected_output_cols
+  )
+})
+
+test_nrows <- nrow(test_output_prep_and_wrangle_aggregate_alignment_sda_1)
+expected_nrows <- test_data_prep_and_wrangle_aggregate_alignment_sda_1 %>%
+  dplyr::distinct(.data$scenario_source, .data$name_abcd, .data$year) %>%
+  nrow()
+
+test_that("number of output rows are distinct number of input rows that do not contain emission_factor_* data", {
+  expect_equal(
+    test_nrows,
+    expected_nrows
+  )
+})
+
+# styler: off
+test_data_prep_and_wrangle_aggregate_alignment_sda_2 <- tibble::tribble(
+   ~scenario_source,     ~name_abcd, ~year, ~emission_factor_metric, ~emission_factor_value,
+  "scenario_source", "test_company",  2021,             "projected",                    0.9,
+  "scenario_source", "test_company",  2021,       "target_scenario",                    0.9,
+  "scenario_source", "test_company",  2022,             "projected",                    0.9,
+  "scenario_source", "test_company",  2022,       "target_scenario",                    0.9,
+  "scenario_source", "test_company",  2028,             "projected",                    0.8,
+  "scenario_source", "test_company",  2028,       "target_scenario",                    0.7
+)
+# styler: on
+
+test_output_prep_and_wrangle_aggregate_alignment_sda_2 <- prep_and_wrangle_aggregate_alignment_sda(
+  data = test_data_prep_and_wrangle_aggregate_alignment_sda_2,
+  scenario_source = test_scenario_source,
+  target_scenario = test_target_scenario,
+  start_year = test_start_year,
+  time_frame = test_time_frame
+)
+
+test_output_years <- unique(test_output_prep_and_wrangle_aggregate_alignment_sda_2$year)
+expected_output_year <- test_data_prep_and_wrangle_aggregate_alignment_sda_2 %>%
+  dplyr::filter(dplyr::between(.data$year, test_start_year, test_start_year + test_time_frame)) %>%
+  dplyr::pull(.data$year) %>%
+  unique()
+
+test_that("years outside of start_year and start_year + time_frame are dropped", {
+  expect_equal(
+    test_output_years,
+    expected_output_year
+  )
+})
+
+# add_total_deviation_sda
+# styler: off
+test_data_add_total_deviation_sda <- tibble::tribble(
+     ~group_id,  ~name_abcd,  ~scenario_source,      ~region,    ~sector, ~activity_unit, ~year, ~projected, ~net_absolute_scenario_value,
+  "test_group", "company_A", "scenario_source", "some_place", "sector_1",  "output_unit",  2027,        0.8,                          0.7,
+  "test_group", "company_A", "scenario_source", "some_place", "sector_2",  "output_unit",  2027,        1.1,                          0.8,
+  "test_group", "company_B", "scenario_source", "some_place", "sector_1",  "output_unit",  2027,        0.6,                          0.7
+)
+# styler: on
+
+test_output_add_total_deviation_sda <- add_total_deviation_sda(
+  data = test_data_add_total_deviation_sda
+)
+
+test_that("add_total_deviation_sda produces expected deviations", {
+  expect_equal(
+    test_output_add_total_deviation_sda$total_deviation,
+    c(-0.1, -0.3, 0.1)
+  )
+})
