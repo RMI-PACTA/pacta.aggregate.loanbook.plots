@@ -463,6 +463,41 @@ test_that("calculate_company_alignment_metric calculates company alignment metri
 })
 
 # calculate_company_aggregate_alignment_sda----
+# styler: off
+test_data_calculate_company_aggregate_alignment_sda <- tibble::tribble(
+  ~sector, ~year,  ~region, ~scenario_source,  ~name_abcd,    ~group_id, ~emission_factor_metric, ~emission_factor_value,
+  "steel",  2027, "global",    "test_source", "company_A", "test_group",             "projected",                    0.8,
+  "steel",  2027, "global",    "test_source", "company_A", "test_group",       "target_scenario",                    0.7,
+  "steel",  2027, "global",    "test_source", "company_B", "test_group",             "projected",                   0.55,
+  "steel",  2027, "global",    "test_source", "company_B", "test_group",       "target_scenario",                    0.6
+)
+# styler: on
+
+test_scenario_source <- "test_source"
+test_scenario <- "scenario"
+
+test_output_calculate_company_aggregate_alignment_sda <- calculate_company_aggregate_alignment_sda(
+  data = test_data_calculate_company_aggregate_alignment_sda,
+  scenario_source = test_scenario_source,
+  scenario = test_scenario
+)
+
+added_columns <- c("activity_unit", "scenario", "direction", "total_deviation", "technology_share_by_direction", "alignment_metric")
+dropped_columns <- c("emission_factor_metric", "emission_factor_value")
+expected_output_columns <- c(names(test_data_calculate_company_aggregate_alignment_sda), added_columns)
+expected_output_columns <- expected_output_columns[!expected_output_columns %in% dropped_columns]
+
+expected_output_rows <- test_data_calculate_company_aggregate_alignment_sda %>%
+  dplyr::distinct(.data$sector, .data$year, .data$region, .data$scenario_source, .data$name_abcd, .data$group_id) %>%
+  nrow()
+
+test_that("calculate_company_aggregate_alignment_sda returns expected structure of outputs", {
+  expect_equal(sort(names(test_output_calculate_company_aggregate_alignment_sda)), sort(expected_output_columns))
+  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_sda), expected_output_rows)
+  expect_equal(unique(test_output_calculate_company_aggregate_alignment_sda$direction), "net")
+  expect_equal(unique(test_output_calculate_company_aggregate_alignment_sda$scenario), test_scenario)
+})
+
 ## check_consistency_calculate_company_aggregate_alignment_sda----
 # styler: off
 test_data_consistency_sda_1 <- tibble::tribble(
