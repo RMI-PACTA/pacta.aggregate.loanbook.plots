@@ -11,7 +11,8 @@ calculate_company_tech_deviation(
   technology_direction,
   scenario_source = "geco_2021",
   scenario = "1.5c",
-  bridge_tech = c("none", "gascap")
+  bridge_tech = c("none", "gascap"),
+  time_frame = 5L
 )
 }
 \arguments{
@@ -35,6 +36,10 @@ build out despite the need for a long term phase down. If so, the alignment
 metric can be treated differently than for other technologies. Currently,
 the only allowed values are (\verb{"none", "gascap"}). Default is \code{"none"} which
 means that no special calculations are applied to any technology.}
+
+\item{time_frame}{Integer of length one. The number of forward looking years
+that should be considered in the analysis. Standard \code{time_frame} in PACTA
+is five years.}
 }
 \description{
 Return company level technology deviations for TMS sectors. To be used as

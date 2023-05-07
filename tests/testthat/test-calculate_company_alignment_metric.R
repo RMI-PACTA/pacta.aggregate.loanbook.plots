@@ -18,13 +18,15 @@ test_technology_direction <- tibble::tribble(
 test_scenario_source <- "scenario_source"
 test_scenario <- "scenario"
 test_bridge_tech <- "none"
+test_time_frame <- 5L
 
 test_output_calculate_company_tech_deviation <- calculate_company_tech_deviation(
   data = test_data_calculate_company_tech_deviation,
   technology_direction = test_technology_direction,
   scenario_source = test_scenario_source,
   scenario = test_scenario,
-  bridge_tech = test_bridge_tech
+  bridge_tech = test_bridge_tech,
+  time_frame = test_time_frame
 )
 
 test_that("calculate_company_tech_deviation returns deviations and directions as expected", {

@@ -18,6 +18,9 @@
 #'   metric can be treated differently than for other technologies. Currently,
 #'   the only allowed values are (`"none", "gascap"`). Default is `"none"` which
 #'   means that no special calculations are applied to any technology.
+#' @param time_frame Integer of length one. The number of forward looking years
+#'   that should be considered in the analysis. Standard `time_frame` in PACTA
+#'   is five years.
 #'
 #' @return NULL
 #' @export
@@ -25,7 +28,8 @@ calculate_company_tech_deviation <- function(data,
                                              technology_direction,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
-                                             bridge_tech = c("none", "gascap")) {
+                                             bridge_tech = c("none", "gascap"),
+                                             time_frame = 5L) {
   bridge_tech <- rlang::arg_match(bridge_tech)
 
   # validate inputs
@@ -34,7 +38,8 @@ calculate_company_tech_deviation <- function(data,
     technology_direction = technology_direction,
     scenario_source = scenario_source,
     scenario = scenario,
-    bridge_tech = bridge_tech
+    bridge_tech = bridge_tech,
+    time_frame = time_frame
   )
 
   # prep and wrangle data for calculation of company tech deviations
@@ -44,7 +49,8 @@ calculate_company_tech_deviation <- function(data,
     prep_company_alignment_aggregation(
       technology_direction = technology_direction,
       scenario_source = scenario_source,
-      scenario = scenario
+      scenario = scenario,
+      time_frame = time_frame
     )
 
   # remove rows with inadequate values
@@ -78,10 +84,9 @@ calculate_company_tech_deviation <- function(data,
 prep_company_alignment_aggregation <- function(data,
                                                technology_direction,
                                                scenario_source,
-                                               scenario) {
+                                               scenario,
+                                               time_frame) {
   start_year <- min(data$year, na.rm = TRUE)
-  # standard forward looking PACTA time frame
-  time_frame <- 5
 
   technology_direction <- technology_direction %>%
     dplyr::filter(
@@ -445,12 +450,14 @@ validate_input_calculate_company_tech_deviation <- function(data,
                                                             technology_direction,
                                                             scenario_source,
                                                             scenario,
-                                                            bridge_tech) {
+                                                            bridge_tech,
+                                                            time_frame) {
   # validate input values
   validate_input_args_calculate_company_tech_deviation(
     scenario_source = scenario_source,
     scenario = scenario,
-    bridge_tech = bridge_tech
+    bridge_tech = bridge_tech,
+    time_frame = time_frame
   )
 
   # validate input data sets
@@ -508,7 +515,8 @@ validate_input_calculate_company_tech_deviation <- function(data,
 
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
                                                                  scenario,
-                                                                 bridge_tech) {
+                                                                 bridge_tech,
+                                                                 time_frame) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -526,6 +534,12 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
   }
   if (!inherits(bridge_tech, "character")) {
     stop("Argument bridge_tech must be of class character. Please check your input.")
+  }
+  if (!length(time_frame) == 1) {
+    stop("Argument time_frame must be of length 1. Please check your input.")
+  }
+  if (!inherits(time_frame, "integer")) {
+    stop("Argument time_frame must be of class integer Please check your input.")
   }
 
   invisible()
