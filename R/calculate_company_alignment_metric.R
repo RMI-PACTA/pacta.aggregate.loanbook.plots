@@ -359,7 +359,8 @@ calculate_company_aggregate_alignment_sda <- function(data,
   validate_input_calculate_company_aggregate_alignment_sda(
     data = data,
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    time_frame = time_frame
   )
 
   # params
