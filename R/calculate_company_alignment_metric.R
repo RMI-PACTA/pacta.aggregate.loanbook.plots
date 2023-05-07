@@ -661,7 +661,7 @@ validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenar
     stop("Argument scenario must be of length 1. Please check your input.")
   }
   if (!inherits(scenario, "character")) {
-    stop("Argument scenario must be of length 1. Please check your input.")
+    stop("Argument scenario must be of class character. Please check your input.")
   }
   if (!length(time_frame) == 1) {
     stop("Argument scenario must be of length 1. Please check your input.")
