@@ -475,11 +475,13 @@ test_data_calculate_company_aggregate_alignment_sda <- tibble::tribble(
 
 test_scenario_source <- "test_source"
 test_scenario <- "scenario"
+test_time_frame <- 5L
 
 test_output_calculate_company_aggregate_alignment_sda <- calculate_company_aggregate_alignment_sda(
   data = test_data_calculate_company_aggregate_alignment_sda,
   scenario_source = test_scenario_source,
-  scenario = test_scenario
+  scenario = test_scenario,
+  time_frame = test_time_frame
 )
 
 added_columns <- c("activity_unit", "scenario", "direction", "total_deviation", "technology_share_by_direction", "alignment_metric")
@@ -560,7 +562,7 @@ test_data_prep_and_wrangle_aggregate_alignment_sda_1 <- tibble::tribble(
 test_scenario_source <- "scenario_source"
 test_target_scenario <- "target_scenario"
 test_start_year <- 2022
-test_time_frame <- 5
+test_time_frame <- 5L
 
 test_output_prep_and_wrangle_aggregate_alignment_sda_1 <- prep_and_wrangle_aggregate_alignment_sda(
   data = test_data_prep_and_wrangle_aggregate_alignment_sda_1,
@@ -600,22 +602,24 @@ test_data_prep_and_wrangle_aggregate_alignment_sda_2 <- tibble::tribble(
   "scenario_source", "test_company",  2021,       "target_scenario",                    0.9,
   "scenario_source", "test_company",  2022,             "projected",                    0.9,
   "scenario_source", "test_company",  2022,       "target_scenario",                    0.9,
-  "scenario_source", "test_company",  2028,             "projected",                    0.8,
-  "scenario_source", "test_company",  2028,       "target_scenario",                    0.7
+  "scenario_source", "test_company",  2027,             "projected",                    0.8,
+  "scenario_source", "test_company",  2027,       "target_scenario",                    0.7
 )
 # styler: on
+
+test_time_frame_short <- 4L
 
 test_output_prep_and_wrangle_aggregate_alignment_sda_2 <- prep_and_wrangle_aggregate_alignment_sda(
   data = test_data_prep_and_wrangle_aggregate_alignment_sda_2,
   scenario_source = test_scenario_source,
   target_scenario = test_target_scenario,
   start_year = test_start_year,
-  time_frame = test_time_frame
+  time_frame = test_time_frame_short
 )
 
 test_output_years <- unique(test_output_prep_and_wrangle_aggregate_alignment_sda_2$year)
 expected_output_year <- test_data_prep_and_wrangle_aggregate_alignment_sda_2 %>%
-  dplyr::filter(dplyr::between(.data$year, test_start_year, test_start_year + test_time_frame)) %>%
+  dplyr::filter(dplyr::between(.data$year, test_start_year, test_start_year + test_time_frame_short)) %>%
   dplyr::pull(.data$year) %>%
   unique()
 
