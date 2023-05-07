@@ -345,12 +345,16 @@ calculate_company_alignment_metric <- function(data,
 #'   the only supported value is `"geco_2021"`.
 #' @param scenario Character. Vector that indicates which scenario to calculate
 #'   the alignment metric for. Must be a scenario available from `scenario_source`.
+#' @param time_frame Integer of length one. The number of forward looking years
+#'   that should be considered in the analysis. Standard `time_frame` in PACTA
+#'   is five years.
 #'
 #' @return NULL
 #' @export
 calculate_company_aggregate_alignment_sda <- function(data,
                                                       scenario_source = "geco_2021",
-                                                      scenario = "1.5c") {
+                                                      scenario = "1.5c",
+                                                      time_frame = 5L) {
   # validate inputs
   validate_input_calculate_company_aggregate_alignment_sda(
     data = data,
@@ -361,7 +365,6 @@ calculate_company_aggregate_alignment_sda <- function(data,
   # params
   start_year <- min(data$year, na.rm = TRUE)
   # standard forward looking PACTA time frame
-  time_frame <- 5
   target_scenario <- paste0("target_", scenario)
   # since sda sectors are not split into technologies, the level is always: "net"
   level <- "net"
@@ -621,11 +624,13 @@ check_consistency_calculate_company_aggregate_alignment_tms <- function(data,
 
 validate_input_calculate_company_aggregate_alignment_sda <- function(data,
                                                                      scenario_source,
-                                                                     scenario) {
+                                                                     scenario,
+                                                                     time_frame) {
   # validate input values
   validate_input_args_calculate_company_aggregate_alignment_sda(
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    time_frame = time_frame
   )
 
   # validate input data set
@@ -644,7 +649,8 @@ validate_input_calculate_company_aggregate_alignment_sda <- function(data,
 }
 
 validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenario_source,
-                                                                          scenario) {
+                                                                          scenario,
+                                                                          time_frame) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -656,6 +662,12 @@ validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenar
   }
   if (!inherits(scenario, "character")) {
     stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!length(time_frame) == 1) {
+    stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(time_frame, "integer")) {
+    stop("Argument time_frame must be of class integer. Please check your input.")
   }
 
   invisible()
