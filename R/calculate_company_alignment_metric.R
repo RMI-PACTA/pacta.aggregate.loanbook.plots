@@ -18,6 +18,9 @@
 #'   metric can be treated differently than for other technologies. Currently,
 #'   the only allowed values are (`"none", "gascap"`). Default is `"none"` which
 #'   means that no special calculations are applied to any technology.
+#' @param time_frame Integer of length one. The number of forward looking years
+#'   that should be considered in the analysis. Standard `time_frame` in PACTA
+#'   is five years.
 #'
 #' @return NULL
 #' @export
@@ -25,7 +28,8 @@ calculate_company_tech_deviation <- function(data,
                                              technology_direction,
                                              scenario_source = "geco_2021",
                                              scenario = "1.5c",
-                                             bridge_tech = c("none", "gascap")) {
+                                             bridge_tech = c("none", "gascap"),
+                                             time_frame = 5L) {
   bridge_tech <- rlang::arg_match(bridge_tech)
 
   # validate inputs
@@ -34,7 +38,8 @@ calculate_company_tech_deviation <- function(data,
     technology_direction = technology_direction,
     scenario_source = scenario_source,
     scenario = scenario,
-    bridge_tech = bridge_tech
+    bridge_tech = bridge_tech,
+    time_frame = time_frame
   )
 
   # prep and wrangle data for calculation of company tech deviations
@@ -44,7 +49,8 @@ calculate_company_tech_deviation <- function(data,
     prep_company_alignment_aggregation(
       technology_direction = technology_direction,
       scenario_source = scenario_source,
-      scenario = scenario
+      scenario = scenario,
+      time_frame = time_frame
     )
 
   # remove rows with inadequate values
@@ -78,7 +84,8 @@ calculate_company_tech_deviation <- function(data,
 prep_company_alignment_aggregation <- function(data,
                                                technology_direction,
                                                scenario_source,
-                                               scenario) {
+                                               scenario,
+                                               time_frame) {
   start_year <- min(data$year, na.rm = TRUE)
 
   technology_direction <- technology_direction %>%
@@ -94,7 +101,7 @@ prep_company_alignment_aggregation <- function(data,
   data <- data %>%
     dplyr::select(-c("technology_share", "scope", "percentage_of_initial_production_by_scope")) %>%
     dplyr::filter(.data$metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
+    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + .env$time_frame)) %>%
     tidyr::pivot_wider(
       names_from = "metric",
       values_from = "production"
@@ -237,9 +244,11 @@ calculate_company_aggregate_alignment_tms <- function(data,
   target_scenario <- paste0("target_", scenario)
   level <- match.arg(level)
 
+  # add tech share by direction
   data <- data %>%
     add_technology_share_by_direction(level = level)
 
+  # calculate alignment metric
   data <- data %>%
     add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
     add_total_deviation() %>%
@@ -341,67 +350,98 @@ calculate_company_alignment_metric <- function(data,
 #'   the only supported value is `"geco_2021"`.
 #' @param scenario Character. Vector that indicates which scenario to calculate
 #'   the alignment metric for. Must be a scenario available from `scenario_source`.
+#' @param time_frame Integer of length one. The number of forward looking years
+#'   that should be considered in the analysis. Standard `time_frame` in PACTA
+#'   is five years.
 #'
 #' @return NULL
 #' @export
 calculate_company_aggregate_alignment_sda <- function(data,
                                                       scenario_source = "geco_2021",
-                                                      scenario = "1.5c") {
+                                                      scenario = "1.5c",
+                                                      time_frame = 5L) {
   # validate inputs
   validate_input_calculate_company_aggregate_alignment_sda(
     data = data,
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    time_frame = time_frame
   )
 
+  # params
   start_year <- min(data$year, na.rm = TRUE)
+  # standard forward looking PACTA time frame
   target_scenario <- paste0("target_", scenario)
+  # since sda sectors are not split into technologies, the level is always: "net"
+  level <- "net"
 
+  # prep and wrangle
   data <- data %>%
-    dplyr::filter(.data$scenario_source == .env$scenario_source)
-
-  data <- data %>%
-    group_by(
-      .data$group_id, .data$name_abcd, .data$emission_factor_metric, .data$year, .data$region,
-      .data$scenario_source
-    ) %>%
-    dplyr::filter(.data$name_abcd != "market") %>%
-    dplyr::filter(.data$emission_factor_metric %in% c("projected", paste0("target_", .env$scenario))) %>%
-    dplyr::filter(dplyr::between(.data$year, left = .env$start_year, right = .env$start_year + 5)) %>%
-    tidyr::pivot_wider(
-      names_from = "emission_factor_metric",
-      values_from = "emission_factor_value"
-    ) %>%
-    dplyr::ungroup()
-
-  # calculate sector alignment metric
-  data <- data %>%
-    dplyr::group_by(
-      .data$group_id, .data$name_abcd, .data$scenario_source, .data$region, .data$sector, .data$year
-    ) %>%
-    dplyr::mutate(
-      total_deviation = (.data$projected - !!rlang::sym(target_scenario)) * -1
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      direction = "net",
-      alignment_metric = .data$total_deviation / !!rlang::sym(target_scenario)
+    prep_and_wrangle_aggregate_alignment_sda(
+      scenario_source = scenario_source,
+      target_scenario = target_scenario,
+      start_year = start_year,
+      time_frame = time_frame
     )
 
+  # add activity units to data
   activity_units_sector <- activity_units %>%
     dplyr::distinct(.data$sector, .data$activity_unit)
 
   data <- data %>%
-    dplyr::mutate(scenario = .env$scenario) %>%
-    dplyr::inner_join(activity_units_sector, by = "sector") %>%
-    dplyr::select(
-      c(
-        "group_id", "name_abcd", "sector", "activity_unit", "region",
-        "scenario_source", "scenario", "year", "direction", "total_deviation",
-        "alignment_metric"
-      )
+    dplyr::inner_join(activity_units_sector, by = "sector")
+
+  # add tech share by direction
+  data <- data %>%
+    add_technology_share_by_direction(level = level)
+
+  # calculate alignment metric
+  data <- data %>%
+    add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
+    add_total_deviation_sda() %>%
+    calculate_company_alignment_metric(scenario = scenario)  %>%
+    dplyr::arrange(
+      .data$group_id,
+      .data$sector,
+      .data$name_abcd,
+      .data$region,
+      .data$year
+    )
+
+  return(data)
+}
+
+prep_and_wrangle_aggregate_alignment_sda <- function(data,
+                                                     scenario_source,
+                                                     target_scenario,
+                                                     start_year,
+                                                     time_frame) {
+  data <- data %>%
+    dplyr::filter(.data$scenario_source == .env$scenario_source) %>%
+    dplyr::filter(.data$name_abcd != "market") %>%
+    dplyr::filter(.data$emission_factor_metric %in% c("projected", .env$target_scenario)) %>%
+    dplyr::filter(
+      dplyr::between(
+        .data$year,
+        left = .env$start_year,
+        right = .env$start_year + .env$time_frame)
     ) %>%
-    dplyr::arrange(.data$group_id, .data$sector, .data$name_abcd, .data$region, .data$year)
+    tidyr::pivot_wider(
+      names_from = "emission_factor_metric",
+      values_from = "emission_factor_value"
+    )
+
+  return(data)
+}
+
+add_total_deviation_sda <- function(data) {
+  data <- data %>%
+    dplyr::mutate(
+      total_deviation = (.data$projected - .data$net_absolute_scenario_value) * -1,
+      .by = c(
+        "group_id", "name_abcd", "scenario_source", "region", "sector", "activity_unit", "year"
+      )
+    )
 
   return(data)
 }
@@ -410,12 +450,14 @@ validate_input_calculate_company_tech_deviation <- function(data,
                                                             technology_direction,
                                                             scenario_source,
                                                             scenario,
-                                                            bridge_tech) {
+                                                            bridge_tech,
+                                                            time_frame) {
   # validate input values
   validate_input_args_calculate_company_tech_deviation(
     scenario_source = scenario_source,
     scenario = scenario,
-    bridge_tech = bridge_tech
+    bridge_tech = bridge_tech,
+    time_frame = time_frame
   )
 
   # validate input data sets
@@ -473,7 +515,8 @@ validate_input_calculate_company_tech_deviation <- function(data,
 
 validate_input_args_calculate_company_tech_deviation <- function(scenario_source,
                                                                  scenario,
-                                                                 bridge_tech) {
+                                                                 bridge_tech,
+                                                                 time_frame) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -491,6 +534,12 @@ validate_input_args_calculate_company_tech_deviation <- function(scenario_source
   }
   if (!inherits(bridge_tech, "character")) {
     stop("Argument bridge_tech must be of class character. Please check your input.")
+  }
+  if (!length(time_frame) == 1) {
+    stop("Argument time_frame must be of length 1. Please check your input.")
+  }
+  if (!inherits(time_frame, "integer")) {
+    stop("Argument time_frame must be of class integer Please check your input.")
   }
 
   invisible()
@@ -590,11 +639,13 @@ check_consistency_calculate_company_aggregate_alignment_tms <- function(data,
 
 validate_input_calculate_company_aggregate_alignment_sda <- function(data,
                                                                      scenario_source,
-                                                                     scenario) {
+                                                                     scenario,
+                                                                     time_frame) {
   # validate input values
   validate_input_args_calculate_company_aggregate_alignment_sda(
     scenario_source = scenario_source,
-    scenario = scenario
+    scenario = scenario,
+    time_frame = time_frame
   )
 
   # validate input data set
@@ -613,7 +664,8 @@ validate_input_calculate_company_aggregate_alignment_sda <- function(data,
 }
 
 validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenario_source,
-                                                                          scenario) {
+                                                                          scenario,
+                                                                          time_frame) {
   if (!length(scenario_source) == 1) {
     stop("Argument scenario_source must be of length 1. Please check your input.")
   }
@@ -624,7 +676,13 @@ validate_input_args_calculate_company_aggregate_alignment_sda <- function(scenar
     stop("Argument scenario must be of length 1. Please check your input.")
   }
   if (!inherits(scenario, "character")) {
+    stop("Argument scenario must be of class character. Please check your input.")
+  }
+  if (!length(time_frame) == 1) {
     stop("Argument scenario must be of length 1. Please check your input.")
+  }
+  if (!inherits(time_frame, "integer")) {
+    stop("Argument time_frame must be of class integer. Please check your input.")
   }
 
   invisible()

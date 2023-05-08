@@ -7,7 +7,8 @@
 calculate_company_aggregate_alignment_sda(
   data,
   scenario_source = "geco_2021",
-  scenario = "1.5c"
+  scenario = "1.5c",
+  time_frame = 5L
 )
 }
 \arguments{
@@ -19,6 +20,10 @@ the only supported value is \code{"geco_2021"}.}
 
 \item{scenario}{Character. Vector that indicates which scenario to calculate
 the alignment metric for. Must be a scenario available from \code{scenario_source}.}
+
+\item{time_frame}{Integer of length one. The number of forward looking years
+that should be considered in the analysis. Standard \code{time_frame} in PACTA
+is five years.}
 }
 \description{
 Return company level sector alignment metric for each company
