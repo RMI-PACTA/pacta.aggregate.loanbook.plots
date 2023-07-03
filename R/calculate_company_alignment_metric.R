@@ -480,7 +480,7 @@ validate_input_calculate_company_tech_deviation <- function(data,
     stop(
       paste0(
         "input value of `scenario` not matched to any sub string in
-        `data$metric`. You provided ", scenario_source,". Available values are: ",
+        `data$metric`. You provided ", scenario,". Available values are: ",
         data %>%
           dplyr::filter(grepl("target_", .data$metric)) %>%
           dplyr::pull(.data$metric) %>%
