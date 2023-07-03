@@ -71,7 +71,7 @@ create_benchmark_loanbook <- function(data,
     ) %>%
     dplyr::summarise(
       production_sector = sum(.data$production, na.rm = TRUE),
-      .by = c("company_id", "name_company", "lei", "code")
+      .by = c("company_id", "name_company", "lei", "code", "sector")
     )
 
   # create raw loan book of corporate benchmark according to standard PACTA for
@@ -95,6 +95,15 @@ create_benchmark_loanbook <- function(data,
     name_project = NA_character_,
     lei_direct_loantaker = benchmark_companies$lei,
     isin_direct_loantaker = NA_character_,
+    id_2dii = paste0("DL", benchmark_companies$company_id),
+    level = "direct_loantaker",
+    sector = benchmark_companies$sector,
+    sector_abcd = benchmark_companies$sector,
+    name = benchmark_companies$name_company,
+    name_abcd = benchmark_companies$name_company,
+    score = 1,
+    source = "loanbook",
+    borderline = FALSE,
     group_id = paste0("benchmark_corporate_economy_", benchmark_region)
   ) %>%
     tibble::rowid_to_column() %>%
