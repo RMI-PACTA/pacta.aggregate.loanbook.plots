@@ -7,6 +7,9 @@
 #' @param save_png_to Character. Path where the output in png format should be
 #'   saved
 #' @param png_name Character. File name of the output.
+#' @param nodes_order_from_data Logical. Flag indicating if nodes order should
+#'   be determined by an algorithm (in case of big datasets often results in a
+#'   better looking plot) or should they be ordered based on data.
 #'
 #' @return NULL
 #' @export
@@ -17,7 +20,8 @@ plot_sankey <- function(
     data,
     capitalise_node_labels = TRUE,
     save_png_to = NULL,
-    png_name = "sankey.png"
+    png_name = "sankey.png",
+    nodes_order_from_data = FALSE
     ) {
 
   check_plot_sankey(data, capitalise_node_labels)
@@ -31,7 +35,8 @@ plot_sankey <- function(
   } else {
     data_links <- data
   }
-  links <- data_links %>%
+
+  links_1 <- data_links %>%
     select(
       source = "group_id",
       target = "middle_node",
@@ -40,36 +45,37 @@ plot_sankey <- function(
       )
 
   if ("middle_node2" %in% names(data_links)) {
-    links <- data_links %>%
+    links_2 <- data_links %>%
       select(
         "group_id",
         source = "middle_node",
         target = "middle_node2",
         value = "loan_size_outstanding",
         group = "is_aligned"
-        ) %>%
-      bind_rows(links)
+        )
 
-    links <- data_links %>%
+    links_3 <- data_links %>%
       select(
         "group_id",
         source = "middle_node2",
         target = "is_aligned",
         value = "loan_size_outstanding",
         group = "is_aligned"
-        ) %>%
-      bind_rows(links) %>%
+        )
+
+    links <- bind_rows(links_1, links_2, links_3) %>%
       as.data.frame()
   } else {
-   links <- data_links %>%
+   links_2 <- data_links %>%
     select(
       "group_id",
       source = "middle_node",
       target = "is_aligned",
       value = "loan_size_outstanding",
       group = "is_aligned"
-      ) %>%
-    bind_rows(links) %>%
+      )
+
+   links <- bind_rows(links_1, links_2) %>%
     as.data.frame()
   }
 
@@ -89,6 +95,12 @@ plot_sankey <- function(
   links$IDsource <- match(links$source, nodes$name)-1
   links$IDtarget <- match(links$target, nodes$name)-1
 
+  if (nodes_order_from_data) {
+    n_iter <- 0
+  } else {
+    n_iter <- 32 #sankeyNetwork() default
+  }
+
   p <- networkD3::sankeyNetwork(
     Links = links,
     Nodes = nodes,
@@ -99,7 +111,8 @@ plot_sankey <- function(
     colourScale=my_color,
     LinkGroup="group",
     NodeGroup="group",
-    fontSize = 14
+    fontSize = 14,
+    iterations = n_iter
     )
 
   if (!is.null(save_png_to)) {
