@@ -63,8 +63,7 @@ plot_sankey <- function(
         group = "is_aligned"
         )
 
-    links <- bind_rows(links_1, links_2, links_3) %>%
-      as.data.frame()
+    links <- bind_rows(links_1, links_2, links_3)
   } else {
    links_2 <- data_links %>%
     select(
@@ -75,9 +74,15 @@ plot_sankey <- function(
       group = "is_aligned"
       )
 
-   links <- bind_rows(links_1, links_2) %>%
-    as.data.frame()
+   links <- bind_rows(links_1, links_2)
   }
+
+  links <- links %>%
+    group_by(.data$source, .data$target, .data$group) %>%
+    summarise(value = sum(.data$value, na.rm = TRUE)) %>%
+    ungroup() %>%
+    arrange(.data$source, .data$group) %>%
+    as.data.frame()
 
   # TODO: colour the companies if fully aligned or not
   nodes <- data.frame(
