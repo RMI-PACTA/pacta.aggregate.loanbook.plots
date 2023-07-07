@@ -32,6 +32,12 @@ plot_sankey <- function(
         group_id = r2dii.plot::to_title(.data$group_id),
         middle_node = r2dii.plot::to_title(.data$middle_node)
         )
+    if ("middle_node2" %in% names(data_links)) {
+    data_links <- data_links %>%
+      mutate(
+        middle_node2 = r2dii.plot::to_title(.data$middle_node2)
+      )
+      }
   } else {
     data_links <- data
   }
