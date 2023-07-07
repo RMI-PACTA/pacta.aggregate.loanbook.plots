@@ -54,7 +54,11 @@ prep_sankey <- function(
       ),
       middle_node =!! sym(middle_node)
       ) %>%
-    select("group_id", "middle_node", "is_aligned", "loan_size_outstanding")
+    select("group_id", "middle_node", "is_aligned", "loan_size_outstanding") %>%
+      group_by(.data$group_id, .data$middle_node, .data$is_aligned) %>%
+       summarise(loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)) %>%
+       ungroup() %>%
+      arrange(.data$group_id, .data$is_aligned)
   } else {
     data_out <- data_alignment %>%
     inner_join(matched_loanbook, by = c("group_id", "name_abcd", "sector")) %>%
@@ -67,7 +71,11 @@ prep_sankey <- function(
       middle_node =!! sym(middle_node),
       middle_node2 =!! sym(middle_node2)
       ) %>%
-    select("group_id", "middle_node", "middle_node2", "is_aligned", "loan_size_outstanding")
+    select("group_id", "middle_node", "middle_node2", "is_aligned", "loan_size_outstanding") %>%
+      group_by(.data$group_id, .data$middle_node, .data$middle_node2, .data$is_aligned) %>%
+       summarise(loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)) %>%
+       ungroup() %>%
+      arrange(.data$group_id, .data$is_aligned)
   }
   data_out
 }
