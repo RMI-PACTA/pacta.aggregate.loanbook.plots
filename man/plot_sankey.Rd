@@ -8,7 +8,8 @@ plot_sankey(
   data,
   capitalise_node_labels = TRUE,
   save_png_to = NULL,
-  png_name = "sankey.png"
+  png_name = "sankey.png",
+  nodes_order_from_data = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,10 @@ be converted into better looking capitalised form.}
 saved}
 
 \item{png_name}{Character. File name of the output.}
+
+\item{nodes_order_from_data}{Logical. Flag indicating if nodes order should
+be determined by an algorithm (in case of big datasets often results in a
+better looking plot) or should they be ordered based on data.}
 }
 \description{
 Make a sankey plot
