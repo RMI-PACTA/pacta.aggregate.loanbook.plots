@@ -2,17 +2,11 @@
 #'
 #' @param data data.frame. Holds output pf company indicators
 #' @param matched data.frame. Holds matched and prioritised loan book
-#' @param level Character. Vector that indicates if the aggregate alignment
-#'   metric should be returned based on the net technology deviations (`net`) or
-#'   disaggregated into buildout and phaseout technologies (`bo_po`).
 #'
 #' @return NULL
 #' @export
 aggregate_alignment_loanbook_exposure <- function(data,
-                                                  matched,
-                                                  level = c("net", "bo_po")) {
-  level <- rlang::arg_match(level)
-
+                                                  matched) {
   # validate input data sets
   validate_input_data_aggregate_alignment_loanbook_exposure(
     data = data,
@@ -44,16 +38,6 @@ aggregate_alignment_loanbook_exposure <- function(data,
       matched,
       by = c("group_id", "name_abcd", "sector")
     )
-
-  # if we aggregate to the buildout/phaseout level, we need to split the
-  # exposure weights according to the technology_share_by_direction.
-  # if we aggregate to the net level, we just keep the net exposure weights per company
-  if (level == "bo_po") {
-    aggregate_exposure_company <- aggregate_exposure_company %>%
-      dplyr::mutate(
-        exposure_weight = .data$exposure_weight * .data$technology_share_by_direction
-      )
-  }
 
   sector_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
     dplyr::group_by(.data$group_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
