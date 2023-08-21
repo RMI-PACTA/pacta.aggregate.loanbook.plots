@@ -101,3 +101,13 @@ test_that("number of identified companies equals unique list of companies in inp
     n_companies_input_phaseout
   )
 })
+
+test_that("net aggregate results have the same columns as buildout/phaseout aggregate results, plus three columns on loan exposure", {
+  exposure_columns <- c("sum_loan_size_outstanding", "sum_exposure_companies_aligned", "share_exposure_aligned")
+
+  expect_equal(
+    c(names(test_output_aggregate_alignment_loanbook_exposure_bopo), exposure_columns),
+    names(test_output_aggregate_alignment_loanbook_exposure_net)
+  )
+})
+
