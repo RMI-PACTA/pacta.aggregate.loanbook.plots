@@ -58,6 +58,9 @@ aggregate_alignment_loanbook_exposure <- function(data,
       share_companies_aligned = .data$n_companies_aligned / .data$n_companies
     )
 
+  # aggregate exposure of aligned companies can only be calculated reasonably
+  # for the net level, not the buildout/phaseout level since we cannot assume
+  # the loan is split based on output units.
   if (level == "net") {
     sector_aggregate_exposure_loanbook_summary_value <- aggregate_exposure_company %>%
       dplyr::mutate(
