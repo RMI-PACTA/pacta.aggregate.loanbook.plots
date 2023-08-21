@@ -56,20 +56,48 @@ test_that("aggregated net alignment equals sum of aggregated buildout and phaseo
   )
 })
 
-test_that("aggregated net loan size equals sum of aggregated buildout and phaseout loan size", {
-  expect_equal(
-    test_output_aggregate_alignment_loanbook_exposure_net$sum_loan_size_outstanding,
-    sum(test_output_aggregate_alignment_loanbook_exposure_bopo$sum_loan_size_outstanding, na.rm = TRUE)
-  )
-})
-
-test_that("aggregated loan size equals sum of matched loan size", {
-  expect_equal(
-    sum(test_output_aggregate_alignment_loanbook_exposure_bopo$sum_loan_size_outstanding, na.rm = TRUE),
-    sum(test_matched$loan_size_outstanding, na.rm = TRUE)
-  )
+test_that("net aggregated loan size equals sum of matched loan size", {
   expect_equal(
     sum(test_output_aggregate_alignment_loanbook_exposure_net$sum_loan_size_outstanding, na.rm = TRUE),
     sum(test_matched$loan_size_outstanding, na.rm = TRUE)
+  )
+})
+
+test_that("number of identified companies equals unique list of companies in input data", {
+  n_companies_input_net <- length(unique(test_data_aggregate_alignment_loanbook_exposure_net$name_abcd))
+
+  expect_equal(
+    test_output_aggregate_alignment_loanbook_exposure_net$n_companies,
+    n_companies_input_net
+  )
+})
+
+test_that("number of identified companies equals unique list of companies in input data", {
+  n_companies_input_buildout <- test_data_aggregate_alignment_loanbook_exposure_bopo %>%
+    dplyr::filter(.data$direction == "buildout") %>%
+    dplyr::distinct(.data$name_abcd) %>%
+    nrow()
+
+  n_output_buildout <- test_output_aggregate_alignment_loanbook_exposure_bopo %>%
+    dplyr::filter(.data$direction == "buildout") %>%
+    dplyr::pull(.data$n_companies)
+
+  expect_equal(
+    n_output_buildout,
+    n_companies_input_net
+  )
+
+  n_companies_input_phaseout <- test_data_aggregate_alignment_loanbook_exposure_bopo %>%
+    dplyr::filter(.data$direction == "phaseout") %>%
+    dplyr::distinct(.data$name_abcd) %>%
+    nrow()
+
+  n_output_phaseout <- test_output_aggregate_alignment_loanbook_exposure_bopo %>%
+    dplyr::filter(.data$direction == "phaseout") %>%
+    dplyr::pull(.data$n_companies)
+
+  expect_equal(
+    n_output_phaseout,
+    n_companies_input_phaseout
   )
 })
