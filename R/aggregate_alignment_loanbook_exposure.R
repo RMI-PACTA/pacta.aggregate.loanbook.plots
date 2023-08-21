@@ -46,22 +46,42 @@ aggregate_alignment_loanbook_exposure <- function(data,
   sector_aggregate_exposure_loanbook_summary <- aggregate_exposure_company %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
-      sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE),
       .by = group_vars
     ) %>%
     dplyr::mutate(
-      companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE),
-      exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
+      companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE)
     ) %>%
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
-      sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
-      .by = c(group_vars, "n_companies", "sum_loan_size_outstanding")
+      .by = c(group_vars, "n_companies")
     ) %>%
     dplyr::mutate(
-      share_companies_aligned = .data$n_companies_aligned / .data$n_companies,
-      share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
+      share_companies_aligned = .data$n_companies_aligned / .data$n_companies
     )
+
+  if (level == "net") {
+    sector_aggregate_exposure_loanbook_summary_value <- aggregate_exposure_company %>%
+      dplyr::mutate(
+        sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE),
+        .by = group_vars
+      ) %>%
+      dplyr::mutate(
+        exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
+      ) %>%
+      dplyr::summarise(
+        sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
+        .by = c(group_vars, "sum_loan_size_outstanding")
+      ) %>%
+      dplyr::mutate(
+        share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
+      )
+
+    sector_aggregate_exposure_loanbook_summary <- sector_aggregate_exposure_loanbook_summary %>%
+      dplyr::inner_join(
+        sector_aggregate_exposure_loanbook_summary_value,
+        by = group_vars
+      )
+  }
 
   # if a company only has technologies going in one direction in a sector with
   # high carbon and low carbon technologies, add an empty entry for the other
@@ -112,9 +132,8 @@ aggregate_alignment_loanbook_exposure <- function(data,
     ) %>%
     dplyr::relocate(
       c(
-        group_vars, "n_companies", "n_companies_aligned", "share_companies_aligned",
-        "sum_loan_size_outstanding", "sum_exposure_companies_aligned",
-        "share_exposure_aligned", "exposure_weighted_net_alignment"
+        group_vars, "n_companies", "n_companies_aligned",
+        "share_companies_aligned", "exposure_weighted_net_alignment"
       )
     ) %>%
     dplyr::arrange(.data$group_id, .data$scenario, .data$region, .data$sector, .data$year)
