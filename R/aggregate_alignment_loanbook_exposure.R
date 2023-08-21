@@ -11,7 +11,6 @@
 aggregate_alignment_loanbook_exposure <- function(data,
                                                   matched,
                                                   level = c("net", "bo_po")) {
-
   group_vars <- c("group_id", "scenario", "region", "sector", "year", "direction")
   level <- match.arg(level)
 
@@ -46,14 +45,14 @@ aggregate_alignment_loanbook_exposure <- function(data,
   sector_aggregate_exposure_loanbook_summary <- aggregate_exposure_company %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
-      .by = group_vars
+      .by = dplyr::all_of(group_vars)
     ) %>%
     dplyr::mutate(
       companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE)
     ) %>%
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
-      .by = c(group_vars, "n_companies")
+      .by = dplyr::all_of(c(group_vars, "n_companies"))
     ) %>%
     dplyr::mutate(
       share_companies_aligned = .data$n_companies_aligned / .data$n_companies
@@ -70,7 +69,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
       ) %>%
       dplyr::summarise(
         sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
-        .by = c(group_vars, "sum_loan_size_outstanding")
+        .by = dplyr::all_of(c(group_vars, "sum_loan_size_outstanding"))
       ) %>%
       dplyr::mutate(
         share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
@@ -90,15 +89,17 @@ aggregate_alignment_loanbook_exposure <- function(data,
     aggregate_exposure_company <- aggregate_exposure_company %>%
       dplyr::mutate(
         n_directions = dplyr::n(),
-        .by = c(
-          group_vars[!group_vars == "direction"], "name_abcd", "sector",
-          "activity_unit", "loan_size_outstanding_currency"
+        .by = dplyr::all_of(
+          c(
+            group_vars[!group_vars == "direction"], "name_abcd", "sector",
+            "activity_unit", "loan_size_outstanding_currency"
+          )
         )
       )
 
     single_direction <- aggregate_exposure_company %>%
       dplyr::filter(
-        n_directions == 1,
+        .data$n_directions == 1,
         .data$direction %in% c("buildout", "phaseout"),
         .data$sector %in% c("automotive", "hdv", "power")
       )
@@ -122,7 +123,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
   sector_aggregate_exposure_loanbook_alignment <- aggregate_exposure_company %>%
     dplyr::summarise(
       exposure_weighted_net_alignment = stats::weighted.mean(.data$alignment_metric, w = .data$exposure_weight, na.rm = TRUE),
-      .by = group_vars
+      .by = dplyr::all_of(group_vars)
     )
 
   out <- sector_aggregate_exposure_loanbook_summary %>%
