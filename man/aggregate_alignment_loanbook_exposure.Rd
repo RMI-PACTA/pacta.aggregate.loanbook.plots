@@ -4,12 +4,16 @@
 \alias{aggregate_alignment_loanbook_exposure}
 \title{Return loan book level aggregation of company alignment metrics by exposure}
 \usage{
-aggregate_alignment_loanbook_exposure(data, matched)
+aggregate_alignment_loanbook_exposure(data, matched, level = c("net", "bo_po"))
 }
 \arguments{
 \item{data}{data.frame. Holds output pf company indicators}
 
 \item{matched}{data.frame. Holds matched and prioritised loan book}
+
+\item{level}{Character. Vector that indicates if the aggreagte alignment
+metric should be returned based on the net technology deviations (\code{net}) or
+disaggregated into buildout and phaseout technologies (\code{bo_po}).}
 }
 \description{
 Return loan book level aggregation of company alignment metrics by exposure
