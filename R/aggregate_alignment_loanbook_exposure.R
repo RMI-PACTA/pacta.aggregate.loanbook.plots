@@ -2,7 +2,7 @@
 #'
 #' @param data data.frame. Holds output pf company indicators
 #' @param matched data.frame. Holds matched and prioritised loan book
-#' @param level Character. Vector that indicates if the aggreagte alignment
+#' @param level Character. Vector that indicates if the aggregate alignment
 #'   metric should be returned based on the net technology deviations (`net`) or
 #'   disaggregated into buildout and phaseout technologies (`bo_po`).
 #'
@@ -12,7 +12,7 @@ aggregate_alignment_loanbook_exposure <- function(data,
                                                   matched,
                                                   level = c("net", "bo_po")) {
   group_vars <- c("group_id", "scenario", "region", "sector", "year", "direction")
-  level <- match.arg(level)
+  level <- rlang::arg_match(level)
 
   # validate input data sets
   validate_input_data_aggregate_alignment_loanbook_exposure(
