@@ -84,7 +84,7 @@ test_that("number of identified companies equals unique list of companies in inp
 
   expect_equal(
     n_output_buildout,
-    n_companies_input_net
+    n_companies_input_buildout
   )
 
   n_companies_input_phaseout <- test_data_aggregate_alignment_loanbook_exposure_bopo %>%
