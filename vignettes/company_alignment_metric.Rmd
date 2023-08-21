@@ -143,11 +143,3 @@ $$y_{b,c,t}^* = \dfrac{\Delta total_{b,c,t}^*}{s_{b,c,t}}$$
 
 The company alignment metric for emissions intensity sectors $y_{b,c,t}^*$ follows a similar logic as the one for sectors with technology pathways, in that it measures the percent deviation of the emissions intensity in time $t$ for a company from its scenario-based emissions intensity at time $t$. Again, this means that $y_{b,c,t}^* = 0$ describes a company that is right on track with with its emissions intensity relative to the scenario-based value, whereas $y_{b,c,t}^* = 1$ means the emissions intensity is one hundred percent better (lower) than required by the scenario value and $y_{b,c,t}^* = -0.5$ means that the emissions intensity is fifty percent worse (higher) than implied by the scenario value. There is no disaggregation of emissions intensity based metrics, as these are calculated on the sector level to begin with.
 
-### 2.5 The technology share for weighting of build out and phase out
-
-In a later chapter, we discuss how to aggregate company level alignment metrics to the portfolio level. Given the need to calculate aggregations by build out and phase out technologies, we will need to be able to split company weights into
-$BO$ and $PO$ components. For that, we will need the company level information of the technology share of company $c$ for direction $d$ in sector $b$ at time $t$, which we calculate as:
-
-$$technology \: share_{b,c,d,t} = \dfrac{\sum_{\forall a \in b,d} p_{a,b,c,d,t}}{p_{b,c,t}}$$
-The technology share by direction is only used later when disaggregating the net alignment metric into the build out and phase out components as described in the section on [portfolio aggregated alignment metrics](https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/articles/loanbook_aggregated_alignment_metric.html).
-
