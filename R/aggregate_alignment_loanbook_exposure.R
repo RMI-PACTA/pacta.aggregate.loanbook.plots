@@ -11,33 +11,30 @@
 aggregate_alignment_loanbook_exposure <- function(data,
                                                   matched,
                                                   level = c("net", "bo_po")) {
+  group_vars <- c("group_id", "scenario", "region", "sector", "year", "direction")
   level <- rlang::arg_match(level)
 
   # validate input data sets
   validate_input_data_aggregate_alignment_loanbook_exposure(
     data = data,
-    matched = matched
+    matched = matched,
+    group_vars = group_vars
   )
 
   matched <- matched %>%
     dplyr::select(
-      c("group_id", "id_loan", "loan_size_outstanding", "loan_size_outstanding_currency", "name_abcd", "sector")
-    ) %>%
-    dplyr::group_by(
-      .data$group_id, .data$loan_size_outstanding_currency, .data$name_abcd, .data$sector
+      dplyr::all_of(
+        c("group_id", "id_loan", "loan_size_outstanding", "loan_size_outstanding_currency", "name_abcd", "sector")
+      )
     ) %>%
     dplyr::summarise(
       loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(
-      .data$group_id, .data$loan_size_outstanding_currency
+      .by = c("group_id", "loan_size_outstanding_currency", "name_abcd", "sector")
     ) %>%
     dplyr::mutate(
-      exposure_weight = .data$loan_size_outstanding / sum(.data$loan_size_outstanding, na.rm = TRUE)
-    ) %>%
-    dplyr::ungroup()
+      exposure_weight = .data$loan_size_outstanding / sum(.data$loan_size_outstanding, na.rm = TRUE),
+      .by = c("group_id", "loan_size_outstanding_currency")
+    )
 
   aggregate_exposure_company <- data %>%
     dplyr::inner_join(
@@ -45,50 +42,102 @@ aggregate_alignment_loanbook_exposure <- function(data,
       by = c("group_id", "name_abcd", "sector")
     )
 
-  # if we aggregate to the buildout/phaseout level, we need to split the
-  # exposure weights according to the technology_share_by_direction.
-  # if we aggregate to the net level, we just keep the net exposure weights per company
-  if (level == "bo_po") {
-    aggregate_exposure_company <- aggregate_exposure_company %>%
-      dplyr::mutate(
-        exposure_weight = .data$exposure_weight * .data$technology_share_by_direction
-      )
-  }
-
-  sector_aggregate_exposure_loanbook <- aggregate_exposure_company %>%
-    dplyr::group_by(.data$group_id, .data$region, .data$scenario, .data$sector, .data$year, .data$direction) %>%
+  sector_aggregate_exposure_loanbook_summary <- aggregate_exposure_company %>%
     dplyr::mutate(
       n_companies = dplyr::n(),
-      sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE)
+      .by = dplyr::all_of(group_vars)
     ) %>%
-    dplyr::ungroup() %>%
     dplyr::mutate(
-      companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE),
-      exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
-    ) %>%
-    dplyr::group_by(
-      .data$group_id, .data$n_companies, .data$sum_loan_size_outstanding,
-      .data$scenario, .data$region, .data$sector, .data$year, .data$direction
+      companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, TRUE, FALSE)
     ) %>%
     dplyr::summarise(
       n_companies_aligned = sum(.data$companies_aligned, na.rm = TRUE),
-      sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
-      exposure_weighted_net_alignment = stats::weighted.mean(.data$alignment_metric, w = .data$exposure_weight, na.rm = TRUE),
-      .groups = "drop"
+      .by = dplyr::all_of(c(group_vars, "n_companies"))
     ) %>%
-    dplyr::ungroup() %>%
     dplyr::mutate(
-      share_companies_aligned = .data$n_companies_aligned / .data$n_companies,
-      share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
+      share_companies_aligned = .data$n_companies_aligned / .data$n_companies
     )
 
-  out <- sector_aggregate_exposure_loanbook %>%
+  # aggregate exposure of aligned companies can only be calculated reasonably
+  # for the net level, not the buildout/phaseout level since we cannot assume
+  # the loan is split based on output units.
+  if (level == "net") {
+    sector_aggregate_exposure_loanbook_summary_value <- aggregate_exposure_company %>%
+      dplyr::mutate(
+        sum_loan_size_outstanding = sum(.data$loan_size_outstanding, na.rm = TRUE),
+        .by = group_vars
+      ) %>%
+      dplyr::mutate(
+        exposure_companies_aligned = dplyr::if_else(.data$alignment_metric >= 0, .data$loan_size_outstanding, 0)
+      ) %>%
+      dplyr::summarise(
+        sum_exposure_companies_aligned = sum(.data$exposure_companies_aligned, na.rm = TRUE),
+        .by = dplyr::all_of(c(group_vars, "sum_loan_size_outstanding"))
+      ) %>%
+      dplyr::mutate(
+        share_exposure_aligned = .data$sum_exposure_companies_aligned / .data$sum_loan_size_outstanding
+      )
+
+    sector_aggregate_exposure_loanbook_summary <- sector_aggregate_exposure_loanbook_summary %>%
+      dplyr::inner_join(
+        sector_aggregate_exposure_loanbook_summary_value,
+        by = group_vars
+      )
+  }
+
+  # if a company only has technologies going in one direction in a sector with
+  # high carbon and low carbon technologies, add an empty entry for the other
+  # direction to ensure the aggregation is correct
+  if (level == "bo_po") {
+    aggregate_exposure_company <- aggregate_exposure_company %>%
+      dplyr::mutate(
+        n_directions = dplyr::n(),
+        .by = dplyr::all_of(
+          c(
+            group_vars[!group_vars == "direction"], "name_abcd", "sector",
+            "activity_unit", "loan_size_outstanding_currency"
+          )
+        )
+      )
+
+    single_direction <- aggregate_exposure_company %>%
+      dplyr::filter(
+        .data$n_directions == 1,
+        .data$direction %in% c("buildout", "phaseout"),
+        .data$sector %in% c("automotive", "hdv", "power")
+      )
+
+    opposite_direction <- single_direction %>%
+      dplyr::mutate(
+        direction = dplyr::if_else(
+          .data$direction == "buildout",
+          "phaseout",
+          "buildout"
+        ),
+        total_deviation = 0,
+        alignment_metric = 0
+      )
+
+    aggregate_exposure_company <- aggregate_exposure_company %>%
+      bind_rows(opposite_direction) %>%
+      dplyr::select(-"n_directions")
+  }
+
+  sector_aggregate_exposure_loanbook_alignment <- aggregate_exposure_company %>%
+    dplyr::summarise(
+      exposure_weighted_net_alignment = stats::weighted.mean(.data$alignment_metric, w = .data$exposure_weight, na.rm = TRUE),
+      .by = dplyr::all_of(group_vars)
+    )
+
+  out <- sector_aggregate_exposure_loanbook_summary %>%
+    dplyr::inner_join(
+      sector_aggregate_exposure_loanbook_alignment,
+      by = group_vars
+    ) %>%
     dplyr::relocate(
       c(
-        "group_id", "scenario", "region", "sector", "year", "direction",
-        "n_companies", "n_companies_aligned", "share_companies_aligned",
-        "sum_loan_size_outstanding", "sum_exposure_companies_aligned",
-        "share_exposure_aligned", "exposure_weighted_net_alignment"
+        group_vars, "n_companies", "n_companies_aligned",
+        "share_companies_aligned", "exposure_weighted_net_alignment"
       )
     ) %>%
     dplyr::arrange(.data$group_id, .data$scenario, .data$region, .data$sector, .data$year)
@@ -97,12 +146,12 @@ aggregate_alignment_loanbook_exposure <- function(data,
 }
 
 validate_input_data_aggregate_alignment_loanbook_exposure <- function(data,
-                                                                      matched) {
+                                                                      matched,
+                                                                      group_vars) {
   validate_data_has_expected_cols(
     data = data,
     expected_columns <- c(
-      "group_id", "name_abcd", "sector", "activity_unit", "region",
-      "scenario_source", "scenario", "year", "direction", "alignment_metric"
+      group_vars, "name_abcd", "activity_unit", "scenario_source", "alignment_metric"
     )
   )
 
