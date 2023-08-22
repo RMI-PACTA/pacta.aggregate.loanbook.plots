@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/headshot_placeholder.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><link href="../deps/Overpass-0.4.6/font.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><link href="../deps/Overpass-0.4.7/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Calculation of exposure-weighted aggregated alignment metric">
@@ -126,21 +126,7 @@ given loan book is calculated as follows:</p>
 outstanding) of bank <span class="math inline">\(n\)</span> to company
 <span class="math inline">\(c\)</span> in sector <span class="math inline">\(b\)</span>, at time <span class="math inline">\(t
 = 0\)</span>:</p>
-<p><span class="math display">\[l_{n,b,c,t = 0}\]</span> In aggregating
-the buildout/phaseout values, an approximation of how the loan exposure
-is split between the buildout/phaseout technologies within a sector is
-made based on the technology share and is calculated as follows:</p>
-<p><span class="math display">\[l_{n,b,c,d,t = 0} = l_{n,b,c,t = 0}
-\times technology \: share_{b,c,d,t = 5}\]</span></p>
-<p>The technology share is calculated based on the company’s production
-plan values 5 years forward looking. This reflects splitting the loan by
-the company’s planned future technology mix in <span class="math inline">\(t=5\)</span>. This is preferred over taking the
-technology share at the start year as this may lead to loans not being
-split if a company has no technology capacity in the start year but
-ambitious buildout plans for year 5. Moreover, for a company that plans
-to build out capacity for a given technology beyond the start year to
-appear in the asset based company-level data set they will have
-committed capital towards it in the start year.</p>
+<p><span class="math display">\[l_{n,b,c,t = 0}\]</span></p>
 </div>
 <div class="section level3">
 <h3 id="aggregating-the-companysector-level-metric-to-the-loan-booksector-level">2.2 Aggregating the company/sector level metric to the loan
@@ -154,7 +140,7 @@ y_{b,c,t}\]</span></p>
 <p>Where applicable the exposure-weighted buildout/phaseout-alignment
 metric can be calculated as:</p>
 <p><span class="math display">\[Y_{n,b,d,t} =
-\dfrac{l_{n,b,c,d,t=0}}{\sum_{c} l_{n,b,c,d,t=0}} \times
+\dfrac{l_{n,b,c,t=0}}{\sum_{c} l_{n,b,c,t=0}} \times
 y_{b,c,d,t}\]</span></p>
 <div class="section level4">
 <h4 id="interpretation">Interpretation:<a class="anchor" aria-label="anchor" href="#interpretation"></a>
@@ -166,9 +152,9 @@ high-level summary of the alignment in a given loan book and is meant as
 a prompt for further analysis at more granular levels, especially as an
 entry into standard PACTA analysis and its metrics as laid out <a href="https://rmi-pacta.github.io/r2dii.analysis/articles/r2dii-analysis.html" class="external-link">here</a>.</p>
 <p>Note that this value will be driven largely by the exposure to the
-relevant companies in the loan book. hence a positive value does not
+relevant companies in the loan book. Hence, a positive value does not
 immediately imply the unweighted sum of the counterparties activities is
-aligned with a given scenario. Instead the exposure-weighted result
+aligned with a given scenario. Instead, the exposure-weighted result
 might be driven by one or more particularly well-performing companies,
 to which the loan book has significant exposures.</p>
 <p>Note also that a disaggregation to the buildout and phaseout levels
