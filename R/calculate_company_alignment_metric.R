@@ -244,9 +244,11 @@ calculate_company_aggregate_alignment_tms <- function(data,
   target_scenario <- paste0("target_", scenario)
   level <- match.arg(level)
 
-  # add tech share by direction
-  data <- data %>%
-    add_technology_share_by_direction(level = level)
+  # check direction
+  if (level == "net") {
+    data <- data %>%
+      dplyr::mutate(direction = .env$level)
+  }
 
   # calculate alignment metric
   data <- data %>%
@@ -260,37 +262,6 @@ calculate_company_aggregate_alignment_tms <- function(data,
       .data$region,
       .data$year
     )
-
-  return(data)
-}
-
-add_technology_share_by_direction <- function(data,
-                                              level = c("net", "bo_po")) {
-  if (level == "bo_po") {
-    # when applying the buildout/phaseout calculation, the technology share is
-    # split within a sector, based on the production share in buildout and
-    # phaseout technologies
-    data <- data %>%
-      dplyr::mutate(
-        prod_sector = sum(.data$projected, na.rm = TRUE),
-        .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "activity_unit")
-      ) %>%
-      dplyr::mutate(
-        technology_share_by_direction = sum(.data$projected, na.rm = TRUE) / .data$prod_sector,
-        .by = c("sector", "year", "region", "scenario_source", "name_abcd", "group_id", "direction", "activity_unit")
-      ) %>%
-      dplyr::select(-"prod_sector")
-  } else if (level == "net") {
-    # when applying the net calculation, there is only one direction, hence the
-    # share includes all technologies and is always 1.
-    data <- data %>%
-      dplyr::mutate(
-        direction = .env$level,
-        technology_share_by_direction = 1
-      )
-  } else {
-    stop("Invalid input provided for argument: level.")
-  }
 
   return(data)
 }
@@ -315,8 +286,7 @@ add_total_deviation <- function(data) {
       total_deviation = sum(.data$total_tech_deviation, na.rm = TRUE),
       .by = c(
         "group_id", "name_abcd", "scenario_source", "region", "sector",
-        "activity_unit", "year", "net_absolute_scenario_value", "direction",
-        "technology_share_by_direction"
+        "activity_unit", "year", "net_absolute_scenario_value", "direction"
       )
     )
 
@@ -334,7 +304,7 @@ calculate_company_alignment_metric <- function(data,
       c(
         "group_id", "name_abcd", "sector", "activity_unit", "region",
         "scenario_source", "scenario", "year", "direction", "total_deviation",
-        "technology_share_by_direction", "alignment_metric"
+        "alignment_metric"
       )
     )
 
@@ -372,8 +342,6 @@ calculate_company_aggregate_alignment_sda <- function(data,
   start_year <- min(data$year, na.rm = TRUE)
   # standard forward looking PACTA time frame
   target_scenario <- paste0("target_", scenario)
-  # since sda sectors are not split into technologies, the level is always: "net"
-  level <- "net"
 
   # prep and wrangle
   data <- data %>%
@@ -390,10 +358,6 @@ calculate_company_aggregate_alignment_sda <- function(data,
 
   data <- data %>%
     dplyr::inner_join(activity_units_sector, by = "sector")
-
-  # add tech share by direction
-  data <- data %>%
-    add_technology_share_by_direction(level = level)
 
   # calculate alignment metric
   data <- data %>%
@@ -429,7 +393,9 @@ prep_and_wrangle_aggregate_alignment_sda <- function(data,
     tidyr::pivot_wider(
       names_from = "emission_factor_metric",
       values_from = "emission_factor_value"
-    )
+    ) %>%
+    # sda sectors are not split into technologies, so direction is always: "net"
+    dplyr::mutate(direction = "net")
 
   return(data)
 }
