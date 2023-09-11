@@ -256,10 +256,13 @@ test_that("total_tech_deviation is less or equal 0 for all technologies in bridg
 
 # calculate_company_aggregate_alignment_tms----
 # styler: off
+# TODO: add a case of a pure phaseout sector
 test_data_calculate_company_aggregate_alignment_tms <- tibble::tribble(
-  ~sector,     ~technology, ~year,  ~region, ~scenario_source,     ~name_abcd,    ~group_id, ~projected, ~target_scenario, ~direction, ~total_tech_deviation, ~activity_unit,
-  "power",        "gascap",  2027, "global",    "test_source", "test_company", "test_group",        100,               80, "phaseout",                   -20,           "MW",
-  "power", "renewablescap",  2027, "global",    "test_source", "test_company", "test_group",         32,               40, "buildout",                    -8,           "MW"
+  ~sector,     ~technology, ~year,  ~region, ~scenario_source,       ~name_abcd,    ~group_id, ~projected, ~target_scenario, ~direction, ~total_tech_deviation, ~activity_unit,
+  "power",        "gascap",  2027, "global",    "test_source",   "test_company", "test_group",        100,               80, "phaseout",                   -20,           "MW",
+  "power", "renewablescap",  2027, "global",    "test_source",   "test_company", "test_group",         32,               40, "buildout",                    -8,           "MW",
+  # additional case where a company is only active in one of the two directions (# 89)
+  "power", "renewablescap",  2027, "global",    "test_source", "test_company_2", "test_group",         50,               75, "buildout",                   -25,           "MW"
 )
 # styler: on
 
@@ -282,13 +285,35 @@ test_output_calculate_company_aggregate_alignment_tms_2 <- calculate_company_agg
 )
 
 # TODO: add expectations for the actual output values
-test_that("calculate_company_aggregate_alignment_tms returns expected outputs", {
-  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$direction, c("net"))
-  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_1), length(unique(test_data_calculate_company_aggregate_alignment_tms$name_abcd)))
-  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$total_deviation, sum(test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation))
-  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$direction, test_data_calculate_company_aggregate_alignment_tms$direction)
-  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_2), 2 * length(unique(test_data_calculate_company_aggregate_alignment_tms$name_abcd)))
-  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$total_deviation, test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation)
+test_that("calculate_company_aggregate_alignment_tms returns expected directions", {
+  expect_equal(sort(unique(test_output_calculate_company_aggregate_alignment_tms_1$direction)), c("net"))
+  expect_equal(sort(unique(test_output_calculate_company_aggregate_alignment_tms_2$direction)), c("buildout", "phaseout"))
+})
+
+# number of units analysed
+n_groups_net <- test_data_calculate_company_aggregate_alignment_tms %>%
+  dplyr::distinct(
+    .data$group_id, .data$name_abcd, .data$scenario_source, .data$region,
+    .data$year, .data$sector, .data$activity_unit
+  ) %>%
+  nrow()
+n_groups_bopo <- n_groups_net * 2
+
+test_that("calculate_company_aggregate_alignment_tms returns expected number of rows", {
+  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_1), n_groups_net)
+  expect_equal(nrow(test_output_calculate_company_aggregate_alignment_tms_2), n_groups_bopo)
+})
+
+test_that("calculate_company_aggregate_alignment_tms returns coorect number of rows with expected directions (# 89)", {
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$direction, rep("net", n_groups_net))
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$direction, rep(c("buildout", "phaseout"), n_groups_bopo / 2))
+})
+
+test_that("calculate_company_aggregate_alignment_tms returns expected values", {
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$total_deviation, c(-28, -25))
+  # expect_equal(test_output_calculate_company_aggregate_alignment_tms_1$total_deviation, sum(test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation))
+  expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$total_deviation, c(-8, -20, -25, 0))
+  # expect_equal(test_output_calculate_company_aggregate_alignment_tms_2$total_deviation, test_data_calculate_company_aggregate_alignment_tms$total_tech_deviation)
 })
 
 ## check_consistency_calculate_company_aggregate_alignment_tms----
