@@ -15,7 +15,7 @@ calculate_company_aggregate_alignment_tms(
 \arguments{
 \item{data}{data.frame. Holds company-technology deviations based on PACTA
 for Banks TMS results. Must have been calculated according to the
-green/brown logic of the CA100+ calculation.}
+increasing/decreasing logic of the CA100+ calculation.}
 
 \item{scenario_source}{Character. Vector that indicates which scenario_source
 to use for reference in the calculation of the alignment metrics. Currently,

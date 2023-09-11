@@ -3,7 +3,7 @@
 #' production trajectory sectors.
 #'
 #' @param data data.frame. Holds the PACTA for Banks TMS results. Must have been
-#'   calculated according to the green/brown logic of the CA100+ calculation
+#'   calculated according to the increasing/decreasing logic of the CA100+ calculation
 #'   and must return unweighted company level TMSR results.
 #' @param technology_direction data frame that indicates which technologies are
 #'   to be considered phase down technologies versus build out technologies
@@ -217,7 +217,7 @@ apply_bridge_technology_cap <- function(data,
 #'
 #' @param data data.frame. Holds company-technology deviations based on PACTA
 #'   for Banks TMS results. Must have been calculated according to the
-#'   green/brown logic of the CA100+ calculation.
+#'   increasing/decreasing logic of the CA100+ calculation.
 #' @param scenario_source Character. Vector that indicates which scenario_source
 #'   to use for reference in the calculation of the alignment metrics. Currently,
 #'   the only supported value is `"geco_2021"`.
