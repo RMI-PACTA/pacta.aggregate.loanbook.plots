@@ -17,7 +17,7 @@ calculate_company_tech_deviation(
 }
 \arguments{
 \item{data}{data.frame. Holds the PACTA for Banks TMS results. Must have been
-calculated according to the green/brown logic of the CA100+ calculation
+calculated according to the increasing/decreasing logic of the CA100+ calculation
 and must return unweighted company level TMSR results.}
 
 \item{technology_direction}{data frame that indicates which technologies are
