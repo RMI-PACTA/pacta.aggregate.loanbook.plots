@@ -254,13 +254,23 @@ calculate_company_aggregate_alignment_tms <- function(data,
   data <- data %>%
     add_net_absolute_scenario_value(target_scenario = target_scenario) %>%
     add_total_deviation() %>%
-    calculate_company_alignment_metric(scenario = scenario)  %>%
+    calculate_company_alignment_metric(scenario = scenario)
+
+  # add zero values where companies have missing buildout/phaseout directions (# 89)
+  if (level == "bo_po") {
+    data <- data %>%
+      fill_missing_direction()
+  }
+
+  # arrange output
+  data <- data %>%
     dplyr::arrange(
       .data$group_id,
       .data$sector,
       .data$name_abcd,
       .data$region,
-      .data$year
+      .data$year,
+      .data$direction
     )
 
   return(data)
@@ -311,6 +321,21 @@ calculate_company_alignment_metric <- function(data,
   return(data)
 }
 
+fill_missing_direction <- function(data) {
+  data <- data %>%
+    tidyr::complete(
+      tidyr::nesting(
+        group_id, name_abcd, sector, activity_unit, region, scenario_source, scenario, year
+      ),
+      .data$direction,
+      fill = list(
+        total_deviation = 0,
+        alignment_metric = 0
+      )
+    )
+
+  return(data)
+}
 
 #' Return company level sector alignment metric for each company
 #'
