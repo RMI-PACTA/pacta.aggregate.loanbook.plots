@@ -259,16 +259,7 @@ calculate_company_aggregate_alignment_tms <- function(data,
   # add zero values where companies have missing buildout/phaseout directions (# 89)
   if (level == "bo_po") {
     data <- data %>%
-      tidyr::complete(
-        tidyr::nesting(
-          group_id, name_abcd, sector, activity_unit, region, scenario_source, scenario, year
-        ),
-        direction,
-        fill = list(
-          total_deviation = 0,
-          alignment_metric = 0
-        )
-      )
+      fill_missing_direction()
   }
 
   # arrange output
@@ -330,6 +321,21 @@ calculate_company_alignment_metric <- function(data,
   return(data)
 }
 
+fill_missing_direction <- function(data) {
+  data <- data %>%
+    tidyr::complete(
+      tidyr::nesting(
+        group_id, name_abcd, sector, activity_unit, region, scenario_source, scenario, year
+      ),
+      .data$direction,
+      fill = list(
+        total_deviation = 0,
+        alignment_metric = 0
+      )
+    )
+
+  return(data)
+}
 
 #' Return company level sector alignment metric for each company
 #'
