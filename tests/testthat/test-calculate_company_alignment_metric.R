@@ -426,6 +426,34 @@ test_that("calculate_company_alignment_metric calculates company alignment metri
   )
 })
 
+## fill_missing_direction (# 89)----
+# styler: off
+test_data_fill_missing_direction <- tibble::tribble(
+     ~group_id,       ~name_abcd, ~sector, ~activity_unit,  ~region, ~scenario_source,  ~scenario, ~year, ~direction, ~total_deviation, ~alignment_metric,
+  "test_group", "test_company_1", "power",           "MW", "global",    "test_source", "scenario",  2027, "buildout",               -1,              -0.5,
+  "test_group", "test_company_2", "power",           "MW", "global",    "test_source", "scenario",  2027, "phaseout",                1,               0.1
+)
+# styler: on
+
+test_output_fill_missing_direction <- fill_missing_direction(
+  data = test_data_fill_missing_direction
+)
+
+# number of units of analysis
+n_units <- test_data_fill_missing_direction %>%
+  dplyr::distinct(
+    .data$group_id, .data$name_abcd, .data$scenario_source, .data$region,
+    .data$year, .data$sector, .data$activity_unit
+  ) %>%
+  nrow()
+
+test_that("fill_missing_direction returns both directions for all units of analysis (# 89)", {
+  expect_equal(
+    test_output_fill_missing_direction$direction,
+    rep(c("buildout", "phaseout"), n_units)
+  )
+})
+
 # calculate_company_aggregate_alignment_sda----
 # styler: off
 test_data_calculate_company_aggregate_alignment_sda <- tibble::tribble(
