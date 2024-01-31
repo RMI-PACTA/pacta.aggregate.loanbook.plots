@@ -38,7 +38,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-Config/Needs/website: rmi-pacta/pacta.pkgdown.template
+Config/Needs/website: rmi-pacta/pacta.pkgdown.rmitemplate
 VignetteBuilder: knitr
 URL: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/
 Config/testthat/edition: 3
