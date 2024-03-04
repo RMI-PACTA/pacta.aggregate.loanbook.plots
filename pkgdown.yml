@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   company_alignment_metric: company_alignment_metric.html
   loanbook_aggregated_alignment_metric: loanbook_aggregated_alignment_metric.html
-last_built: 2024-03-01T16:51Z
+last_built: 2024-03-04T09:40Z
 urls:
   reference: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/reference
   article: https://rmi-pacta.github.io/pacta.aggregate.loanbook.plots/articles

@@ -104,7 +104,7 @@ comparison and</li>
 <li>aggregations to the bank group level, to understand patterns common
 to different types of financial institutions.</li>
 </ol>
-<p>Any other level of anylsis can be investigated too, using this same
+<p>Any other level of analysis can be investigated too, using this same
 approach.</p>
 </div>
 </div>
@@ -113,10 +113,10 @@ approach.</p>
 </h2>
 <p>To obtain a loan book level aggregation of the company alignment
 metric, the portfolio weight approach is applied. The exposure weights
-for each company are derived by dividing the total drawn amount (debt
-outstanding) loan value as a proportion of the loans to the sector. This
-assumes the drawn loan amount goes fully towards activity in the given
-sector.<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;Company activity across multiple PACTA sectors can be
+for each company in the loan book are derived by dividing the loan value
+(drawn amount or debt outstanding) of a counterparty by the total loan
+value of the matched loan book. This assumes the drawn loan amount goes
+fully towards activity in the given sector.<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;Company activity across multiple PACTA sectors can be
 taken into account using the following approach for &lt;a href="https://github.com/RMI-PACTA/workflow.aggregate.loanbooks#optional-calculate-sector-splits-for-multi-sector-energy-companies" class="external-link"&gt;splitting
 loans in general&lt;/a&gt; and &lt;a href="https://github.com/RMI-PACTA/workflow.aggregate.loanbooks#methodological-note-sector-split-for-energy-companies" class="external-link"&gt;production
 based splits for energy companies&lt;/a&gt;.&lt;/p&gt;'><sup>1</sup></a></p>
@@ -126,31 +126,38 @@ based splits for energy companies&lt;/a&gt;.&lt;/p&gt;'><sup>1</sup></a></p>
 <p>The exposure-weighted net (or buildout/phaseout) alignment for a
 given loan book is calculated as follows:</p>
 <p>Loan exposure <span class="math inline">\(l\)</span> (debt
-outstanding) of bank <span class="math inline">\(n\)</span> to company
-<span class="math inline">\(c\)</span> in sector <span class="math inline">\(b\)</span>, at time <span class="math inline">\(t
+outstanding) of bank (or loan book) <span class="math inline">\(n\)</span> to company <span class="math inline">\(c\)</span> in sector <span class="math inline">\(b\)</span>, at time <span class="math inline">\(t
 = 0\)</span>:</p>
 <p><span class="math display">\[l_{n,b,c,t = 0}\]</span></p>
 </div>
 <div class="section level3">
-<h3 id="aggregating-the-companysector-level-metric-to-the-loan-booksector-level">2.2 Aggregating the company/sector level metric to the loan
-book/sector level<a class="anchor" aria-label="anchor" href="#aggregating-the-companysector-level-metric-to-the-loan-booksector-level"></a>
+<h3 id="aggregating-the-companysector-level-metric-to-the-loan-book-by-sector-level">2.2 Aggregating the company/sector level metric to the loan book by
+sector level<a class="anchor" aria-label="anchor" href="#aggregating-the-companysector-level-metric-to-the-loan-book-by-sector-level"></a>
 </h3>
-<p>Giving the exposure-weighted net alignment metric <span class="math inline">\(Y\)</span> at the loan book/sector level, as
-follows:</p>
-<p><span class="math display">\[Y_{n,b,t} =
-\dfrac{l_{n,b,c,t=0}}{\sum_{c} l_{n,b,c,t=0}} \times
-y_{b,c,t}\]</span></p>
-<p>Where applicable the exposure-weighted buildout/phaseout-alignment
-metric can be calculated as:</p>
-<p><span class="math display">\[Y_{n,b,d,t} =
-\dfrac{l_{n,b,c,t=0}}{\sum_{c} l_{n,b,c,t=0}} \times
+<p>We derive the exposure-weighted company net alignment metric <span class="math inline">\(Y\)</span> at the by sector:</p>
+<p><span class="math display">\[Y_{n,b,c,t} =
+\dfrac{l_{n,b,c,t=0}}{\sum_{b,c} l_{n,b,c,t=0}} \times
+y_{b,c,t}\]</span> Finally, the exposure-weighted net alignment metric
+<span class="math inline">\(Y\)</span> at the loan book by sector level
+follows as:</p>
+<p><span class="math display">\[Y_{n,b,t} = \sum_{c} Y_{n,b,c,t}
+\]</span></p>
+<p>Where applicable, we obtain the exposure-weighted
+buildout/phaseout-alignment metric for each company as:</p>
+<p><span class="math display">\[Y_{n,b,c,d,t} =
+\dfrac{l_{n,b,c,t=0}}{\sum_{b,c} l_{n,b,c,t=0}} \times
 y_{b,c,d,t}\]</span></p>
+<p>And correspondingly, the exposure-weighted
+buildout/phaseout-alignment metric can be calculated for the loan book
+level as:</p>
+<p><span class="math display">\[Y_{n,b,d,t} = \sum_{c} Y_{n,b,c,d,t}
+\]</span></p>
 <div class="section level4">
 <h4 id="interpretation">Interpretation:<a class="anchor" aria-label="anchor" href="#interpretation"></a>
 </h4>
 <p>The exposure-weighted net aggregate alignment metric <span class="math inline">\(Y_{n,b,t}\)</span> tells us if the activities of
-the companies that a loan book is exposed to are, on aggregate, aligned
-with the scenario-based values for each of the companies in <span class="math inline">\(t = 5\)</span>. This should be read as a
+the companies that a loan book is exposed to in <span class="math inline">\(t = 0\)</span> are, on aggregate, aligned with the
+scenario-based values for each of the companies in <span class="math inline">\(t = 5\)</span>. This should be read as a
 high-level summary of the alignment in a given loan book and is meant as
 a prompt for further analysis at more granular levels, especially as an
 entry into standard PACTA analysis and its metrics as laid out <a href="https://rmi-pacta.github.io/r2dii.analysis/articles/r2dii-analysis.html" class="external-link">here</a>.</p>
