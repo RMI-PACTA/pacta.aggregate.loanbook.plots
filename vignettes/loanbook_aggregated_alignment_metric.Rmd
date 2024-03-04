@@ -26,7 +26,7 @@ The aggregations described below can be made at any defined level of a loan book
 (1) aggregations to the bank level, to facilitate bank-by-bank comparison and 
 (2) aggregations to the bank group level, to understand patterns common to different types of financial institutions.
 
-Any other level of anylsis can be investigated too, using this same approach.
+Any other level of analysis can be investigated too, using this same approach.
 
 
 ## 2. Exposure-weighted aggregated alignment metric
